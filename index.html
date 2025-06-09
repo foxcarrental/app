@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Available Cars</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* CSS from admin.html's style block goes here */
+    :root {
+      --primary: #4361ee;
+      --primary-dark: #3a56d4;
+      --secondary: #7209b7;
+      --success: #4cc9f0;
+      --light: #f8f9fa;
+      --dark: #212529;
+      --gray: #6c757d;
+      --light-gray: #e9ecef;
+      --border: #dee2e6;
+      --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+      color: var(--dark);
+      min-height: 100vh;
+      padding: 20px;
+      display: flex; /* Added for centering content */
+      justify-content: center; /* Added for centering content */
+      align-items: flex-start; /* Aligns content to the top within flex container */
+    }
+
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 16px; /* Increased border-radius for consistency */
+      box-shadow: var(--card-shadow);
+      width: 100%;
+      max-width: 1200px;
+      text-align: center;
+      transition: var(--transition); /* Added transition */
+    }
+
+    .container:hover { /* Added hover effect */
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      font-weight: 700;
+      font-size: 28px;
+      background: linear-gradient(to right, var(--primary), var(--secondary));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 30px;
+    }
+
+    .admin-login-link { /* Styled the admin link */
+        display: block;
+        margin-bottom: 20px;
+        text-align: right;
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 600;
+        transition: var(--transition);
+    }
+
+    .admin-login-link:hover {
+        color: var(--primary-dark);
+        transform: translateX(5px);
+    }
+
+    .filters {
+      margin-bottom: 25px; /* Adjusted margin */
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filters label {
+      font-weight: 500; /* Adjusted font-weight */
+      margin-right: 5px;
+      color: var(--gray); /* Applied gray color */
+      display: flex; /* To align icon with label */
+      align-items: center;
+      gap: 8px; /* Space between icon and text */
+    }
+
+    .filters select {
+      width: 100%; /* Make select full width within its flex item */
+      max-width: 200px; /* Limit max width */
+      padding: 14px 20px; /* Adjusted padding */
+      border: 2px solid var(--light-gray); /* Styled border */
+      border-radius: 12px; /* Rounded corners */
+      font-size: 16px; /* Adjusted font size */
+      transition: var(--transition);
+      background: #fafbfc; /* Light background */
+      appearance: none; /* Remove default select arrow */
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%20197.6L146.2%2056.8%205.4%20197.6c-6.8%206.8-6.8%2017.9%200%2024.7s17.9%206.8%2024.7%200L146.2%20106.2l116.1%20116.1c6.8%206.8%2017.9%206.8%2024.7%200s6.8-17.9%200-24.7z%22%2F%3E%3C%2Fsvg%3E');
+      background-repeat: no-repeat;
+      background-position: right 15px top 50%;
+      background-size: 12px auto;
+    }
+
+    .filters select:focus {
+      border-color: var(--primary);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+    }
+
+    .car-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 30px; /* Increased gap */
+    }
+
+    .car-card {
+      background: white;
+      border-radius: 16px; /* Increased border-radius */
+      box-shadow: var(--card-shadow);
+      padding: 30px; /* Increased padding */
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: var(--transition);
+      overflow: hidden; /* Ensures image corners are rounded */
+    }
+
+    .car-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .car-card h2 {
+      color: var(--primary); /* Applied primary color */
+      margin-top: 0;
+      font-size: 1.8em; /* Increased font size */
+      margin-bottom: 15px; /* Added margin */
+    }
+
+    .car-card p {
+      margin: 8px 0; /* Adjusted margin */
+      color: var(--gray); /* Applied gray color */
+      font-size: 0.95em; /* Slightly smaller font for details */
+    }
+
+    .car-card strong {
+        color: var(--dark); /* Make labels darker */
+    }
+
+    .car-card .status {
+      font-weight: 600; /* Adjusted font-weight */
+      padding: 8px 15px; /* Adjusted padding */
+      border-radius: 8px; /* Adjusted border-radius */
+      display: inline-block;
+      margin-top: 15px; /* Adjusted margin */
+      text-transform: uppercase; /* Uppercase status */
+      font-size: 0.85em; /* Smaller font for status */
+    }
+
+    .status.Available {
+        background-color: #f0fdf4; /* Light green from admin.html success */
+        color: #16a34a; /* Dark green from admin.html success */
+        border: 1px solid #bbf7d0; /* Border from admin.html success */
+    }
+
+    .status.Rented {
+        background-color: #fff3cd; /* Yellow from admin.html */
+        color: #856404; /* Dark yellow from admin.html */
+        border: 1px solid #ffeeba;
+    }
+
+    .status.UnderMaintenance {
+        background-color: #fef2f2; /* Light red from admin.html error */
+        color: #dc2626; /* Dark red from admin.html error */
+        border: 1px solid #fecaca; /* Border from admin.html error */
+    }
+
+    .car-card img {
+        max-width: 100%;
+        height: 220px; /* Slightly increased height */
+        object-fit: cover;
+        border-radius: 8px; /* Adjusted border-radius */
+        margin-bottom: 20px; /* Adjusted margin */
+        background-color: var(--light-gray); /* Use light gray background */
+        border: 1px solid var(--border); /* Subtle border */
+    }
+
+    /* Empty state for car list */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--gray);
+      grid-column: 1 / -1; /* Span across all columns */
+    }
+
+    .empty-state i {
+      font-size: 60px;
+      color: var(--light-gray);
+      margin-bottom: 20px;
+    }
+
+    .empty-state p {
+      font-size: 18px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1><i class="fas fa-car"></i> Available Cars</h1>
+    <a href="admin.html" class="admin-login-link">
+        <i class="fas fa-user-shield"></i> Admin Login
+    </a>
+    <div class="filters">
+      <label for="make-filter"><i class="fas fa-industry"></i> Filter by Make:</label>
+      <select id="make-filter">
+        <option value="">All Makes</option>
+      </select>
+
+      <label for="model-filter"><i class="fas fa-car-side"></i> Filter by Model:</label>
+      <select id="model-filter">
+        <option value="">All Models</option>
+      </select>
+    </div>
+    <div id="car-list" class="car-list"></div>
+  </div>
+  <script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const client = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      const makeFilter = document.getElementById('make-filter');
+      const modelFilter = document.getElementById('model-filter');
+      const carListDiv = document.getElementById('car-list');
+
+      let allMakes = [];
+      let allModels = [];
+      let allCars = [];
+
+      // Fetch all makes, models, and available cars on initial load
+      async function fetchData() {
+          const { data: makes, error: makesError } = await client.from('veh_make').select('*');
+          if (makesError) console.error('Error fetching makes:', makesError.message);
+          else allMakes = makes;
+
+          const { data: models, error: modelsError } = await client.from('veh_model').select('*');
+          if (modelsError) console.error('Error fetching models:', modelsError.message);
+          else allModels = models;
+
+          const { data: cars, error: carsError } = await client.from('cars').select('*').eq('status', 'Available');
+          if (carsError) console.error('Error fetching cars:', carsError.message);
+          else allCars = cars;
+      }
+
+      await fetchData();
+
+      function populateMakeFilter() {
+        makeFilter.innerHTML = '<option value="">All Makes</option>';
+        allMakes.forEach(make => {
+          const opt = document.createElement('option');
+          opt.value = make.id;
+          opt.textContent = make.make;
+          makeFilter.appendChild(opt);
+        });
+      }
+
+      function populateModelFilter(makeId = '') {
+        modelFilter.innerHTML = '<option value="">All Models</option>';
+        allModels.filter(m => !makeId || m.make_id == makeId).forEach(model => {
+          const opt = document.createElement('option');
+          opt.value = model.id;
+          opt.textContent = model.model;
+          modelFilter.appendChild(opt);
+        });
+      }
+
+      populateMakeFilter();
+      populateModelFilter();
+
+      function renderCars() {
+        const selectedMake = makeFilter.value;
+        const selectedModel = modelFilter.value;
+        carListDiv.innerHTML = '';
+
+        const filtered = allCars.filter(car =>
+          (!selectedMake || car.make_id == selectedMake) &&
+          (!selectedModel || car.model_id == selectedModel)
+        );
+
+        if (filtered.length === 0) {
+            carListDiv.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-car-crash"></i>
+                    <p>No available cars found matching your criteria.</p>
+                </div>
+            `;
+            return;
+        }
+
+        filtered.forEach(car => {
+          const make = allMakes.find(m => m.id == car.make_id)?.make || 'Unknown Make';
+          const model = allModels.find(m => m.id == car.model_id)?.model || 'Unknown Model';
+          const imageUrl = car.pic_url?.trim() ? car.pic_url : 'https://via.placeholder.com/300x220?text=No+Image+Available';
+
+          const div = document.createElement('div');
+          div.className = 'car-card';
+          div.innerHTML = `
+            <img src="${imageUrl}" alt="${make} ${model}">
+            <h2>${make} ${model}</h2>
+            <p><strong>License Plate:</strong> ${car.plate_number || 'N/A'}</p>
+            <p><strong>Year:</strong> ${car.year || 'N/A'}</p>
+            <p><strong>Color:</strong> ${car.color || 'N/A'}</p>
+            <p><strong>Price:</strong> $${car.price ? car.price.toFixed(2) : 'N/A'}</p>
+            <p><strong>Features:</strong> ${car.features || 'N/A'}</p>
+            <span class="status ${car.status.replace(/\s/g, '')}">${car.status}</span>
+          `;
+          carListDiv.appendChild(div);
+        });
+      }
+
+      renderCars();
+
+      makeFilter.addEventListener('change', () => {
+        populateModelFilter(makeFilter.value);
+        renderCars();
+      });
+
+      modelFilter.addEventListener('change', renderCars);
+    });
+  </script>
+</body>
+</html>
