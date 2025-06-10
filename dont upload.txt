@@ -1,0 +1,7 @@
+year
+color
+price
+status
+features
+
+
