@@ -1,20 +1,20 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Modern Admin Panel with Rental</title>
+  <title data-i18n-key="adminPanelTitle">لوحة تحكم المسؤول الحديثة</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 
   <style>
-    /* CSS from admin backup.html goes here, with additions for rental modal */
+    /* CSS from style.css goes here */
     :root {
       --primary: #4361ee;
       --primary-dark: #3a56d4;
       --secondary: #7209b7;
-      --success: #4cc9f0; /* This was originally a light blue, but changed to match the green 'success' intent */
+      --success: #4cc9f0;
       --light: #f8f9fa;
       --dark: #212529;
       --gray: #6c757d;
@@ -140,7 +140,7 @@
       font-size: 18px;
     }
 
-    input, select {
+    input, select { /* Added select to styling */
       width: 100%;
       padding: 14px 20px 14px 48px;
       border: 2px solid var(--light-gray);
@@ -148,18 +148,33 @@
       font-size: 16px;
       transition: var(--transition);
       background: #fafbfc;
-      appearance: none;
+      appearance: none; /* Remove default select arrow */
       -webkit-appearance: none;
       -moz-appearance: none;
     }
 
     select {
-        padding-right: 20px;
+        padding-right: 20px; /* Adjust padding for custom arrow */
         background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%20fill%3D%22%236c757d%22%20d%3D%22M287%20197.6L146.2%2056.8%205.4%20197.6c-6.8%206.8-6.8%2017.9%200%2024.7s17.9%206.8%2024.7%200L146.2%20106.2l116.1%20116.1c6.8%206.8%2017.9%206.8%2024.7%200s6.8-17.9%200-24.7z%22%2F%3E%3C%2Fsvg%3E');
         background-repeat: no-repeat;
         background-position: right 15px top 50%;
         background-size: 12px auto;
     }
+
+    html[dir="rtl"] select {
+        padding-left: 20px;
+        padding-right: 48px;
+        background-position: left 15px top 50%;
+    }
+    html[dir="rtl"] .input-with-icon i {
+        left: unset;
+        right: 15px;
+    }
+    html[dir="rtl"] input,
+    html[dir="rtl"] select {
+        padding: 14px 48px 14px 20px;
+    }
+
 
     input:focus, select:focus {
       border-color: var(--primary);
@@ -201,6 +216,39 @@
       background: var(--light-gray);
       color: var(--gray);
     }
+    /* New button styles for consistency */
+    .btn-success {
+      background: #28a745;
+      color: white;
+    }
+    .btn-success:hover {
+      background: #218838;
+      transform: translateY(-2px);
+    }
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+    .btn-secondary:hover {
+      background: #5a6268;
+      transform: translateY(-2px);
+    }
+    .btn-danger {
+      background: #dc3545;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+    }
+    .btn-info { /* Style for Rent button */
+      background: #17a2b8;
+      color: white;
+    }
+    .btn-info:hover {
+        background: #138496;
+        transform: translateY(-2px);
+    }
 
     .btn-reset:hover {
       background: #e2e6ea;
@@ -230,13 +278,24 @@
       text-align: left;
       font-weight: 600;
     }
+    html[dir="rtl"] th {
+      text-align: right;
+    }
 
     th:first-child {
       border-top-left-radius: 16px;
     }
+    html[dir="rtl"] th:first-child {
+      border-top-left-radius: 0;
+      border-top-right-radius: 16px;
+    }
 
     th:last-child {
       border-top-right-radius: 16px;
+    }
+    html[dir="rtl"] th:last-child {
+      border-top-right-radius: 0;
+      border-top-left-radius: 16px;
     }
 
     td {
@@ -261,7 +320,6 @@
       gap: 10px;
     }
 
-    /* Original admin backup.html styles for edit/delete buttons */
     .btn-edit {
       background: #e9f7fe;
       color: var(--primary);
@@ -282,21 +340,6 @@
 
     .btn-delete:hover {
       background: #fee2e2;
-    }
-
-    /* Added from the last admin.html for rental button consistency */
-    .btn-rental {
-      background-color: #007bff;
-      color: white;
-      padding: 8px 15px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      transition: background-color 0.3s ease;
-    }
-    .btn-rental:hover {
-      background-color: #0056b3;
     }
 
     .status-message {
@@ -366,29 +409,35 @@
     #login-card .form-group {
         text-align: left;
     }
+    html[dir="rtl"] #login-card .form-group {
+        text-align: right;
+    }
+
 
     #login-card button {
         width: 100%;
         margin-top: 20px;
     }
 
-    /* New styles for end date colors (from admin backup.html) */
+    /* New styles for end date colors */
     .end-date-today {
       color: #28a745; /* Green for today's date */
       font-weight: 600;
     }
 
+    /* Changed this from grey to red */
     .end-date-past {
       color: #dc3545; /* Red for past date */
-      font-weight: 600;
+      font-weight: 600; /* Added font-weight for consistency */
     }
 
+    /* Changed this from red to default/neutral color */
     .end-date-future {
       color: var(--dark); /* Default text color for future date */
-      font-weight: 400;
+      font-weight: 400; /* Normal font weight */
     }
 
-    /* Vehicle Summary styles (from admin backup.html) */
+    /* Vehicle Summary styles */
     .vehicle-summary {
         display: flex;
         justify-content: space-around;
@@ -424,319 +473,846 @@
     }
 
     .available-icon {
-        color: #28a745;
+        color: #28a745; /* Green */
     }
 
     .rented-icon {
-        color: #ffc107;
+        color: #ffc107; /* Orange/Yellow */
     }
 
     .maintenance-icon {
-        color: #6c757d;
+        color: #6c757d; /* Gray */
     }
 
+    /* New style for total cars icon */
     .total-cars-icon {
+        color: var(--primary); /* Use primary color for total cars */
+    }
+    /* Simple flexbox utilities for layout */
+    .d-flex {
+        display: flex;
+    }
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .align-items-center {
+        align-items: center;
+    }
+    .mb-4 {
+        margin-bottom: 1.5rem; /* ~24px */
+    }
+    .me-2 {
+        margin-right: 0.5rem; /* ~8px */
+    }
+    .mt-4 {
+        margin-top: 1.5rem;
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px; /* Add some padding for smaller screens */
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: auto;
+        padding: 30px;
+        border-radius: 16px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        position: relative;
+        width: 90%; /* Responsive width */
+        max-width: 600px; /* Max width for larger screens */
+        animation-name: animatetop;
+        animation-duration: 0.4s;
+    }
+    html[dir="rtl"] .modal-content {
+        text-align: right;
+    }
+
+    @keyframes animatetop {
+        from {top: -300px; opacity: 0}
+        to {top: 0; opacity: 1}
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        position: absolute;
+        top: 10px;
+        right: 20px;
+        cursor: pointer;
+    }
+    html[dir="rtl"] .close-button {
+        right: unset;
+        left: 20px;
+        float: left;
+    }
+
+    .close-button:hover,
+    .close-button:focus {
+        color: black;
+        text-decoration: none;
+        cursor: pointer;
+    }
+
+    /* Adjust padding for input-with-icon in modal form to prevent overflow */
+    .modal-content .input-with-icon input,
+    .modal-content .input-with-icon select {
+        padding-left: 48px; /* Ensure icon has space */
+        padding-right: 20px; /* Ensure space for select arrow */
+    }
+    html[dir="rtl"] .modal-content .input-with-icon input,
+    html[dir="rtl"] .modal-content .input-with-icon select {
+        padding-left: 20px;
+        padding-right: 48px;
+    }
+    /* Ensure action buttons in modal are grouped nicely */
+    .modal-content .btn-group {
+        display: flex;
+        justify-content: flex-end; /* Align buttons to the right */
+        gap: 10px;
+        margin-top: 25px;
+    }
+    html[dir="rtl"] .modal-content .btn-group {
+        justify-content: flex-start; /* Align buttons to the left for RTL */
+    }
+
+    .modal-content .btn-group button {
+        flex: unset; /* Remove flex: 1 property from submit button in modal */
+        width: auto; /* Adjust width as needed for grouped buttons */
+    }
+
+    /* Tab styles */
+    .tab-container {
+        display: flex;
+        margin-bottom: 20px;
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: var(--card-shadow);
+        padding: 10px;
+    }
+
+    .tab-button {
+        flex: 1;
+        padding: 12px 20px;
+        border: none;
+        background-color: transparent;
+        color: var(--gray);
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .tab-button.active {
+        background: linear-gradient(to right, var(--primary), var(--secondary));
+        color: white;
+        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .tab-button:hover:not(.active) {
+        background-color: var(--light-gray);
+        color: var(--dark);
+    }
+
+    .tab-content {
+        display: none;
+    }
+
+    .tab-content.active {
+        display: block;
+    }
+
+    /* Customer search results dropdown */
+    #customerSearchResults {
+        border: 1px solid var(--border);
+        max-height: 150px;
+        overflow-y: auto;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        margin-top: 5px;
+        position: absolute; /* Position relative to its parent container */
+        width: 100%;
+        z-index: 1001; /* Ensure it's above other elements */
+    }
+
+    .search-result-item {
+        padding: 10px 15px;
+        cursor: pointer;
+        border-bottom: 1px solid var(--light-gray);
+    }
+    .search-result-item:last-child {
+        border-bottom: none;
+    }
+    .search-result-item:hover {
+        background-color: var(--light-gray);
+    }
+    .search-result-item strong {
         color: var(--primary);
     }
 
-    /* Rental modal styles (from original admin.html, ensuring consistency) */
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);}
-    .modal-content { background: white; margin: 10% auto; padding: 20px; border-radius:12px; width: 90%; max-width: 500px; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
-    .modal-header { display:flex; justify-content:space-between; align-items:center; border-bottom: 1px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
-    .modal-header h2 { margin:0; font-size: 24px; color: #333; }
-    .close { cursor: pointer; font-size: 30px; color: #aaa; transition: color 0.3s ease; }
-    .close:hover { color: #333; }
-    /* Input styles for rental modal (re-apply global input styles) */
-    .modal .form-group input[type="text"],
-    .modal .form-group input[type="tel"],
-    .modal .form-group input[type="date"] {
-      width: 100%; /* Changed from calc(100% - 22px) to match general input style */
-      padding: 14px 20px; /* Adjusted padding to match general input style */
-      border: 2px solid var(--light-gray); /* Adjusted border to match general input style */
-      border-radius: 12px; /* Adjusted border-radius to match general input style */
-      font-size: 16px;
-      box-sizing: border-box;
-      background: #fafbfc; /* Match background */
+    /* Styles for filter section */
+    .filter-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 25px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border-radius: 12px;
+        border: 1px solid var(--light-gray);
     }
-    .modal .btn-group { /* Specific adjustments for modal buttons */
-      justify-content: flex-end;
-      gap: 10px;
-      margin-top: 20px;
+    .filter-section .form-group {
+        margin-bottom: 0; /* Override default form-group margin */
     }
-    .modal .btn-submit, .modal .btn-reset { /* Specific adjustments for modal buttons */
-      padding: 10px 20px;
-      border-radius: 8px;
-      font-size: 16px;
-      gap: 8px;
+    .language-switcher {
+        display: flex;
+        gap: 10px;
+        margin-right: 15px; /* Adjust as needed */
     }
-    .modal .btn-submit { /* Ensure green for submit in modal */
-      background-color: #28a745;
+    html[dir="rtl"] .language-switcher {
+        margin-left: 15px;
+        margin-right: 0;
     }
-    .modal .btn-submit:hover {
-      background-color: #218838;
+    .language-button {
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid var(--primary);
+        background-color: transparent;
+        color: var(--primary);
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
     }
-    .modal .btn-reset { /* Ensure gray for reset in modal */
-      background-color: #6c757d;
+    .language-button.active {
+        background-color: var(--primary);
+        color: white;
     }
-    .modal .btn-reset:hover {
-      background-color: #5a6268;
+    .language-button:hover:not(.active) {
+        background-color: var(--primary);
+        color: white;
+        opacity: 0.8;
     }
-
   </style>
 </head>
-<body>
-  <!-- Login / Admin panel containers -->
+<body dir="rtl">
   <div id="login-container">
     <div id="login-card" class="card">
-      <h2>Admin Login</h2>
+      <h2 data-i18n-key="adminLoginTitle">تسجيل دخول المسؤول</h2>
       <form id="auth-form">
         <div class="form-group">
-          <label for="email">Email</label>
+          <label for="email" data-i18n-key="emailLabel">البريد الإلكتروني</label>
           <div class="input-with-icon">
             <i class="fas fa-envelope"></i>
-            <input type="email" id="email" placeholder="Enter your email" required>
+            <input type="email" id="email" data-i18n-key="emailPlaceholder" placeholder="أدخل بريدك الإلكتروني" required>
           </div>
         </div>
         <div class="form-group">
-          <label for="password">Password</label>
+          <label for="password" data-i18n-key="passwordLabel">كلمة المرور</label>
           <div class="input-with-icon">
             <i class="fas fa-lock"></i>
-            <input type="password" id="password" placeholder="Enter your password" required>
+            <input type="password" id="password" data-i18n-key="passwordPlaceholder" placeholder="أدخل كلمة المرور" required>
           </div>
         </div>
         <button type="submit" class="btn-submit">
-          <i class="fas fa-sign-in-alt"></i> Login
+          <i class="fas fa-sign-in-alt"></i> <span data-i18n-key="loginButton">تسجيل الدخول</span>
         </button>
       </form>
       <div id="auth-status-message" class="status-message"></div>
     </div>
   </div>
 
-  <div class="container" id="admin-panel" style="display: none;"> <!-- Admin panel starts hidden -->
+  <div class="container" id="admin-panel" style="display: none;">
     <header>
       <div class="logo">
         <i class="fas fa-car"></i>
-        <h1>Fox Car Rental Admin Panel</h1>
+        <h1 data-i18n-key="foxCarRentalTitle">لوحة تحكم Fox Car Rental</h1>
       </div>
       <div class="user-info">
+        <div class="language-switcher">
+            <button class="language-button" id="lang-ar" data-lang="ar">العربية</button>
+            <button class="language-button" id="lang-en" data-lang="en">English</button>
+        </div>
         <span id="user-email"></span>
         <button class="btn-reset" id="logout-btn" style="margin-left: 15px;">
-          <i class="fas fa-sign-out-alt"></i> Logout
+          <i class="fas fa-sign-out-alt"></i> <span data-i18n-key="logoutButton">تسجيل الخروج</span>
         </button>
       </div>
     </header>
 
-    <div class="panel">
-      <div class="card">
-        <div class="card-title">
-          <i class="fas fa-plus-circle"></i>
-          <h2>Add / Update Vehicle</h2>
-        </div>
+    <!-- Button for adding customer placed below the header -->
+    <div class="d-flex justify-content-end mb-4">
+        <button id="showAddCustomerFormBtn" class="btn btn-success">
+            <i class="fas fa-user-plus"></i> <span data-i18n-key="addNewCustomerButton">إضافة عميل جديد</span>
+        </button>
+    </div>
 
-        <form id="car-form">
-          <input type="hidden" id="car-id">
+    <!-- Tab Navigation -->
+    <div class="tab-container">
+        <button class="tab-button active" data-tab-target="#vehicleInventoryTab">
+            <i class="fas fa-car"></i> <span data-i18n-key="vehicleInventoryTab">مخزون المركبات</span>
+        </button>
+        <button class="tab-button" data-tab-target="#customerListTab">
+            <i class="fas fa-users"></i> <span data-i18n-key="customerListTab">قائمة العملاء</span>
+        </button>
+        <button class="tab-button" data-tab-target="#rentHistoryTab">
+            <i class="fas fa-history"></i> <span data-i18n-key="rentHistoryTab">سجل الإيجار</span>
+        </button>
+    </div>
 
-          <div class="form-group">
-            <label for="make-select">Vehicle Make</label>
-            <div class="input-with-icon">
-              <i class="fas fa-industry"></i>
-              <select id="make-select" required>
-                <option value="">Select Make</option>
-              </select>
+    <!-- Tab Content for Vehicle Inventory -->
+    <div id="vehicleInventoryTab" class="tab-content active">
+        <div class="panel">
+            <div class="card" id="addCarSection">
+                <div class="card-title">
+                    <i class="fas fa-plus-circle"></i>
+                    <h2 data-i18n-key="addUpdateVehicleTitle">إضافة / تحديث مركبة</h2>
+                </div>
+                <form id="car-form">
+                    <input type="hidden" id="car-id">
+                    <div class="form-group">
+                        <label for="make-select" data-i18n-key="makeLabel">صنع المركبة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-industry"></i>
+                            <select id="make-select" required>
+                                <option value="" data-i18n-key="selectMake">اختر الصنع</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="model-select" data-i18n-key="modelLabel">موديل المركبة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-car-side"></i>
+                            <select id="model-select" required disabled>
+                                <option value="" data-i18n-key="selectModel">اختر الموديل</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="plate_number" data-i18n-key="plateNumberLabel">رقم اللوحة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-tag"></i>
+                            <input type="text" id="plate_number" data-i18n-key="plateNumberPlaceholder" placeholder="أدخل رقم لوحة المركبة" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="year" data-i18n-key="yearLabel">السنة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-alt"></i>
+                            <input type="number" id="year" data-i18n-key="yearPlaceholder" placeholder="أدخل سنة الصنع" min="1900" max="2099" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="color" data-i18n-key="colorLabel">اللون</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-palette"></i>
+                            <input type="text" id="color" data-i18n-key="colorPlaceholder" placeholder="أدخل لون المركبة" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="price" data-i18n-key="priceLabel">السعر</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-dollar-sign"></i>
+                            <input type="number" id="price" data-i18n-key="pricePlaceholder" placeholder="أدخل السعر" step="0.01" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="status" data-i18n-key="statusLabel">الحالة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-info-circle"></i>
+                            <select id="status" required>
+                                <option value="" data-i18n-key="selectStatus">اختر الحالة</option>
+                                <option value="Available" data-i18n-key="availableStatus">متاحة</option>
+                                <option value="Rented" data-i18n-key="rentedStatus">مؤجرة</option>
+                                <option value="Under Maintenance" data-i18n-key="maintenanceStatus">تحت الصيانة</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="from_date" data-i18n-key="fromDateLabel">تاريخ البدء</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-check"></i>
+                            <input type="date" id="from_date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="end_date" data-i18n-key="endDateLabel">تاريخ الانتهاء</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-calendar-times"></i>
+                            <input type="date" id="end_date">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="features" data-i18n-key="featuresLabel">الميزات</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-star"></i>
+                            <input type="text" id="features" data-i18n-key="featuresPlaceholder" placeholder="أدخل ميزات المركبة (مفصولة بفاصلة)" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="fuel" data-i18n-key="fuelLabel">مستوى الوقود (%)</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-gas-pump"></i>
+                            <input type="number" id="fuel" data-i18n-key="fuelPlaceholder" placeholder="أدخل مستوى الوقود (0-100)" min="0" max="100" step="0.1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="odometer_km" data-i18n-key="odometerLabel">عداد المسافة (كم)</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-road"></i>
+                            <input type="number" id="odometer_km" data-i18n-key="odometerPlaceholder" placeholder="أدخل إجمالي الكيلومترات المقطوعة" min="0" step="1" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="pic_url" data-i18n-key="picUrlLabel">رابط الصورة</label>
+                        <div class="input-with-icon">
+                            <i class="fas fa-image"></i>
+                            <input type="url" id="pic_url" data-i18n-key="picUrlPlaceholder" placeholder="أدخل رابط صورة المركبة">
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn-submit">
+                            <i class="fas fa-paper-plane"></i> <span data-i18n-key="submitButton">إرسال</span>
+                        </button>
+                        <button type="reset" class="btn-reset" id="reset-btn">
+                            <i class="fas fa-undo"></i> <span data-i18n-key="resetButton">إعادة تعيين</span>
+                        </button>
+                    </div>
+                </form>
+                <div id="status-message" class="status-message"></div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label for="model-select">Vehicle Model</label>
-            <div class="input-with-icon">
+            <div class="card" id="vehicleInventorySection">
+                <div class="card-title">
+                    <i class="fas fa-list"></i>
+                    <h2 data-i18n-key="vehicleInventoryTitle">مخزون المركبات</h2>
+                </div>
+                <div class="vehicle-summary">
+                    <div class="summary-item">
+                        <i class="fas fa-car total-cars-icon"></i> <span class="count" id="total-cars-count">0</span> <span class="label" data-i18n-key="totalCars">إجمالي السيارات</span> </div>
+                    <div class="summary-item">
+                        <i class="fas fa-check-circle available-icon"></i>
+                        <span class="count" id="available-count">0</span>
+                        <span class="label" data-i18n-key="availableCars">متاحة</span>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-car-alt rented-icon"></i>
+                        <span class="count" id="rented-count">0</span>
+                        <span class="label" data-i18n-key="rentedCars">مؤجرة</span>
+                    </div>
+                    <div class="summary-item">
+                        <i class="fas fa-wrench maintenance-icon"></i>
+                        <span class="count" id="maintenance-count">0</span>
+                        <span class="label" data-i18n-key="underMaintenanceCars">تحت الصيانة</span>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th data-i18n-key="tableMake">الصنع</th>
+                                <th data-i18n-key="tableModel">الموديل</th>
+                                <th data-i18n-key="tableLicensePlate">رقم اللوحة</th>
+                                <th data-i18n-key="tableYear">السنة</th>
+                                <th data-i18n-key="tableColor">اللون</th>
+                                <th data-i18n-key="tablePrice">السعر</th>
+                                <th data-i18n-key="tableStatus">الحالة</th>
+                                <th data-i18n-key="tableFromDate">تاريخ البدء</th>
+                                <th data-i18n-key="tableEndDate">تاريخ الانتهاء</th>
+                                <th data-i18n-key="tableFeatures">الميزات</th>
+                                <th data-i18n-key="tableFuelLevel">مستوى الوقود</th>
+                                <th data-i18n-key="tableOdometer">عداد المسافة (كم)</th>
+                                <th data-i18n-key="tablePicture">الصورة</th>
+                                <th data-i18n-key="tableActions">الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody id="cars-list">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tab Content for Customer List -->
+    <div id="customerListTab" class="tab-content">
+        <div class="card mt-4">
+            <div class="card-title">
+                <i class="fas fa-users"></i>
+                <h2 data-i18n-key="customerListTitle">قائمة العملاء</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <!-- Removed ID column -->
+                            <th data-i18n-key="customerName">اسم العميل</th> <!-- Combined First and Last Name -->
+                            <th data-i18n-key="customerEmail">البريد الإلكتروني</th>
+                            <th data-i18n-key="customerPhone">رقم الهاتف</th>
+                            <th data-i18n-key="customerLicenseNo">رقم الرخصة</th>
+                            <th data-i18n-key="customerExpiry">تاريخ الانتهاء</th>
+                            <th data-i18n-key="customerDOB">تاريخ الميلاد</th>
+                            <!-- Removed Actions column -->
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <!-- Customer rows will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="customer-list-empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-users-slash"></i>
+                <p data-i18n-key="noCustomersFoundEmpty">لم يتم العثور على عملاء. أضف عميلك الأول!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW Tab Content for Rent History -->
+    <div id="rentHistoryTab" class="tab-content">
+        <div class="card mt-4">
+            <div class="card-title">
+                <i class="fas fa-history"></i>
+                <h2 data-i18n-key="rentHistoryTitle">سجل الإيجار</h2>
+            </div>
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <div class="form-group">
+                    <label for="vehicleFilter" data-i18n-key="vehicleFilter">المركبة:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-car"></i>
+                        <input type="text" id="vehicleFilter" data-i18n-key="vehicleFilterPlaceholder" placeholder="بحث باسم المركبة / اللوحة">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="customerFilter" data-i18n-key="customerFilter">العميل:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="customerFilter" data-i18n-key="customerFilterPlaceholder" placeholder="بحث باسم العميل / البريد الإلكتروني">
+                    </div>
+                </div>
+                <!-- Removed Balance Min and Balance Max Filters -->
+                <div class="form-group">
+                    <label for="paymentStatusFilter" data-i18n-key="paymentStatusFilter">حالة الدفع:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-credit-card"></i>
+                        <select id="paymentStatusFilter">
+                            <option value="All" data-i18n-key="paymentStatusAll">الكل</option>
+                            <option value="Paid" data-i18n-key="paymentStatusPaid">مدفوع</option>
+                            <option value="Partially Paid" data-i18n-key="paymentStatusPartiallyPaid">مدفوع جزئياً</option>
+                            <option value="Pending" data-i18n-key="paymentStatusPending">معلق</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n-key="tableRentVehicle">المركبة</th>
+                            <th data-i18n-key="tableRentCustomer">العميل</th>
+                            <th data-i18n-key="tableRentFromDate">تاريخ البدء</th>
+                            <th data-i18n-key="tableRentEndDate">تاريخ الانتهاء</th>
+                            <th data-i18n-key="tableRentedDays">أيام الإيجار</th>
+                            <th data-i18n-key="tablePricePerDay">السعر / اليوم</th>
+                            <th data-i18n-key="tableTotalPrice">إجمالي السعر</th>
+                            <th data-i18n-key="tablePaidAmount">المبلغ المدفوع</th>
+                            <th data-i18n-key="tableBalance">الرصيد</th>
+                            <th data-i18n-key="tableActualReturnDate">تاريخ الإرجاع الفعلي</th>
+                            <th data-i18n-key="tablePaymentStatus">حالة الدفع</th><!-- NEW COLUMN -->
+                            <th data-i18n-key="tableActions">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rentHistoryTableBody">
+                        <!-- Rent history rows will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="rent-history-empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-clipboard-list"></i>
+                <p data-i18n-key="noRentalHistoryEmpty">لم يتم العثور على سجل إيجار.</p>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Customer Modal Structure -->
+  <div id="addCustomerModal" class="modal" style="display: none;">
+      <div class="modal-content">
+          <span class="close-button" id="closeCustomerModalBtn">&times;</span>
+          <div class="card-title" style="border-bottom: none; margin-bottom: 0;">
+              <i class="fas fa-user-plus"></i>
+              <h2 data-i18n-key="addCustomerModalTitle">إضافة عميل جديد</h2>
+          </div>
+          <form id="addCustomerForm">
+              <div class="form-group">
+                  <label for="customerFirstName" data-i18n-key="firstNameLabel">الاسم الأول</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-user"></i>
+                      <input type="text" id="customerFirstName" data-i18n-key="firstNamePlaceholder" placeholder="أدخل الاسم الأول" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerLastName" data-i18n-key="lastNameLabel">اسم العائلة</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-user"></i>
+                      <input type="text" id="customerLastName" data-i18n-key="lastNamePlaceholder" placeholder="أدخل اسم العائلة" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerEmail" data-i18n-key="emailLabelCustomer">البريد الإلكتروني</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-envelope"></i>
+                      <input type="email" id="customerEmail" data-i18n-key="emailPlaceholderCustomer" placeholder="أدخل البريد الإلكتروني" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerPhoneNumber" data-i18n-key="phoneLabel">رقم الهاتف</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-phone"></i>
+                      <input type="tel" id="customerPhoneNumber" data-i18n-key="phonePlaceholder" placeholder="أدخل رقم الهاتف" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerAddress" data-i18n-key="addressLabel">العنوان</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-map-marker-alt"></i>
+                      <input type="text" id="customerAddress" data-i18n-key="addressPlaceholder" placeholder="أدخل العنوان">
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerCity" data-i18n-key="cityLabel">المدينة</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-city"></i>
+                      <input type="text" id="customerCity" data-i18n-key="cityPlaceholder" placeholder="أدخل المدينة">
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerCountry" data-i18n-key="countryLabel">البلد</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-globe"></i>
+                      <input type="text" id="customerCountry" data-i18n-key="countryPlaceholder" placeholder="أدخل البلد">
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerLicenseNumber" data-i18n-key="licenseNumberLabel">رقم رخصة القيادة</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-id-card"></i>
+                      <input type="text" id="customerLicenseNumber" data-i18n-key="licenseNumberPlaceholder" placeholder="أدخل رقم رخصة القيادة" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerLicenseExpiry" data-i18n-key="licenseExpiryLabel">تاريخ انتهاء الرخصة</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-calendar-alt"></i>
+                      <input type="date" id="customerLicenseExpiry" required>
+                  </div>
+              </div>
+              <div class="form-group">
+                  <label for="customerDOB" data-i18n-key="dobLabel">تاريخ الميلاد</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-birthday-cake"></i>
+                      <input type="date" id="customerDOB" required>
+                  </div>
+              </div>
+              <div class="btn-group">
+                  <button type="submit" class="btn-submit">
+                      <i class="fas fa-save"></i> <span data-i18n-key="addCustomerButton">إضافة عميل</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="cancelAddCustomerBtn">
+                      <i class="fas fa-times-circle"></i> <span data-i18n-key="cancelButton">إلغاء</span>
+                  </button>
+              </div>
+              <div id="customer-status-message" class="status-message"></div>
+          </form>
+      </div>
+  </div>
+
+  <!-- NEW: Rent Car Modal Structure -->
+  <div id="rentCarModal" class="modal" style="display: none;">
+      <div class="modal-content">
+          <span class="close-button" id="closeRentCarModalBtn">&times;</span>
+          <div class="card-title" style="border-bottom: none; margin-bottom: 0;">
               <i class="fas fa-car-side"></i>
-              <select id="model-select" required disabled>
-                <option value="">Select Model</option>
-              </select>
-            </div>
+              <h2 data-i18n-key="rentVehicleTitle">تأجير مركبة</h2>
           </div>
+          <form id="rentCarForm">
+              <input type="hidden" id="rentCar-id"> <!-- To store car_id -->
+              <input type="hidden" id="rentCar-dailyPrice"> <!-- To store daily price for calculation -->
+              <input type="hidden" id="rentCar-initialOdometer"> <!-- To store initial odometer for rent_history -->
 
-          <div class="form-group">
-            <label for="plate_number">License Plate</label>
-            <div class="input-with-icon">
-              <i class="fas fa-tag"></i>
-              <input type="text" id="plate_number" placeholder="Enter license plate number" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="rentCarVehicleInfo" data-i18n-key="vehicleInfoLabel">المركبة:</label>
+                  <input type="text" id="rentCarVehicleInfo" class="form-control" readonly>
+              </div>
 
-          <div class="form-group">
-            <label for="year">Year</label>
-            <div class="input-with-icon">
-              <i class="fas fa-calendar-alt"></i>
-              <input type="number" id="year" placeholder="Enter manufacturing year" min="1900" max="2099" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="customerSearchInput" data-i18n-key="selectCustomerLabel">اختر العميل (بحث بالبريد الإلكتروني/الهوية):</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-user-tag"></i>
+                      <input type="text" id="customerSearchInput" data-i18n-key="searchCustomerPlaceholder" placeholder="بحث عن عميل..." autocomplete="off">
+                  </div>
+                  <div id="customerSearchResults"></div>
+                  <input type="hidden" id="rentCar-customerId">
+                  <p id="selectedCustomerInfo" style="margin-top: 10px; font-weight: 500; color: var(--primary);"></p>
+              </div>
 
-          <div class="form-group">
-            <label for="color">Color</label>
-            <div class="input-with-icon">
-              <i class="fas fa-palette"></i>
-              <input type="text" id="color" placeholder="Enter vehicle color" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="rentFromDate" data-i18n-key="fromDateLabel">تاريخ البدء</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-calendar-check"></i>
+                      <input type="date" id="rentFromDate" required>
+                  </div>
+              </div>
 
-          <div class="form-group">
-            <label for="price">Price</label>
-            <div class="input-with-icon">
-              <i class="fas fa-dollar-sign"></i>
-              <input type="number" id="price" placeholder="Enter price" step="0.01" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="rentEndDate" data-i18n-key="endDateLabel">تاريخ الانتهاء</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-calendar-times"></i>
+                      <input type="date" id="rentEndDate" required>
+                  </div>
+              </div>
 
-          <div class="form-group">
-            <label for="status">Status</label>
-            <div class="input-with-icon">
-              <i class="fas fa-info-circle"></i>
-              <select id="status" required>
-                <option value="">Select Status</option>
-                <option value="Available">Available</option>
-                <option value="Rented">Rented</option>
-                <option value="Under Maintenance">Under Maintenance</option>
-              </select>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="rentedDays" data-i18n-key="rentedDaysLabel">أيام الإيجار:</label>
+                  <input type="number" id="rentedDays" class="form-control" readonly value="0">
+              </div>
 
-          <div class="form-group">
-            <label for="from_date">From Date</label>
-            <div class="input-with-icon">
-              <i class="fas fa-calendar-check"></i>
-              <input type="date" id="from_date">
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="rentalPricePerDay" data-i18n-key="rentalPricePerDayLabel">سعر الإيجار اليومي:</label>
+                  <input type="number" id="rentalPricePerDay" class="form-control" readonly step="0.01">
+              </div>
 
-          <div class="form-group">
-            <label for="end_date">End Date</label>
-            <div class="input-with-icon">
-              <i class="fas fa-calendar-times"></i>
-              <input type="date" id="end_date">
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="totalPrice" data-i18n-key="totalPriceLabel">إجمالي السعر:</label>
+                  <input type="number" id="totalPrice" class="form-control" readonly step="0.01" value="0">
+              </div>
 
-          <div class="form-group">
-            <label for="features">Features</label>
-            <div class="input-with-icon">
-              <i class="fas fa-star"></i>
-              <input type="text" id="features" placeholder="Enter vehicle features (comma-separated)" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="paidAmount" data-i18n-key="paidAmountLabel">المبلغ المدفوع:</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-dollar-sign"></i>
+                      <input type="number" id="paidAmount" data-i18n-key="paidAmountPlaceholder" placeholder="أدخل المبلغ المدفوع" step="0.01" value="0">
+                  </div>
+              </div>
 
-          <div class="form-group">
-            <label for="fuel">Fuel Level (%)</label>
-            <div class="input-with-icon">
-              <i class="fas fa-gas-pump"></i>
-              <input type="number" id="fuel" placeholder="Enter fuel level (0-100)" min="0" max="100" step="0.1" required>
-            </div>
-          </div>
+              <div class="form-group">
+                  <label for="balanceAmount" data-i18n-key="balanceDueLabel">الرصيد المستحق:</label>
+                  <input type="number" id="balanceAmount" class="form-control" readonly step="0.01" value="0">
+              </div>
 
-          <div class="form-group">
-            <label for="odometer_km">Odometer (KM)</label>
-            <div class="input-with-icon">
-              <i class="fas fa-road"></i>
-              <input type="number" id="odometer_km" placeholder="Enter total kilometers driven" min="0" step="1" required>
-            </div>
-          </div>
+              <!-- The Notes form group has been removed from here -->
 
-          <div class="form-group">
-            <label for="pic_url">Picture URL</label>
-            <div class="input-with-icon">
-              <i class="fas fa-image"></i>
-              <input type="url" id="pic_url" placeholder="Enter vehicle picture URL">
-            </div>
-          </div>
-
-          <div class="btn-group">
-            <button type="submit" class="btn-submit">
-              <i class="fas fa-paper-plane"></i> Submit
-            </button>
-            <button type="reset" class="btn-reset" id="reset-btn">
-              <i class="fas fa-undo"></i> Reset
-            </button>
-          </div>
-        </form>
-
-        <div id="status-message" class="status-message"></div>
+              <div class="btn-group">
+                  <button type="submit" class="btn-submit" id="confirmRentalBtn">
+                      <i class="fas fa-check"></i> <span data-i18n-key="confirmRentalButton">تأكيد الإيجار</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="cancelRentCarBtn">
+                      <i class="fas fa-times-circle"></i> <span data-i18n-key="cancelButton">إلغاء</span>
+                  </button>
+              </div>
+              <div id="rent-status-message" class="status-message"></div>
+          </form>
       </div>
-
-      <div class="card">
-        <div class="card-title">
-          <i class="fas fa-list"></i>
-          <h2>Vehicle Inventory</h2>
-        </div>
-
-        <div class="vehicle-summary">
-            <div class="summary-item">
-                <i class="fas fa-car total-cars-icon"></i> <span class="count" id="total-cars-count">0</span> <span class="label">Total Cars</span> </div>
-            <div class="summary-item">
-                <i class="fas fa-check-circle available-icon"></i>
-                <span class="count" id="available-count">0</span>
-                <span class="label">Available</span>
-            </div>
-            <div class="summary-item">
-                <i class="fas fa-car-alt rented-icon"></i>
-                <span class="count" id="rented-count">0</span>
-                <span class="label">Rented</span>
-            </div>
-            <div class="summary-item">
-                <i class="fas fa-wrench maintenance-icon"></i>
-                <span class="count" id="maintenance-count">0</span>
-                <span class="label">Under Maintenance</span>
-            </div>
-        </div>
-
-        <div class="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>Make</th>
-                <th>Model</th>
-                <th>License Plate</th>
-                <th>Year</th>
-                <th>Color</th>
-                <th>Price</th>
-                <th>Status</th>
-                <th>From Date</th>
-                <th>End Date</th>
-                <th>Features</th>
-                <th>Fuel Level</th>
-                <th>Odometer (KM)</th>
-                <th>Picture</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="cars-list">
-              </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <!-- Rental Modal (maintained from previous version) -->
-  <div id="rental-modal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Add Rental</h2>
-        <span class="close" id="modal-close">&times;</span>
+  <!-- NEW: Edit Rent History Modal Structure -->
+  <div id="editRentHistoryModal" class="modal" style="display: none;">
+      <div class="modal-content">
+          <span class="close-button" id="closeEditRentHistoryModalBtn">&times;</span>
+          <div class="card-title" style="border-bottom: none; margin-bottom: 0;">
+              <i class="fas fa-history"></i>
+              <h2 data-i18n-key="editRentalRecordTitle">تعديل سجل الإيجار</h2>
+          </div>
+          <form id="editRentHistoryForm">
+              <input type="hidden" id="editRentHistory-id">
+              <input type="hidden" id="editRentHistory-fromDate">
+              <input type="hidden" id="editRentHistory-expectedEndDate">
+              <input type="hidden" id="editRentHistory-dailyPrice">
+              <input type="hidden" id="editRentHistory-carId">
+
+
+              <div class="form-group">
+                  <label for="editRentHistoryVehicleInfo" data-i18n-key="vehicleInfoLabel">المركبة:</label>
+                  <input type="text" id="editRentHistoryVehicleInfo" class="form-control" readonly>
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryCustomerInfo" data-i18n-key="customerFilter">العميل:</label>
+                  <input type="text" id="editRentHistoryCustomerInfo" class="form-control" readonly>
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryActualReturnDate" data-i18n-key="actualReturnDateLabel">تاريخ الإرجاع الفعلي</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-calendar-alt"></i>
+                      <input type="date" id="editRentHistoryActualReturnDate">
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryActualOdometer" data-i18n-key="actualOdometerLabel">عداد المسافة الفعلي (كم)</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-road"></i>
+                      <input type="number" id="editRentHistoryActualOdometer" data-i18n-key="actualOdometerPlaceholder" placeholder="أدخل عداد المسافة الفعلي" min="0" step="1">
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryPaidAmount" data-i18n-key="paidAmountLabel">المبلغ المدفوع:</label>
+                  <div class="input-with-icon">
+                      <i class="fas fa-dollar-sign"></i>
+                      <input type="number" id="editRentHistoryPaidAmount" data-i18n-key="paidAmountPlaceholder" placeholder="أدخل المبلغ المدفوع" step="0.01" value="0">
+                  </div>
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryCalculatedRentedDays" data-i18n-key="calculatedRentedDaysLabel">أيام الإيجار المحسوبة:</label>
+                  <input type="number" id="editRentHistoryCalculatedRentedDays" class="form-control" readonly value="0">
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryCalculatedTotalPrice" data-i18n-key="calculatedTotalPriceLabel">إجمالي السعر المحسوب:</label>
+                  <input type="number" id="editRentHistoryCalculatedTotalPrice" class="form-control" readonly step="0.01" value="0">
+              </div>
+
+              <div class="form-group">
+                  <label for="editRentHistoryCalculatedBalance" data-i18n-key="calculatedBalanceLabel">الرصيد المستحق المحسوب:</label>
+                  <input type="number" id="editRentHistoryCalculatedBalance" class="form-control" readonly step="0.01" value="0">
+              </div>
+
+              <div class="btn-group">
+                  <button type="submit" class="btn-submit" id="saveRentHistoryBtn">
+                      <i class="fas fa-save"></i> <span data-i18n-key="saveChangesButton">حفظ التغييرات</span>
+                  </button>
+                  <button type="button" class="btn-secondary" id="cancelEditRentHistoryBtn">
+                      <i class="fas fa-times-circle"></i> <span data-i18n-key="cancelButton">إلغاء</span>
+                  </button>
+              </div>
+              <div id="edit-rent-status-message" class="status-message"></div>
+          </form>
       </div>
-      <form id="rental-form">
-        <input type="hidden" id="rental-car-id">
-        <div class="form-group"><label>Renter Name</label><input type="text" id="renter_name" required></div>
-        <div class="form-group"><label>Phone Number</label><input type="tel" id="renter_phone" required></div>
-        <div class="form-group"><label>From Date</label><input type="date" id="rental_from" required></div>
-        <div class="form-group"><label>To Date</label><input type="date" id="rental_to" required></div>
-        <div class="form-group"><label>Notes</label><input type="text" id="rental_notes"></div>
-        <div class="btn-group">
-          <button type="submit" class="btn-submit"><i class="fas fa-save"></i> Save Rental</button>
-          <button type="button" class="btn-reset" id="modal-reset"><i class="fas fa-undo"></i> Reset</button>
-        </div>
-      </form>
-    </div>
   </div>
+
 
   <script>
     const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
@@ -745,17 +1321,17 @@
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const form = document.getElementById('car-form');
+    const carForm = document.getElementById('car-form');
     const carsList = document.getElementById('cars-list');
-    const resetBtn = document.getElementById('reset-btn');
-    const statusMessage = document.getElementById('status-message');
+    const resetCarBtn = document.getElementById('reset-btn');
+    const carStatusMessage = document.getElementById('status-message');
 
     const makeSelect = document.getElementById('make-select');
     const modelSelect = document.getElementById('model-select');
     const fromDateInput = document.getElementById('from_date');
     const endDateInput = document.getElementById('end_date');
 
-    // Login/Logout elements (from admin backup.html)
+    // Login/Logout elements
     const loginContainer = document.getElementById('login-container');
     const adminPanel = document.getElementById('admin-panel');
     const authForm = document.getElementById('auth-form');
@@ -763,48 +1339,361 @@
     const userEmailSpan = document.getElementById('user-email');
     const logoutBtn = document.getElementById('logout-btn');
 
-    // Car summary elements (from admin backup.html)
+    // Car summary elements
     const totalCarsCountSpan = document.getElementById('total-cars-count');
     const availableCountSpan = document.getElementById('available-count');
     const rentedCountSpan = document.getElementById('rented-count');
     const maintenanceCountSpan = document.getElementById('maintenance-count');
 
-    // Function to show status messages (from admin backup.html)
-    function showStatus(message, isSuccess, target = statusMessage) {
-      target.textContent = message;
-      target.className = isSuccess ? 'status-message success' : 'status-message error';
+    // Customer management elements
+    const showAddCustomerFormBtn = document.getElementById('showAddCustomerFormBtn');
+    const addCustomerModal = document.getElementById('addCustomerModal');
+    const closeCustomerModalBtn = document.getElementById('closeCustomerModalBtn');
+    const addCustomerForm = document.getElementById('addCustomerForm');
+    const cancelAddCustomerBtn = document.getElementById('cancelAddCustomerBtn');
+    const customerStatusMessage = document.getElementById('customer-status-message');
+    const customersTableBody = document.getElementById('customersTableBody');
+    const customerListEmptyState = document.getElementById('customer-list-empty-state');
 
-      setTimeout(() => {
-        target.style.opacity = '0';
-        setTimeout(() => {
-          target.className = 'status-message';
-          target.style.opacity = '1';
-        }, 300);
-      }, 3000);
+
+    // Tab elements
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Rent Car Modal elements
+    const rentCarModal = document.getElementById('rentCarModal');
+    const closeRentCarModalBtn = document.getElementById('closeRentCarModalBtn');
+    const rentCarForm = document.getElementById('rentCarForm');
+    const rentCarVehicleInfo = document.getElementById('rentCarVehicleInfo');
+    const rentCarIdInput = document.getElementById('rentCar-id');
+    const rentCarDailyPriceInput = document.getElementById('rentCar-dailyPrice');
+    const rentCarInitialOdometerInput = document.getElementById('rentCar-initialOdometer');
+    const customerSearchInput = document.getElementById('customerSearchInput');
+    const customerSearchResults = document.getElementById('customerSearchResults');
+    const rentCarCustomerIdInput = document.getElementById('rentCar-customerId');
+    const selectedCustomerInfo = document.getElementById('selectedCustomerInfo');
+    const rentFromDateInput = document.getElementById('rentFromDate');
+    const rentEndDateInput = document.getElementById('rentEndDate');
+    const rentedDaysInput = document.getElementById('rentedDays');
+    const rentalPricePerDayInput = document.getElementById('rentalPricePerDay');
+    const totalPriceInput = document.getElementById('totalPrice');
+    const paidAmountInput = document.getElementById('paidAmount');
+    const balanceAmountInput = document.getElementById('balanceAmount');
+    const cancelRentCarBtn = document.getElementById('cancelRentCarBtn');
+    const rentStatusMessage = document.getElementById('rent-status-message');
+    const confirmRentalBtn = document.getElementById('confirmRentalBtn');
+
+    // Rent History tab elements
+    const rentHistoryTableBody = document.getElementById('rentHistoryTableBody');
+    const rentHistoryEmptyState = document.getElementById('rent-history-empty-state');
+
+    // Filter elements for Rent History
+    const vehicleFilterInput = document.getElementById('vehicleFilter');
+    const customerFilterInput = document.getElementById('customerFilter');
+    // Removed balance filter elements
+    const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+
+    // Edit Rent History Modal elements
+    const editRentHistoryModal = document.getElementById('editRentHistoryModal');
+    const closeEditRentHistoryModalBtn = document.getElementById('closeEditRentHistoryModalBtn');
+    const editRentHistoryForm = document.getElementById('editRentHistoryForm');
+    const editRentHistoryIdInput = document.getElementById('editRentHistory-id');
+    const editRentHistoryVehicleInfo = document.getElementById('editRentHistoryVehicleInfo');
+    const editRentHistoryCustomerInfo = document.getElementById('editRentHistoryCustomerInfo');
+    const editRentHistoryActualReturnDateInput = document.getElementById('editRentHistoryActualReturnDate');
+    const editRentHistoryActualOdometerInput = document.getElementById('editRentHistoryActualOdometer');
+    const editRentHistoryPaidAmountInput = document.getElementById('editRentHistoryPaidAmount');
+    const editRentHistoryCalculatedRentedDays = document.getElementById('editRentHistoryCalculatedRentedDays');
+    const editRentHistoryCalculatedTotalPrice = document.getElementById('editRentHistoryCalculatedTotalPrice');
+    const editRentHistoryCalculatedBalance = document.getElementById('editRentHistoryCalculatedBalance');
+    const editRentHistoryFromDate = document.getElementById('editRentHistory-fromDate');
+    const editRentHistoryExpectedEndDate = document.getElementById('editRentHistory-expectedEndDate');
+    const editRentHistoryDailyPrice = document.getElementById('editRentHistory-dailyPrice');
+    const editRentHistoryCarId = document.getElementById('editRentHistory-carId');
+    const saveRentHistoryBtn = document.getElementById('saveRentHistoryBtn');
+    const cancelEditRentHistoryBtn = document.getElementById('cancelEditRentHistoryBtn');
+    const editRentStatusMessage = document.getElementById('edit-rent-status-message');
+
+    // Language switcher elements
+    const langArBtn = document.getElementById('lang-ar');
+    const langEnBtn = document.getElementById('lang-en');
+
+    // Translation object
+    const translations = {
+        adminPanelTitle: { ar: 'لوحة تحكم المسؤول الحديثة', en: 'Modern Admin Panel' },
+        adminLoginTitle: { ar: 'تسجيل دخول المسؤول', en: 'Admin Login' },
+        emailLabel: { ar: 'البريد الإلكتروني', en: 'Email' },
+        emailPlaceholder: { ar: 'أدخل بريدك الإلكتروني', en: 'Enter your email' },
+        passwordLabel: { ar: 'كلمة المرور', en: 'Password' },
+        passwordPlaceholder: { ar: 'أدخل كلمة المرور', en: 'Enter your password' },
+        loginButton: { ar: 'تسجيل الدخول', en: 'Login' },
+        foxCarRentalTitle: { ar: 'لوحة تحكم Fox Car Rental', en: 'Fox Car Rental Admin Panel' },
+        logoutButton: { ar: 'تسجيل الخروج', en: 'Logout' },
+        addNewCustomerButton: { ar: 'إضافة عميل جديد', en: 'Add New Customer' },
+        vehicleInventoryTab: { ar: 'مخزون المركبات', en: 'Vehicle Inventory' },
+        customerListTab: { ar: 'قائمة العملاء', en: 'Customer List' },
+        rentHistoryTab: { ar: 'سجل الإيجار', en: 'Rent History' },
+        addUpdateVehicleTitle: { ar: 'إضافة / تحديث مركبة', en: 'Add / Update Vehicle' },
+        makeLabel: { ar: 'صنع المركبة', en: 'Vehicle Make' },
+        selectMake: { ar: 'اختر الصنع', en: 'Select Make' },
+        modelLabel: { ar: 'موديل المركبة', en: 'Vehicle Model' },
+        selectModel: { ar: 'اختر الموديل', en: 'Select Model' },
+        plateNumberLabel: { ar: 'رقم اللوحة', en: 'License Plate' },
+        plateNumberPlaceholder: { ar: 'أدخل رقم لوحة المركبة', en: 'Enter license plate number' },
+        yearLabel: { ar: 'السنة', en: 'Year' },
+        yearPlaceholder: { ar: 'أدخل سنة الصنع', en: 'Enter manufacturing year' },
+        colorLabel: { ar: 'اللون', en: 'Color' },
+        colorPlaceholder: { ar: 'أدخل لون المركبة', en: 'Enter vehicle color' },
+        priceLabel: { ar: 'السعر', en: 'Price' },
+        pricePlaceholder: { ar: 'أدخل السعر', en: 'Enter price' },
+        statusLabel: { ar: 'الحالة', en: 'Status' },
+        selectStatus: { ar: 'اختر الحالة', en: 'Select Status' },
+        availableStatus: { ar: 'متاحة', en: 'Available' },
+        rentedStatus: { ar: 'مؤجرة', en: 'Rented' },
+        maintenanceStatus: { ar: 'تحت الصيانة', en: 'Under Maintenance' },
+        fromDateLabel: { ar: 'تاريخ البدء', en: 'From Date' },
+        endDateLabel: { ar: 'تاريخ الانتهاء', en: 'End Date' },
+        featuresLabel: { ar: 'الميزات', en: 'Features' },
+        featuresPlaceholder: { ar: 'أدخل ميزات المركبة (مفصولة بفاصلة)', en: 'Enter vehicle features (comma-separated)' },
+        fuelLabel: { ar: 'مستوى الوقود (%)', en: 'Fuel Level (%)' },
+        fuelPlaceholder: { ar: 'أدخل مستوى الوقود (0-100)', en: 'Enter fuel level (0-100)' },
+        odometerLabel: { ar: 'عداد المسافة (كم)', en: 'Odometer (KM)' },
+        odometerPlaceholder: { ar: 'أدخل إجمالي الكيلومترات المقطوعة', en: 'Enter total kilometers driven' },
+        picUrlLabel: { ar: 'رابط الصورة', en: 'Picture URL' },
+        picUrlPlaceholder: { ar: 'أدخل رابط صورة المركبة', en: 'Enter vehicle picture URL' },
+        submitButton: { ar: 'إرسال', en: 'Submit' },
+        resetButton: { ar: 'إعادة تعيين', en: 'Reset' },
+        vehicleInventoryTitle: { ar: 'مخزون المركبات', en: 'Vehicle Inventory' },
+        totalCars: { ar: 'إجمالي السيارات', en: 'Total Cars' },
+        availableCars: { ar: 'متاحة', en: 'Available' },
+        rentedCars: { ar: 'مؤجرة', en: 'Rented' },
+        underMaintenanceCars: { ar: 'تحت الصيانة', en: 'Under Maintenance' },
+        tableMake: { ar: 'الصنع', en: 'Make' },
+        tableModel: { ar: 'الموديل', en: 'Model' },
+        tableLicensePlate: { ar: 'رقم اللوحة', en: 'License Plate' },
+        tableYear: { ar: 'السنة', en: 'Year' },
+        tableColor: { ar: 'اللون', en: 'Color' },
+        tablePrice: { ar: 'السعر', en: 'Price' },
+        tableStatus: { ar: 'الحالة', en: 'Status' },
+        tableFromDate: { ar: 'تاريخ البدء', en: 'From Date' },
+        tableEndDate: { ar: 'تاريخ الانتهاء', en: 'End Date' },
+        tableFeatures: { ar: 'الميزات', en: 'Features' },
+        tableFuelLevel: { ar: 'مستوى الوقود', en: 'Fuel Level' },
+        tableOdometer: { ar: 'عداد المسافة (كم)', en: 'Odometer (KM)' },
+        tablePicture: { ar: 'الصورة', en: 'Picture' },
+        tableActions: { ar: 'الإجراءات', en: 'Actions' },
+        rentButton: { ar: 'تأجير', en: 'Rent' },
+        editButton: { ar: 'تعديل', en: 'Edit' },
+        deleteButton: { ar: 'حذف', en: 'Delete' },
+        noVehiclesFound: { ar: 'لم يتم العثور على مركبات. أضف مركبتك الأولى!', en: 'No vehicles found. Add your first vehicle!' },
+        accessDenied: { ar: 'تم رفض الوصول أو لم يتم العثور على مركبات مطابقة لأذوناتك.', en: 'Access denied or no vehicles found matching your permissions.' },
+        customerListTitle: { ar: 'قائمة العملاء', en: 'Customer List' },
+        customerName: { ar: 'اسم العميل', en: 'Customer Name' },
+        customerEmail: { ar: 'البريد الإلكتروني', en: 'Email' },
+        customerPhone: { ar: 'رقم الهاتف', en: 'Phone' },
+        customerLicenseNo: { ar: 'رقم الرخصة', en: 'License No.' },
+        customerExpiry: { ar: 'تاريخ الانتهاء', en: 'Expiry' },
+        customerDOB: { ar: 'تاريخ الميلاد', en: 'DOB' },
+        noCustomersFoundEmpty: { ar: 'لم يتم العثور على عملاء. أضف عميلك الأول!', en: 'No customers found. Add your first customer!' },
+        rentHistoryTitle: { ar: 'سجل الإيجار', en: 'Rent History' },
+        vehicleFilter: { ar: 'المركبة:', en: 'Vehicle:' },
+        vehicleFilterPlaceholder: { ar: 'بحث باسم المركبة / اللوحة', en: 'Search by vehicle name / plate' },
+        customerFilter: { ar: 'العميل:', en: 'Customer:' },
+        customerFilterPlaceholder: { ar: 'بحث باسم العميل / البريد الإلكتروني', en: 'Search by customer name / email' },
+        // Removed balance filters from translations as well
+        paymentStatusFilter: { ar: 'حالة الدفع:', en: 'Payment Status:' },
+        paymentStatusAll: { ar: 'الكل', en: 'All' },
+        paymentStatusPaid: { ar: 'مدفوع', en: 'Paid' },
+        paymentStatusPartiallyPaid: { ar: 'مدفوع جزئياً', en: 'Partially Paid' },
+        paymentStatusPending: { ar: 'معلق', en: 'Pending' },
+        tableRentVehicle: { ar: 'المركبة', en: 'Vehicle' },
+        tableRentCustomer: { ar: 'العميل', en: 'Customer' },
+        tableRentFromDate: { ar: 'تاريخ البدء', en: 'From Date' },
+        tableRentEndDate: { ar: 'تاريخ الانتهاء', en: 'End Date' },
+        tableRentedDays: { ar: 'أيام الإيجار', en: 'Rented Days' },
+        tablePricePerDay: { ar: 'السعر / اليوم', en: 'Price / Day' },
+        tableTotalPrice: { ar: 'إجمالي السعر', en: 'Total Price' },
+        tablePaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' },
+        tableBalance: { ar: 'الرصيد', en: 'Balance' },
+        tableActualReturnDate: { ar: 'تاريخ الإرجاع الفعلي', en: 'Actual Return Date' },
+        tablePaymentStatus: { ar: 'حالة الدفع', en: 'Payment Status' },
+        noRentalHistoryEmpty: { ar: 'لم يتم العثور على سجل إيجار.', en: 'No rental history found.' },
+        addCustomerModalTitle: { ar: 'إضافة عميل جديد', en: 'Add New Customer' },
+        firstNameLabel: { ar: 'الاسم الأول', en: 'First Name' },
+        firstNamePlaceholder: { ar: 'أدخل الاسم الأول', en: 'Enter first name' },
+        lastNameLabel: { ar: 'اسم العائلة', en: 'Last Name' },
+        lastNamePlaceholder: { ar: 'أدخل اسم العائلة', en: 'Enter last name' },
+        emailLabelCustomer: { ar: 'البريد الإلكتروني', en: 'Email' },
+        emailPlaceholderCustomer: { ar: 'أدخل البريد الإلكتروني', en: 'Enter email' },
+        phoneLabel: { ar: 'رقم الهاتف', en: 'Phone Number' },
+        phonePlaceholder: { ar: 'أدخل رقم الهاتف', en: 'Enter phone number' },
+        addressLabel: { ar: 'العنوان', en: 'Address' },
+        addressPlaceholder: { ar: 'أدخل العنوان', en: 'Enter address' },
+        cityLabel: { ar: 'المدينة', en: 'City' },
+        cityPlaceholder: { ar: 'أدخل المدينة', en: 'Enter city' },
+        countryLabel: { ar: 'البلد', en: 'Country' },
+        countryPlaceholder: { ar: 'أدخل البلد', en: 'Enter country' },
+        licenseNumberLabel: { ar: 'رقم رخصة القيادة', en: 'Driver License Number' },
+        licenseNumberPlaceholder: { ar: 'أدخل رقم رخصة القيادة', en: 'Enter driver license number' },
+        licenseExpiryLabel: { ar: 'تاريخ انتهاء الرخصة', en: 'License Expiry Date' },
+        dobLabel: { ar: 'تاريخ الميلاد', en: 'Date of Birth' },
+        addCustomerButton: { ar: 'إضافة عميل', en: 'Add Customer' },
+        cancelButton: { ar: 'إلغاء', en: 'Cancel' },
+        rentVehicleTitle: { ar: 'تأجير مركبة', en: 'Rent Vehicle' },
+        vehicleInfoLabel: { ar: 'المركبة:', en: 'Vehicle:' },
+        selectCustomerLabel: { ar: 'اختر العميل (بحث بالبريد الإلكتروني/الهوية):', en: 'Select Customer (Search by Email/ID):' },
+        searchCustomerPlaceholder: { ar: 'بحث عن عميل...', en: 'Search customer...' },
+        selectedCustomerInfoText: { ar: 'العميل المحدد:', en: 'Selected Customer:' },
+        rentedDaysLabel: { ar: 'أيام الإيجار:', en: 'Rented Days:' },
+        rentalPricePerDayLabel: { ar: 'سعر الإيجار اليومي:', en: 'Rental Price per Day:' },
+        totalPriceLabel: { ar: 'إجمالي السعر:', en: 'Total Price:' },
+        paidAmountLabel: { ar: 'المبلغ المدفوع:', en: 'Paid Amount:' },
+        paidAmountPlaceholder: { ar: 'أدخل المبلغ المدفوع', en: 'Enter paid amount' },
+        balanceDueLabel: { ar: 'الرصيد المستحق:', en: 'Balance Due:' },
+        confirmRentalButton: { ar: 'تأكيد الإيجار', en: 'Confirm Rental' },
+        editRentalRecordTitle: { ar: 'تعديل سجل الإيجار', en: 'Edit Rental Record' },
+        actualReturnDateLabel: { ar: 'تاريخ الإرجاع الفعلي', en: 'Actual Return Date' },
+        actualOdometerLabel: { ar: 'عداد المسافة الفعلي (كم)', en: 'Actual Odometer (KM)' },
+        actualOdometerPlaceholder: { ar: 'أدخل عداد المسافة الفعلي', en: 'Enter actual odometer' },
+        calculatedRentedDaysLabel: { ar: 'أيام الإيجار المحسوبة:', en: 'Calculated Rented Days:' },
+        calculatedTotalPriceLabel: { ar: 'إجمالي السعر المحسوب:', en: 'Calculated Total Price:' },
+        calculatedBalanceLabel: { ar: 'الرصيد المستحق المحسوب:', en: 'Calculated Balance Due:' },
+        saveChangesButton: { ar: 'حفظ التغييرات', en: 'Save Changes' },
+        statusMessageCarReset: { ar: 'تم إعادة تعيين نموذج السيارة', en: 'Car form has been reset' },
+        statusMessageErrorFetchingMakes: { ar: 'خطأ في جلب الشركات المصنعة:', en: 'Error fetching makes:' },
+        statusMessageErrorFetchingModels: { ar: 'خطأ في جلب الموديلات:', en: 'Error fetching models:' },
+        statusMessageErrorFetchingVehicles: { ar: 'خطأ في جلب المركبات:', en: 'Error fetching vehicles:' },
+        statusMessageAccessDenied: { ar: 'تم رفض الوصول أو لم يتم العثور على مركبات مطابقة لأذوناتك.', en: 'Access denied or no vehicles found matching your permissions.' },
+        statusMessageNoVehiclesFound: { ar: 'لم يتم العثور على مركبات. أضف مركبتك الأولى!', en: 'No vehicles found. Add your first vehicle!' },
+        statusMessageVehicleLoadedForEdit: { ar: 'تم تحميل المركبة للتعديل', en: 'Vehicle loaded for editing' },
+        confirmDeleteVehicle: { ar: 'هل أنت متأكد أنك تريد حذف هذه المركبة؟', en: 'Are you sure you want to delete this vehicle?' },
+        statusMessageErrorDeletingVehicle: { ar: 'خطأ في حذف المركبة:', en: 'Error deleting vehicle:' },
+        statusMessageVehicleDeleted: { ar: 'تم حذف المركبة بنجاح!', en: 'Vehicle deleted successfully!' },
+        statusMessageErrorGeneric: { ar: 'خطأ:', en: 'Error:' },
+        statusMessageVehicleUpdated: { ar: 'تم تحديث المركبة بنجاح!', en: 'Vehicle updated successfully!' },
+        statusMessageVehicleAdded: { ar: 'تمت إضافة المركبة بنجاح!', en: 'Vehicle added successfully!' },
+        statusMessageLoginError: { ar: 'خطأ في تسجيل الدخول:', en: 'Login Error:' },
+        statusMessageLoginSuccess: { ar: 'تم تسجيل الدخول بنجاح!', en: 'Login Successful!' },
+        statusMessageUnauthorizedUser: { ar: 'مستخدم غير مصرح به. الرجاء تسجيل الدخول باستخدام حساب المسؤول الصحيح.', en: 'Unauthorized user. Please log in with the correct admin account.' },
+        statusMessageLogoutError: { ar: 'خطأ في تسجيل الخروج:', en: 'Logout Error:' },
+        statusMessageLoggedOut: { ar: 'تم تسجيل الخروج بنجاح!', en: 'Logged out successfully!' },
+        statusMessageCustomerAddError: { ar: 'خطأ في إضافة العميل:', en: 'Error adding customer:' },
+        statusMessageCustomerAdded: { ar: 'تمت إضافة العميل بنجاح!', en: 'Customer added successfully!' },
+        statusMessageErrorLoadingCustomers: { ar: 'خطأ في تحميل العملاء.', en: 'Error loading customers.' },
+        statusMessageProcessingRental: { ar: 'جاري معالجة الإيجار...', en: 'Processing rental...' },
+        statusMessageSelectCustomer: { ar: 'الرجاء اختيار عميل.', en: 'Please select a customer.' },
+        statusMessageEndDateBeforeFromDate: { ar: 'تاريخ الانتهاء لا يمكن أن يكون قبل تاريخ البدء.', en: 'End date cannot be before from date.' },
+        statusMessageRentalDuration: { ar: 'يجب أن تكون مدة الإيجار يومًا واحدًا على الأقل.', en: 'Rental duration must be at least one day.' },
+        statusMessageErrorRecordingRental: { ar: 'خطأ في تسجيل الإيجار:', en: 'Error recording rental:' },
+        statusMessageRentalSuccess: { ar: 'تم تأجير المركبة بنجاح!', en: 'Vehicle rented successfully!' },
+        statusMessageCarUpdateFailed: { ar: 'تم تسجيل الإيجار، ولكن فشل تحديث حالة السيارة: ', en: 'Rental recorded, but failed to update car status: ' },
+        statusMessageErrorFetchingRentHistory: { ar: 'خطأ في تحميل سجل الإيجار.', en: 'Error loading rental history.' },
+        statusMessageSavingChanges: { ar: 'جاري حفظ التغييرات...', en: 'Saving changes...' },
+        statusMessageErrorUpdatingRental: { ar: 'خطأ في تحديث سجل الإيجار:', en: 'Error updating rental record:' },
+        statusMessageRentalUpdated: { ar: 'تم تحديث سجل الإيجار بنجاح!', en: 'Rental record updated successfully!' },
+        statusMessageRentalCarUpdateFailed: { ar: 'تم تحديث الإيجار، ولكن فشل تحديث حالة السيارة:', en: 'Rental updated, but failed to update car status:' },
+        selectMakeModel: { ar: 'الرجاء اختيار كل من الصنع والموديل.', en: 'Please select both Make and Model.'},
+        noImage: { ar: 'لا توجد صورة', en: 'No Image' },
+        n_a: { ar: 'N/A', en: 'N/A' },
+    };
+
+    let currentLang = localStorage.getItem('lang') || 'ar'; // Default to Arabic
+
+    // Function to apply translations
+    function applyTranslations() {
+        document.querySelectorAll('[data-i18n-key]').forEach(element => {
+            const key = element.getAttribute('data-i18n-key');
+            if (translations[key] && translations[key][currentLang]) {
+                if (element.tagName === 'INPUT' && element.hasAttribute('placeholder')) {
+                    element.placeholder = translations[key][currentLang];
+                } else {
+                    element.textContent = translations[key][currentLang];
+                }
+            }
+        });
+
+        // Handle select options for status
+        const statusSelect = document.getElementById('status');
+        if (statusSelect) {
+            statusSelect.querySelector('option[value=""]').textContent = translations.selectStatus[currentLang];
+            statusSelect.querySelector('option[value="Available"]').textContent = translations.availableStatus[currentLang];
+            statusSelect.querySelector('option[value="Rented"]').textContent = translations.rentedStatus[currentLang];
+            statusSelect.querySelector('option[value="Under Maintenance"]').textContent = translations.maintenanceStatus[currentLang];
+        }
+        // Handle select options for payment status filter
+        const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+        if (paymentStatusFilterSelect) {
+            paymentStatusFilterSelect.querySelector('option[value="All"]').textContent = translations.paymentStatusAll[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Paid"]').textContent = translations.paymentStatusPaid[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Partially Paid"]').textContent = translations.paymentStatusPartiallyPaid[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Pending"]').textContent = translations.paymentStatusPending[currentLang];
+        }
+
+        // Update document direction and language attribute
+        document.documentElement.lang = currentLang;
+        document.body.dir = (currentLang === 'ar') ? 'rtl' : 'ltr';
+
+        // Update active language button
+        document.querySelectorAll('.language-button').forEach(button => {
+            if (button.dataset.lang === currentLang) {
+                button.classList.add('active');
+            } else {
+                button.classList.remove('active');
+            }
+        });
+
+        // Update user email span direction explicitly if needed
+        userEmailSpan.style.direction = (currentLang === 'ar') ? 'rtl' : 'ltr';
+        userEmailSpan.style.textAlign = (currentLang === 'ar') ? 'right' : 'left';
+
+        // Also update the direction of modals/dialogs
+        const modals = document.querySelectorAll('.modal-content');
+        modals.forEach(modal => {
+            modal.style.direction = (currentLang === 'ar') ? 'rtl' : 'ltr';
+        });
     }
 
-    // Reset form function (from admin backup.html)
-    resetBtn.addEventListener('click', () => {
+    // Function to show status messages
+    function showStatus(messageKey, isSuccess, targetElement) {
+        if (!targetElement) return;
+
+        let message = translations[messageKey] ? translations[messageKey][currentLang] : messageKey; // Use key or raw message
+
+        targetElement.textContent = message;
+        targetElement.className = isSuccess ? 'status-message success' : 'status-message error';
+        targetElement.style.display = 'block';
+
+        setTimeout(() => {
+            targetElement.style.opacity = '0';
+            setTimeout(() => {
+                targetElement.className = 'status-message';
+                targetElement.style.opacity = '1';
+                targetElement.style.display = 'none';
+            }, 300);
+        }, 3000);
+    }
+
+    // Reset form function for cars
+    resetCarBtn.addEventListener('click', () => {
       document.getElementById('car-id').value = '';
-      form.reset();
-      // Reset dropdowns explicitly
+      carForm.reset();
       makeSelect.value = '';
-      modelSelect.innerHTML = '<option value="">Select Model</option>';
+      modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
       modelSelect.disabled = true;
-      showStatus('Form has been reset', true);
+      showStatus('statusMessageCarReset', true, carStatusMessage);
     });
 
-    // Fetch Makes and populate dropdown (from admin backup.html)
+    // Fetch Makes and populate dropdown
     async function fetchMakes() {
       const { data, error } = await supabaseClient.from('veh_make').select('id, make').order('make', { ascending: true });
 
       if (error) {
         console.error('Error fetching makes:', error.message);
-        showStatus('Error fetching makes: ' + error.message, false);
+        showStatus('statusMessageErrorFetchingMakes' + error.message, false, carStatusMessage);
         return;
       }
 
-      makeSelect.innerHTML = '<option value="">Select Make</option>';
+      makeSelect.innerHTML = `<option value="">${translations.selectMake[currentLang]}</option>`;
       data.forEach(make => {
         const option = document.createElement('option');
         option.value = make.id;
@@ -813,10 +1702,10 @@
       });
     }
 
-    // Fetch Models based on selected Make and populate dropdown (from admin backup.html)
+    // Fetch Models based on selected Make and populate dropdown
     async function fetchModels(makeId) {
-      modelSelect.innerHTML = '<option value="">Select Model</option>';
-      modelSelect.disabled = true; // Disable until models are loaded or no make selected
+      modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
+      modelSelect.disabled = true;
 
       if (!makeId) {
         return;
@@ -826,7 +1715,7 @@
 
       if (error) {
         console.error('Error fetching models:', error.message);
-        showStatus('Error fetching models: ' + error.message, false);
+        showStatus('statusMessageErrorFetchingModels' + error.message, false, carStatusMessage);
         return;
       }
 
@@ -839,13 +1728,13 @@
       modelSelect.disabled = false;
     }
 
-    // Event listener for Make selection (from admin backup.html)
+    // Event listener for Make selection
     makeSelect.addEventListener('change', (e) => {
       const selectedMakeId = e.target.value;
       fetchModels(selectedMakeId);
     });
 
-    // Function to update car summary counts (from admin backup.html)
+    // Function to update car summary counts
     function updateCarSummary(cars) {
         totalCarsCountSpan.textContent = cars.length;
         let availableCount = 0;
@@ -871,9 +1760,8 @@
         maintenanceCountSpan.textContent = maintenanceCount;
     }
 
-    // Fetch vehicles from Supabase (modified to match admin backup.html's table columns and logic)
-    async function fetchCars() { // Renamed from fetchUsers, maintained consistent with previous Canvas update
-      // Joining 'cars' with 'veh_make' and 'veh_model' to get names instead of IDs
+    // Fetch vehicles from Supabase
+    async function fetchCars() {
       const { data, error } = await supabaseClient
         .from('cars')
         .select(`
@@ -884,13 +1772,12 @@
         .order('id', { ascending: false });
 
       if (error) {
-        // This error will likely happen if the user is not the admin UID
-        showStatus('Error fetching vehicles: ' + error.message, false);
+        showStatus('statusMessageErrorFetchingVehicles' + error.message, false, carStatusMessage);
         carsList.innerHTML = `
           <tr>
             <td colspan="14"> <div class="empty-state">
                 <i class="fas fa-exclamation-triangle"></i>
-                <p>Access denied or no vehicles found matching your permissions.</p>
+                <p data-i18n-key="accessDenied">${translations.accessDenied[currentLang]}</p>
               </div>
             </td>
           </tr>
@@ -906,7 +1793,7 @@
           <tr>
             <td colspan="14"> <div class="empty-state">
                 <i class="fas fa-car"></i>
-                <p>No vehicles found. Add your first vehicle!</p>
+                <p data-i18n-key="noVehiclesFound">${translations.noVehiclesFound[currentLang]}</p>
               </div>
             </td>
           </tr>
@@ -938,23 +1825,32 @@
         }
 
         row.innerHTML = `
-          <td>${car.veh_make ? car.veh_make.make : 'N/A'}</td>
-          <td>${car.veh_model ? car.veh_model.model : 'N/A'}</td>
-          <td>${car.plate_number || 'N/A'}</td>
-          <td>${car.year || 'N/A'}</td>
-          <td>${car.color || 'N/A'}</td>
-          <td>${car.price ? `$${car.price.toFixed(2)}` : 'N/A'}</td>
-          <td>${car.status || 'N/A'}</td>
-          <td>${car.from_date || 'N/A'}</td>
-          <td class="${endDateClass}">${car.end_date || 'N/A'}</td>
-          <td>${car.features || 'N/A'}</td>
-          <td>${car.fuel !== null ? `${car.fuel}%` : 'N/A'}</td>
-          <td>${car.odometer_km !== null ? `${car.odometer_km} km` : 'N/A'}</td>
+          <td>${car.veh_make ? car.veh_make.make : translations.n_a[currentLang]}</td>
+          <td>${car.veh_model ? car.veh_model.model : translations.n_a[currentLang]}</td>
+          <td>${car.plate_number || translations.n_a[currentLang]}</td>
+          <td>${car.year || translations.n_a[currentLang]}</td>
+          <td>${car.color || translations.n_a[currentLang]}</td>
+          <td>${car.price ? `AED${car.price.toFixed(2)}` : translations.n_a[currentLang]}</td>
+          <td>${car.status || translations.n_a[currentLang]}</td>
+          <td>${car.from_date || translations.n_a[currentLang]}</td>
+          <td class="${endDateClass}">${car.end_date || translations.n_a[currentLang]}</td>
+          <td>${car.features || translations.n_a[currentLang]}</td>
+          <td>${car.fuel !== null ? `${car.fuel}%` : translations.n_a[currentLang]}</td>
+          <td>${car.odometer_km !== null ? `${car.odometer_km} km` : translations.n_a[currentLang]}</td>
           <td>
-            ${car.pic_url ? `<img src="${car.pic_url}" alt="Vehicle Image" style="width: 50px; height: auto; border-radius: 5px;">` : 'No Image'}
+            ${car.pic_url ? `<img src="${car.pic_url}" alt="Vehicle Image" style="width: 50px; height: auto; border-radius: 5px;">` : translations.noImage[currentLang]}
           </td>
           <td class="actions">
-            <button class="btn-edit" onclick="populateForm(
+            <button class="btn-info" ${car.status === 'Rented' ? 'disabled' : ''} onclick="openRentCarModal(
+              '${car.id}',
+              '${car.veh_make ? car.veh_make.make : ''}',
+              '${car.veh_model ? car.veh_model.model : ''}',
+              '${car.price || 0}',
+              '${car.odometer_km || 0}'
+            )">
+              <i class="fas fa-car-alt"></i> <span data-i18n-key="rentButton">${translations.rentButton[currentLang]}</span>
+            </button>
+            <button class="btn-edit" onclick="populateCarForm(
               '${car.id}',
               '${car.make_id || ''}',
               '${car.model_id || ''}',
@@ -970,31 +1866,30 @@
               '${car.from_date || ''}',
               '${car.end_date || ''}'
             )">
-              <i class="fas fa-edit"></i> Edit
+              <i class="fas fa-edit"></i> <span data-i18n-key="editButton">${translations.editButton[currentLang]}</span>
             </button>
             <button class="btn-delete" onclick="deleteCar('${car.id}')">
-              <i class="fas fa-trash"></i> Delete
+              <i class="fas fa-trash"></i> <span data-i18n-key="deleteButton">${translations.deleteButton[currentLang]}</span>
             </button>
-            <button class="btn-rental" onclick="openRentalModal('${car.id}')"><i class="fas fa-calendar-plus"></i> Rent</button>
           </td>
         `;
         carsList.appendChild(row);
       });
     }
 
-    // Populate form for editing (from admin backup.html, adapted for rental modal's populateForm)
-    window.populateForm = async function(id, make_id, model_id, plate_number, year, color, price, status, features, fuel, odometer_km, pic_url, from_date, end_date) {
+    // Populate form for editing a car
+    window.populateCarForm = async function(id, make_id, model_id, plate_number, year, color, price, status, features, fuel, odometer_km, pic_url, from_date, end_date) {
       document.getElementById('car-id').value = id;
 
       // Populate Make dropdown and then Models based on existing make_id
-      await fetchMakes(); // Re-fetch makes to ensure all options are available
+      await fetchMakes();
       makeSelect.value = make_id;
 
       if (make_id) {
-        await fetchModels(make_id); // Fetch models for the selected make
-        modelSelect.value = model_id; // Set the model
+        await fetchModels(make_id);
+        modelSelect.value = model_id;
       } else {
-        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
         modelSelect.disabled = true;
       }
 
@@ -1009,25 +1904,26 @@
       document.getElementById('pic_url').value = pic_url;
       document.getElementById('from_date').value = from_date;
       document.getElementById('end_date').value = end_date;
-      showStatus('Vehicle loaded for editing', true);
+      showStatus('statusMessageVehicleLoadedForEdit', true, carStatusMessage);
     }
 
-    // Delete car function (from admin backup.html)
+    // Delete car function
     window.deleteCar = async function(id) {
-      if (!confirm('Are you sure you want to delete this vehicle?')) return;
+      const confirmDelete = confirm(translations.confirmDeleteVehicle[currentLang]);
+      if (!confirmDelete) return;
 
       const { error } = await supabaseClient.from('cars').delete().eq('id', id);
 
       if (error) {
-        showStatus('Error deleting vehicle: ' + error.message, false);
+        showStatus('statusMessageErrorDeletingVehicle' + error.message, false, carStatusMessage);
       } else {
-        showStatus('Vehicle deleted successfully!', true);
-        fetchCars(); // Call fetchCars to refresh
+        showStatus('statusMessageVehicleDeleted', true, carStatusMessage);
+        fetchCars();
       }
     }
 
-    // Submit form handler (from admin backup.html)
-    form.addEventListener('submit', async (e) => {
+    // Submit form handler for cars
+    carForm.addEventListener('submit', async (e) => {
       e.preventDefault();
 
       const id = document.getElementById('car-id').value;
@@ -1046,7 +1942,7 @@
       const end_date = endDateInput.value || null;
 
       if (!make_id || !model_id) {
-          showStatus('Please select both Make and Model.', false);
+          showStatus('selectMakeModel', false, carStatusMessage);
           return;
       }
 
@@ -1060,19 +1956,19 @@
       }
 
       if (result.error) {
-        showStatus('Error: ' + result.error.message, false);
+        showStatus('statusMessageErrorGeneric' + result.error.message, false, carStatusMessage);
       } else {
-        showStatus(id ? 'Vehicle updated successfully!' : 'Vehicle added successfully!', true);
-        form.reset();
+        showStatus(id ? 'statusMessageVehicleUpdated' : 'statusMessageVehicleAdded', true, carStatusMessage);
+        carForm.reset();
         document.getElementById('car-id').value = '';
         makeSelect.value = '';
-        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
         modelSelect.disabled = true;
-        fetchCars(); // Call fetchCars to refresh
+        fetchCars();
       }
     });
 
-    // --- Authentication Logic (from admin backup.html) ---
+    // --- Authentication Logic ---
 
     // Function to handle login
     authForm.addEventListener('submit', async (e) => {
@@ -1086,19 +1982,19 @@
       });
 
       if (error) {
-        showStatus('Login Error: ' + error.message, false, authStatusMessage);
+        showStatus('statusMessageLoginError' + error.message, false, authStatusMessage);
       } else {
-        // Check if the logged-in user's UID matches the allowed admin UID
-        // IMPORTANT: Replace 'YOUR_ADMIN_UID_HERE' with your actual Supabase admin user ID.
-        // You can find this in your Supabase Auth dashboard for the user you wish to be the admin.
-        const admin_uid = '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f'; // Use your specific admin UID here
+        const admin_uid = '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f'; // Replace with your actual admin UID
         if (data.user && data.user.id === admin_uid) {
-            showStatus('Login Successful!', true, authStatusMessage);
+            showStatus('statusMessageLoginSuccess', true, authStatusMessage);
             toggleAdminPanel(true, data.user.email);
             fetchMakes();
-            fetchCars(); // Call fetchCars here
+            fetchCars();
+            fetchCustomers();
+            fetchRentHistory(); // Fetch rent history on login
+            applyTranslations(); // Apply translations after login
         } else {
-            showStatus('Unauthorized user. Please log in with the correct admin account.', false, authStatusMessage);
+            showStatus('statusMessageUnauthorizedUser', false, authStatusMessage);
             await supabaseClient.auth.signOut();
             toggleAdminPanel(false);
         }
@@ -1109,22 +2005,29 @@
     logoutBtn.addEventListener('click', async () => {
       const { error } = await supabaseClient.auth.signOut();
       if (error) {
-        showStatus('Logout Error: ' + error.message, false, statusMessage);
+        showStatus('statusMessageLogoutError' + error.message, false, carStatusMessage);
       } else {
-        showStatus('Logged out successfully!', true, authStatusMessage);
+        showStatus('statusMessageLoggedOut', true, authStatusMessage);
         toggleAdminPanel(false);
-        // Clear data on sign out
         carsList.innerHTML = '';
-        form.reset();
+        carForm.reset();
         document.getElementById('car-id').value = '';
         makeSelect.value = '';
-        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
         modelSelect.disabled = true;
         updateCarSummary([]);
+        const customersTableBody = document.getElementById('customersTableBody');
+        if (customersTableBody) customersTableBody.innerHTML = '';
+        const customerListEmptyState = document.getElementById('customer-list-empty-state');
+        if (customerListEmptyState) customerListEmptyState.style.display = 'none';
+        // Clear rent history list if visible
+        if (rentHistoryTableBody) rentHistoryTableBody.innerHTML = '';
+        if (rentHistoryEmptyState) rentHistoryEmptyState.style.display = 'none';
+        applyTranslations(); // Apply translations after logout
       }
     });
 
-    // Function to show/hide admin panel and update user info (from admin backup.html)
+    // Function to show/hide admin panel and update user info
     function toggleAdminPanel(loggedIn, userEmail = '') {
       if (loggedIn) {
         loginContainer.style.display = 'none';
@@ -1137,70 +2040,753 @@
       }
     }
 
-    // Check session on page load (from admin backup.html)
+    // Check session on page load
     async function checkSession() {
       const { data: { session }, error } = await supabaseClient.auth.getSession();
-      if (session && session.user && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') { // Use your specific admin UID here
+      if (session && session.user && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') {
         toggleAdminPanel(true, session.user.email);
         fetchMakes();
-        fetchCars(); // Call fetchCars here
+        fetchCars();
+        fetchCustomers();
+        fetchRentHistory(); // Fetch rent history on initial load
       } else {
         toggleAdminPanel(false);
       }
     }
 
-    // Initial check on load (from admin backup.html)
+    // Initial check on load
     checkSession();
 
-    // Listen for auth state changes (from admin backup.html)
+    // Listen for auth state changes
     supabaseClient.auth.onAuthStateChange((event, session) => {
         console.log('Auth event:', event, 'Session:', session);
-        if (event === 'SIGNED_IN' && session && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') { // Use your specific admin UID here
+        if (event === 'SIGNED_IN' && session && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') {
             toggleAdminPanel(true, session.user.email);
             fetchMakes();
-            fetchCars(); // Call fetchCars here
+            fetchCars();
+            fetchCustomers();
+            fetchRentHistory();
+            applyTranslations(); // Apply translations after auth state change
         } else if (event === 'SIGNED_OUT') {
             toggleAdminPanel(false);
-            // Clear data on sign out
             carsList.innerHTML = '';
-            form.reset();
+            carForm.reset();
             document.getElementById('car-id').value = '';
             makeSelect.value = '';
-            modelSelect.innerHTML = '<option value="">Select Model</option>';
+            modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
             modelSelect.disabled = true;
             updateCarSummary([]);
+            if (customersTableBody) customersTableBody.innerHTML = '';
+            if (customerListEmptyState) customerListEmptyState.style.display = 'none';
+            // Clear rent history list if visible
+            if (rentHistoryTableBody) rentHistoryTableBody.innerHTML = '';
+            if (rentHistoryEmptyState) rentHistoryEmptyState.style.display = 'none';
+            applyTranslations(); // Apply translations after auth state change
         }
     });
 
-    // Rental modal logic (maintained from previous version)
-    const rentalModal = document.getElementById('rental-modal');
-    document.getElementById('modal-close').onclick = () => rentalModal.style.display = 'none';
-    window.onclick = e => { if (e.target === rentalModal) rentalModal.style.display = 'none'; };
-    function openRentalModal(carId) {
-      document.getElementById('rental-car-id').value = carId;
-      rentalModal.style.display = 'block';
+    // --- Customer Management Logic ---
+
+    // Event listener for "Add New Customer" button to open the modal
+    if (showAddCustomerFormBtn) {
+        showAddCustomerFormBtn.addEventListener('click', () => {
+            if (addCustomerModal) {
+                addCustomerModal.style.display = 'flex'; // Show the modal (using flex for centering)
+                applyTranslations(); // Apply translations to modal content when opened
+            }
+        });
     }
-    document.getElementById('modal-reset').onclick = () => document.getElementById('rental-form').reset();
-    document.getElementById('rental-form').addEventListener('submit', async e => {
-      e.preventDefault();
-      const record = {
-        car_id: document.getElementById('rental-car-id').value,
-        renter_name: document.getElementById('renter_name').value,
-        renter_phone: document.getElementById('renter_phone').value,
-        from_date: document.getElementById('rental_from').value,
-        to_date: document.getElementById('rental_to').value,
-        notes: document.getElementById('rental_notes').value
-      };
-      const { error } = await supabaseClient.from('rental_history').insert([record]);
-      if (error) {
-        console.error('Error: ' + error.message);
-      } else {
-        console.log('Rental saved successfully!'); /* Translated text */
-        rentalModal.style.display = 'none';
-        document.getElementById('rental-form').reset();
-        fetchCars(); // Refresh the car list after a successful rental
-      }
+
+    // Event listener for modal close button (X)
+    if (closeCustomerModalBtn) {
+        closeCustomerModalBtn.addEventListener('click', () => {
+            if (addCustomerModal) {
+                addCustomerModal.style.display = 'none'; // Hide the modal
+                addCustomerForm.reset(); // Clear the form
+            }
+        });
+    }
+
+    // Event listener for "Cancel" button inside the customer form (in modal)
+    if (cancelAddCustomerBtn) {
+        cancelAddCustomerBtn.addEventListener('click', () => {
+            if (addCustomerModal) {
+                addCustomerModal.style.display = 'none'; // Hide the modal
+                addCustomerForm.reset(); // Clear the form
+            }
+        });
+    }
+
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target == addCustomerModal) {
+            addCustomerModal.style.display = "none";
+            addCustomerForm.reset(); // Clear the form
+        }
     });
+
+
+    // Submit handler for adding a new customer
+    if (addCustomerForm) {
+        addCustomerForm.addEventListener('submit', async (event) => {
+            event.preventDefault(); // Prevent default form submission
+
+            const firstName = document.getElementById('customerFirstName').value;
+            const lastName = document.getElementById('customerLastName').value;
+            const email = document.getElementById('customerEmail').value;
+            const phoneNumber = document.getElementById('customerPhoneNumber').value;
+            const address = document.getElementById('customerAddress').value;
+            const city = document.getElementById('customerCity').value;
+            const country = document.getElementById('customerCountry').value;
+            const licenseNumber = document.getElementById('customerLicenseNumber').value;
+            const licenseExpiry = document.getElementById('customerLicenseExpiry').value;
+            const dob = document.getElementById('customerDOB').value;
+
+            const { data, error } = await supabaseClient
+                .from('customers')
+                .insert([
+                    {
+                        first_name: firstName,
+                        last_name: lastName,
+                        email: email,
+                        phone_number: phoneNumber,
+                        address: address,
+                        city: city,
+                        country: country,
+                        driver_license_number: licenseNumber,
+                        driver_license_expiry_date: licenseExpiry,
+                        date_of_birth: dob
+                    }
+                ]);
+
+            if (error) {
+                console.error('Error adding customer:', error.message);
+                showStatus('statusMessageCustomerAddError' + error.message, false, customerStatusMessage);
+            } else {
+                console.log('Customer added successfully:', data);
+                showStatus('statusMessageCustomerAdded', true, customerStatusMessage);
+                addCustomerForm.reset(); // Clear the form
+
+                if (addCustomerModal) {
+                    addCustomerModal.style.display = 'none';
+                }
+                fetchCustomers(); // Refresh the customer list on the main page
+            }
+        });
+    }
+
+    // Function to fetch and display customers
+    async function fetchCustomers() {
+        if (!customersTableBody || !customerListEmptyState) return;
+
+        const { data: customers, error } = await supabaseClient
+            .from('customers')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        customersTableBody.innerHTML = '';
+        customerListEmptyState.style.display = 'none';
+
+        if (error) {
+            console.error('Error fetching customers:', error.message);
+            customersTableBody.innerHTML = `<tr><td colspan="6">${translations.statusMessageErrorLoadingCustomers[currentLang]}</td></tr>`;
+            customerListEmptyState.style.display = 'block';
+            return;
+        }
+
+        if (customers && customers.length > 0) {
+            customers.forEach(customer => {
+                const row = customersTableBody.insertRow();
+                row.insertCell().textContent = `${customer.first_name || translations.n_a[currentLang]} ${customer.last_name || ''}`;
+                row.insertCell().textContent = customer.email || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.phone_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.driver_license_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.driver_license_expiry_date || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.date_of_birth || translations.n_a[currentLang];
+            });
+        } else {
+            customersTableBody.innerHTML = '<tr><td colspan="6"></td></tr>';
+            customerListEmptyState.style.display = 'block';
+        }
+    }
+
+    // --- Tab Switching Logic ---
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const targetTabId = button.dataset.tabTarget;
+            const targetTabContent = document.querySelector(targetTabId);
+
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            button.classList.add('active');
+            if (targetTabContent) {
+                targetTabContent.classList.add('active');
+            }
+
+            if (targetTabId === '#vehicleInventoryTab') {
+                fetchCars();
+            } else if (targetTabId === '#customerListTab') {
+                fetchCustomers();
+            } else if (targetTabId === '#rentHistoryTab') {
+                fetchRentHistory(); // Call the new fetch function for rent history
+            }
+        });
+    });
+
+    // Ensure initial tab is active on load
+    document.querySelector('.tab-button.active').click();
+
+
+    // --- Rent Car Modal Logic ---
+
+    window.openRentCarModal = function(carId, make, model, price, odometer) {
+        rentCarModal.style.display = 'flex';
+        rentCarForm.reset(); // Clear previous data
+        customerSearchResults.innerHTML = ''; // Clear search results
+        confirmRentalBtn.disabled = false; // Enable button when modal opens
+        showStatus('', true, rentStatusMessage); // Clear any previous messages
+
+        rentCarIdInput.value = carId;
+        rentCarDailyPriceInput.value = price;
+        rentCarInitialOdometerInput.value = odometer;
+        rentCarVehicleInfo.value = `${make} ${model} (${translations.rentalPricePerDayLabel[currentLang]}: AED${parseFloat(price).toFixed(2)}, ${translations.odometerLabel[currentLang]}: ${parseFloat(odometer).toFixed(0)} km)`;
+        selectedCustomerInfo.textContent = ''; // Clear selected customer info
+
+        // Set default dates to today and tomorrow
+        const today = new Date();
+        const tomorrow = new Date();
+        tomorrow.setDate(today.getDate() + 1);
+        rentFromDateInput.value = today.toISOString().split('T')[0];
+        rentEndDateInput.value = tomorrow.toISOString().split('T')[0];
+
+        // Recalculate total price and rented days on date change
+        calculateRentalCosts();
+        applyTranslations(); // Apply translations to modal content when opened
+    }
+
+    // Close rent car modal
+    closeRentCarModalBtn.addEventListener('click', () => {
+        rentCarModal.style.display = 'none';
+        rentCarForm.reset();
+        confirmRentalBtn.disabled = false; // Ensure button is re-enabled on manual close/cancel
+        showStatus('', true, rentStatusMessage); // Clear status message
+    });
+
+    cancelRentCarBtn.addEventListener('click', () => {
+        rentCarModal.style.display = 'none';
+        rentCarForm.reset();
+        confirmRentalBtn.disabled = false; // Ensure button is re-enabled on manual close/cancel
+        showStatus('', true, rentStatusMessage); // Clear status message
+    });
+
+    // Close modal if user clicks outside of it
+    window.addEventListener('click', (event) => {
+        if (event.target == rentCarModal) {
+            rentCarModal.style.display = "none";
+            rentCarForm.reset();
+            confirmRentalBtn.disabled = false; // Ensure button is re-enabled on click outside
+            showStatus('', true, rentStatusMessage); // Clear status message
+        }
+    });
+
+    // Customer Search functionality
+    let customerSearchTimeout;
+    customerSearchInput.addEventListener('input', () => {
+        clearTimeout(customerSearchTimeout);
+        customerSearchResults.innerHTML = ''; // Clear previous results
+        rentCarCustomerIdInput.value = ''; // Clear selected customer ID
+        selectedCustomerInfo.textContent = ''; // Clear selected customer info
+
+        const query = customerSearchInput.value.trim();
+        if (query.length < 3) { // Only search if at least 3 characters are typed
+            return;
+        }
+
+        customerSearchTimeout = setTimeout(async () => {
+            const { data, error } = await supabaseClient
+                .from('customers')
+                .select('id, first_name, last_name, email, phone_number')
+                .or(`email.ilike.%${query}%,driver_license_number.ilike.%${query}%`)
+                .limit(10); // Limit search results
+
+            if (error) {
+                console.error('Error searching customers:', error.message);
+                return;
+            }
+
+            if (data && data.length > 0) {
+                data.forEach(customer => {
+                    const resultItem = document.createElement('div');
+                    resultItem.classList.add('search-result-item');
+                    resultItem.innerHTML = `<strong>${customer.first_name} ${customer.last_name}</strong><br>${customer.email} | ${customer.phone_number}`;
+                    resultItem.dataset.customerId = customer.id;
+                    resultItem.dataset.customerName = `${customer.first_name} ${customer.last_name}`;
+                    resultItem.addEventListener('click', () => {
+                        rentCarCustomerIdInput.value = customer.id;
+                        selectedCustomerInfo.textContent = `${translations.selectedCustomerInfoText[currentLang]} ${customer.first_name} ${customer.last_name} (${customer.email})`;
+                        customerSearchInput.value = resultItem.dataset.customerName; // Pre-fill search input with selected name
+                        customerSearchResults.innerHTML = ''; // Hide search results
+                    });
+                    customerSearchResults.appendChild(resultItem);
+                });
+            } else {
+                customerSearchResults.innerHTML = `<div class="search-result-item">${translations.noCustomersFound[currentLang]}</div>`;
+            }
+        }, 300); // Debounce search
+    });
+
+    // Calculate rental costs dynamically
+    function calculateRentalCosts() {
+        const fromDate = new Date(rentFromDateInput.value);
+        const endDate = new Date(rentEndDateInput.value);
+        const dailyPrice = parseFloat(rentCarDailyPriceInput.value);
+        const paidAmount = parseFloat(paidAmountInput.value) || 0;
+
+        if (isNaN(fromDate.getTime()) || isNaN(endDate.getTime())) { // Remove fromDate > endDate check here
+            rentedDaysInput.value = 0;
+            totalPriceInput.value = 0;
+            balanceAmountInput.value = 0;
+            rentalPricePerDayInput.value = dailyPrice.toFixed(2);
+            return;
+        }
+
+        const timeDifference = endDate.getTime() - fromDate.getTime();
+        let days = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // Calculate days, round up
+        if (days === 0 && fromDate.getTime() <= endDate.getTime()) { // Changed fromDate.getTime() === endDate.getTime() to <=
+            days = 1; // If start and end date are the same or end date is before start, count as 1 day (for cases where user might pick same day by mistake)
+        } else if (days < 0) { // If end date is actually before start date resulting in negative days, default to 0
+            days = 0;
+        }
+
+
+        const totalPrice = days * dailyPrice;
+        const balance = totalPrice - paidAmount;
+
+        rentedDaysInput.value = days;
+        rentalPricePerDayInput.value = dailyPrice.toFixed(2);
+        totalPriceInput.value = totalPrice.toFixed(2);
+        balanceAmountInput.value = balance.toFixed(2);
+    }
+
+    // Event listeners for date and paid amount changes
+    rentFromDateInput.addEventListener('change', calculateRentalCosts);
+    rentEndDateInput.addEventListener('change', calculateRentalCosts);
+    paidAmountInput.addEventListener('input', calculateRentalCosts);
+
+    // Submit Rent Car Form
+    rentCarForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        // Disable the button and show loading status immediately
+        confirmRentalBtn.disabled = true;
+        showStatus('statusMessageProcessingRental', true, rentStatusMessage);
+
+        const car_id = rentCarIdInput.value;
+        const customer_id = rentCarCustomerIdInput.value;
+        const from_date = rentFromDateInput.value;
+        const end_date = rentEndDateInput.value;
+        const initial_odometer_km = parseFloat(rentCarInitialOdometerInput.value);
+        const rental_price_per_day = parseFloat(rentalPricePerDayInput.value);
+        const rented_days = parseInt(rentedDaysInput.value);
+        const total_price = parseFloat(totalPriceInput.value);
+        const paid_amount = parseFloat(paidAmountInput.value);
+        const balance = parseFloat(balanceAmountInput.value);
+        const notes = ''; // Notes field is removed from the form, so we pass an empty string to the database
+
+        if (!customer_id) {
+            showStatus('statusMessageSelectCustomer', false, rentStatusMessage);
+            confirmRentalBtn.disabled = false; // Re-enable on validation error
+            return;
+        }
+        // Re-added specific check for end date before from date
+        if (new Date(from_date) > new Date(end_date)) {
+            showStatus('statusMessageEndDateBeforeFromDate', false, rentStatusMessage);
+            confirmRentalBtn.disabled = false; // Re-enable on validation error
+            return;
+        }
+        if (rented_days <= 0) {
+            showStatus('statusMessageRentalDuration', false, rentStatusMessage);
+            confirmRentalBtn.disabled = false; // Re-enable on validation error
+            return;
+        }
+
+        // Insert into rent_history table
+        const { data: rentData, error: rentError } = await supabaseClient
+            .from('rent_history')
+            .insert([
+                {
+                    car_id: car_id,
+                    customer_id: customer_id,
+                    from_date: from_date,
+                    end_date: end_date,
+                    initial_odometer_km: initial_odometer_km,
+                    rental_price_per_day: rental_price_per_day,
+                    rented_days: rented_days,
+                    total_price: total_price,
+                    paid_amount: paid_amount,
+                    balance: balance,
+                    status: 'Active', // Default status for new rental
+                    payment_status: balance > 0 ? 'Partially Paid' : (balance === 0 ? 'Paid' : 'Pending'), // Adjust payment status based on balance
+                    notes: notes
+                }
+            ]);
+
+        if (rentError) {
+            console.error('Error recording rental:', rentError.message);
+            showStatus('statusMessageErrorRecordingRental' + rentError.message, false, rentStatusMessage);
+            confirmRentalBtn.disabled = false; // Re-enable on Supabase error
+            return;
+        }
+
+        // Update car status in 'cars' table
+        const { data: carUpdateData, error: carUpdateError } = await supabaseClient
+            .from('cars')
+            .update({
+                status: 'Rented',
+                from_date: from_date,
+                end_date: end_date
+            })
+            .eq('id', car_id); // Use car_id here, not carId
+
+        if (carUpdateError) {
+            console.error('Error updating car status:', carUpdateError.message);
+            showStatus('statusMessageCarUpdateFailed' + carUpdateError.message, false, rentStatusMessage);
+            confirmRentalBtn.disabled = false; // Re-enable on Supabase error
+            return;
+        }
+
+        showStatus('statusMessageRentalSuccess', true, rentStatusMessage);
+        rentCarForm.reset();
+        rentCarModal.style.display = 'none';
+        confirmRentalBtn.disabled = false; // Re-enable after successful operation
+        fetchCars(); // Refresh the car list to reflect the status change
+        fetchRentHistory(); // Refresh the rent history list
+    });
+
+    // --- Rent History Logic ---
+    async function fetchRentHistory() {
+        if (!rentHistoryTableBody || !rentHistoryEmptyState) return;
+
+        // Get filter values
+        const vehicleQuery = vehicleFilterInput.value.trim().toLowerCase();
+        const customerQuery = customerFilterInput.value.trim().toLowerCase();
+        // Removed balance filter logic
+        const paymentStatus = paymentStatusFilterSelect.value;
+
+
+        let query = supabaseClient
+            .from('rent_history')
+            .select(`
+                *,
+                cars (plate_number, odometer_km, veh_make (make), veh_model (model)),
+                customers (first_name, last_name, email)
+            `)
+            .order('created_at', { ascending: false });
+
+        // Apply filters
+        if (vehicleQuery) {
+            // Use .or() with an array of conditions for multiple columns
+            query = query.or(`cars.plate_number.ilike.%${vehicleQuery}%,cars.veh_make.make.ilike.%${vehicleQuery}%,cars.veh_model.model.ilike.%${vehicleQuery}%`);
+        }
+        if (customerQuery) {
+            query = query.or(`customers.first_name.ilike.%${customerQuery}%,customers.last_name.ilike.%${customerQuery}%,customers.email.ilike.%${customerQuery}%`);
+        }
+        // Removed balance filter application
+        if (paymentStatus !== 'All') {
+            query = query.eq('payment_status', paymentStatus);
+        }
+
+        const { data: rentHistory, error } = await query;
+
+        rentHistoryTableBody.innerHTML = '';
+        rentHistoryEmptyState.style.display = 'none';
+
+        if (error) {
+            console.error('Error fetching rent history:', error.message);
+            rentHistoryTableBody.innerHTML = `<tr><td colspan="12">${translations.statusMessageErrorFetchingRentHistory[currentLang]}</td></tr>`;
+            rentHistoryEmptyState.style.display = 'block';
+            return;
+        }
+
+        if (rentHistory && rentHistory.length > 0) {
+            rentHistory.forEach(rental => {
+                const row = rentHistoryTableBody.insertRow();
+                const vehicleName = rental.cars ? `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number})` : translations.n_a[currentLang];
+                const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.email})` : translations.n_a[currentLang];
+
+                row.insertCell().textContent = vehicleName;
+                row.insertCell().textContent = customerName;
+                row.insertCell().textContent = rental.from_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.end_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.rented_days !== null ? rental.rented_days : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.rental_price_per_day !== null ? `AED${rental.rental_price_per_day.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.total_price !== null ? `AED${rental.total_price.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.balance !== null ? `AED${rental.balance.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.actual_return_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.payment_status || translations.n_a[currentLang];
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-edit" onclick="openEditRentHistoryModal(
+                        '${rental.id}',
+                        '${vehicleName.replace(/'/g, "\\'")}',
+                        '${customerName.replace(/'/g, "\\'")}',
+                        '${rental.from_date || ''}',
+                        '${rental.end_date || ''}',
+                        '${rental.rental_price_per_day || 0}',
+                        '${rental.paid_amount || 0}',
+                        '${rental.actual_return_date || ''}',
+                        '${rental.cars.odometer_km || 0}',
+                        '${rental.car_id || ''}'
+                    )">
+                        <i class="fas fa-edit"></i> <span data-i18n-key="editButton">${translations.editButton[currentLang]}</span>
+                    </button>
+                `;
+            });
+        } else {
+            rentHistoryTableBody.innerHTML = '<tr><td colspan="12"></td></tr>';
+            rentHistoryEmptyState.style.display = 'block';
+        }
+    }
+
+    // Add event listeners to filters to trigger fetchRentHistory
+    vehicleFilterInput.addEventListener('input', fetchRentHistory);
+    customerFilterInput.addEventListener('input', fetchRentHistory);
+    // Removed event listeners for balance filters
+    paymentStatusFilterSelect.addEventListener('change', fetchRentHistory);
+
+
+    // --- Edit Rent History Modal Logic ---
+
+    // Function to calculate and update display fields in the edit rent history modal
+    function calculateFinalRentalCosts() {
+        const fromDate = new Date(editRentHistoryFromDate.value);
+        const actualReturnDate = new Date(editRentHistoryActualReturnDateInput.value);
+        const dailyPrice = parseFloat(editRentHistoryDailyPrice.value);
+        const paidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0; // Read from visible input
+
+        let calculatedDays = 0;
+        let calculatedTotalPrice = 0;
+        let calculatedBalance = 0;
+
+        if (isNaN(fromDate.getTime()) || isNaN(actualReturnDate.getTime())) {
+            // If dates are invalid, show 0 for calculations
+            editRentHistoryCalculatedRentedDays.value = 0;
+            editRentHistoryCalculatedTotalPrice.value = 0;
+            editRentHistoryCalculatedBalance.value = 0;
+            return;
+        }
+
+        // Calculate days based on actual return date vs from date
+        const timeDifference = actualReturnDate.getTime() - fromDate.getTime();
+        calculatedDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+        if (calculatedDays === 0 && fromDate.getTime() === actualReturnDate.getTime()) {
+            calculatedDays = 1; // If start and actual return date are the same, count as 1 day
+        } else if (calculatedDays < 0) {
+            calculatedDays = 0; // Cannot have negative rented days
+        }
+
+        calculatedTotalPrice = calculatedDays * dailyPrice;
+        calculatedBalance = calculatedTotalPrice - paidAmount;
+
+        editRentHistoryCalculatedRentedDays.value = calculatedDays;
+        editRentHistoryCalculatedTotalPrice.value = calculatedTotalPrice.toFixed(2);
+        editRentHistoryCalculatedBalance.value = calculatedBalance.toFixed(2);
+    }
+
+    window.openEditRentHistoryModal = function(rentalId, vehicleName, customerName, rentalFromDate, rentalEndDate, rentalPricePerDay, rentalPaidAmount, currentActualReturnDate, carOdometerAtRent, carId) {
+        editRentHistoryModal.style.display = 'flex';
+        editRentHistoryForm.reset();
+        showStatus('', true, editRentStatusMessage); // Clear any previous messages
+
+        editRentHistoryIdInput.value = rentalId;
+        editRentHistoryVehicleInfo.value = vehicleName;
+        editRentHistoryCustomerInfo.value = customerName;
+        editRentHistoryActualReturnDateInput.value = currentActualReturnDate; // Current actual return date from DB
+        editRentHistoryPaidAmountInput.value = rentalPaidAmount; // Populate visible paid amount field
+
+        // Store original rental details in hidden fields
+        editRentHistoryFromDate.value = rentalFromDate;
+        editRentHistoryExpectedEndDate.value = rentalEndDate; // Storing this, but actual calculation uses actualReturnDate
+        editRentHistoryDailyPrice.value = rentalPricePerDay;
+        // The original paidAmount is now directly in editRentHistoryPaidAmountInput.value
+        editRentHistoryCarId.value = carId;
+        // The carOdometerAtRent (initial odometer when rented) is used to populate the Actual Odometer initially
+        // user can then update this to the final odometer reading.
+        editRentHistoryActualOdometerInput.value = carOdometerAtRent;
+
+        // Immediately calculate costs based on current (or initially fetched) actual return date
+        // If actual_return_date is not set yet, use expected end date for initial calculation,
+        // but actual calculation should always use actualReturnDateInput.value
+        if (currentActualReturnDate) {
+             editRentHistoryActualReturnDateInput.value = currentActualReturnDate;
+        } else {
+             editRentHistoryActualReturnDateInput.value = rentalEndDate; // Use expected end date as a default if not set
+        }
+
+        calculateFinalRentalCosts(); // Call initially to show calculated values
+        applyTranslations(); // Apply translations to modal content when opened
+    };
+
+    closeEditRentHistoryModalBtn.addEventListener('click', () => {
+        editRentHistoryModal.style.display = 'none';
+        editRentHistoryForm.reset();
+    });
+
+    cancelEditRentHistoryBtn.addEventListener('click', () => {
+        editRentHistoryModal.style.display = 'none';
+        editRentHistoryForm.reset();
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == editRentHistoryModal) {
+            editRentHistoryModal.style.display = "none";
+            editRentHistoryForm.reset();
+        }
+    });
+
+    // Event listeners for changes in actual return date and actual odometer
+    editRentHistoryActualReturnDateInput.addEventListener('change', calculateFinalRentalCosts);
+    editRentHistoryPaidAmountInput.addEventListener('input', calculateFinalRentalCosts); // NEW: Listen to paid amount changes
+    // Actual Odometer input doesn't affect calculated days/price, so no need to call calculateFinalRentalCosts on its change.
+
+    editRentHistoryForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        saveRentHistoryBtn.disabled = true;
+        showStatus('statusMessageSavingChanges', true, editRentStatusMessage);
+
+        const rentalId = editRentHistoryIdInput.value;
+        const actualReturnDate = editRentHistoryActualReturnDateInput.value || null;
+        const actualOdometerKm = parseFloat(editRentHistoryActualOdometerInput.value);
+        const newPaidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0; // Get updated paid amount
+
+        // Retrieve original rental details from hidden inputs (except paidAmount which is now from input)
+        const fromDate = editRentHistoryFromDate.value;
+        const dailyPrice = parseFloat(editRentHistoryDailyPrice.value);
+        const carId = editRentHistoryCarId.value;
+
+        let calculatedDays = 0;
+        let calculatedTotalPrice = 0;
+        let calculatedBalance = 0;
+
+        if (actualReturnDate) {
+            const startDate = new Date(fromDate);
+            const returnDate = new Date(actualReturnDate);
+            const timeDiff = returnDate.getTime() - startDate.getTime();
+            calculatedDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+            if (calculatedDays === 0 && startDate.getTime() === returnDate.getTime()) {
+                calculatedDays = 1; // If start and actual return date are the same, count as 1 day
+            } else if (calculatedDays < 0) {
+                calculatedDays = 0; // Cannot have negative rented days
+            }
+        } else {
+            // If actual return date is cleared, revert to original rental days or keep current calculated if available.
+            // For simplicity here, we'll keep the currently displayed calculated days if no actual return date.
+            calculatedDays = parseInt(editRentHistoryCalculatedRentedDays.value);
+        }
+
+        calculatedTotalPrice = calculatedDays * dailyPrice;
+        calculatedBalance = calculatedTotalPrice - newPaidAmount; // Use newPaidAmount for balance calculation
+
+        // Determine status and payment status based on return and balance
+        let newRentalStatus = 'Active'; // Default, if no actual return date
+        let newPaymentStatus = 'Pending'; // Default
+
+        if (actualReturnDate) {
+            newRentalStatus = 'Completed'; // Marking as completed once actual return date is set
+            if (calculatedBalance <= 0) { // Paid or Overpaid
+                newPaymentStatus = 'Paid';
+            } else { // Still has balance
+                newPaymentStatus = 'Partially Paid';
+            }
+        } else {
+             // If actual return date is not set, keep status as 'Active' and determine payment status based on current balance
+             if (calculatedBalance <= 0) {
+                 newPaymentStatus = 'Paid';
+             } else if (newPaidAmount > 0) {
+                 newPaymentStatus = 'Partially Paid';
+             } else {
+                 newPaymentStatus = 'Pending';
+             }
+        }
+
+
+        // Update rent_history table
+        const { data: rentUpdateData, error: rentUpdateError } = await supabaseClient
+            .from('rent_history')
+            .update({
+                actual_return_date: actualReturnDate,
+                final_odometer_km: actualOdometerKm, // Store actual odometer
+                rented_days: calculatedDays, // Update rented_days based on actual return
+                total_price: calculatedTotalPrice, // Update total_price
+                paid_amount: newPaidAmount, // Update paid_amount
+                balance: calculatedBalance, // Update balance
+                status: newRentalStatus, // Update status
+                payment_status: newPaymentStatus // Update payment status
+            })
+            .eq('id', rentalId);
+
+        if (rentUpdateError) {
+            console.error('Error updating rental record:', rentUpdateError.message);
+            showStatus('statusMessageErrorUpdatingRental' + rentUpdateError.message, false, editRentStatusMessage);
+            saveRentHistoryBtn.disabled = false;
+            return;
+        }
+
+        // Update cars table (status and odometer) only if actual_return_date is set and status is being marked as 'Completed'
+        if (actualReturnDate && newRentalStatus === 'Completed') {
+            const { data: carUpdateData, error: carUpdateError } = await supabaseClient
+                .from('cars')
+                .update({
+                    status: 'Available', // Mark car as available
+                    odometer_km: actualOdometerKm, // Update car's odometer with the final reading
+                    from_date: null, // Clear from_date on the car (as it's returned)
+                    end_date: null // Clear end_date on the car (as it's returned)
+                })
+                .eq('id', carId);
+
+            if (carUpdateError) {
+                console.error('Error updating car status:', carUpdateError.message);
+                showStatus('statusMessageRentalCarUpdateFailed' + carUpdateError.message, false, editRentStatusMessage);
+                saveRentHistoryBtn.disabled = false;
+                return;
+            }
+        }
+
+
+        showStatus('statusMessageRentalUpdated', true, editRentStatusMessage);
+        editRentHistoryModal.style.display = 'none';
+        editRentHistoryForm.reset();
+        fetchCars(); // Refresh car list to reflect status change
+        fetchRentHistory(); // Refresh the rent history list
+        saveRentHistoryBtn.disabled = false;
+    });
+
+    // Language switch event listeners
+    langArBtn.addEventListener('click', () => {
+        currentLang = 'ar';
+        localStorage.setItem('lang', 'ar');
+        applyTranslations();
+        fetchCars(); // Re-fetch to update N/A, image text dynamically
+        fetchCustomers(); // Re-fetch for N/A
+        fetchRentHistory(); // Re-fetch for N/A
+    });
+
+    langEnBtn.addEventListener('click', () => {
+        currentLang = 'en';
+        localStorage.setItem('lang', 'en');
+        applyTranslations();
+        fetchCars(); // Re-fetch to update N/A, image text dynamically
+        fetchCustomers(); // Re-fetch for N/A
+        fetchRentHistory(); // Re-fetch for N/A
+    });
+
+    // Apply translations on initial load
+    window.addEventListener('DOMContentLoaded', applyTranslations);
+
   </script>
 </body>
 </html>
