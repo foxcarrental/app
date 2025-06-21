@@ -996,21 +996,7 @@
             </div>
             <!-- Filter Section -->
             <div class="filter-section">
-                <div class="form-group">
-                    <label for="vehicleFilter" data-i18n-key="vehicleFilter">المركبة:</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-car"></i>
-                        <input type="text" id="vehicleFilter" data-i18n-key="vehicleFilterPlaceholder" placeholder="بحث باسم المركبة / اللوحة">
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label for="customerFilter" data-i18n-key="customerFilter">العميل:</label>
-                    <div class="input-with-icon">
-                        <i class="fas fa-user"></i>
-                        <input type="text" id="customerFilter" data-i18n-key="customerFilterPlaceholder" placeholder="بحث باسم العميل / البريد الإلكتروني">
-                    </div>
-                </div>
-                <!-- Removed Balance Min and Balance Max Filters -->
+                <!-- Removed Vehicle and Customer filters as requested -->
                 <div class="form-group">
                     <label for="paymentStatusFilter" data-i18n-key="paymentStatusFilter">حالة الدفع:</label>
                     <div class="input-with-icon">
@@ -1407,9 +1393,7 @@
     const rentHistoryEmptyState = document.getElementById('rent-history-empty-state');
 
     // Filter elements for Rent History
-    const vehicleFilterInput = document.getElementById('vehicleFilter');
-    const customerFilterInput = document.getElementById('customerFilter');
-    // Removed balance filter elements
+    // Removed vehicleFilterInput and customerFilterInput
     const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
 
     // Edit Rent History Modal elements
@@ -1520,7 +1504,7 @@
         vehicleFilter: { ar: 'المركبة:', en: 'Vehicle:' },
         vehicleFilterPlaceholder: { ar: 'بحث باسم المركبة / اللوحة', en: 'Search by vehicle name / plate' },
         customerFilter: { ar: 'العميل:', en: 'Customer:' },
-        customerFilterPlaceholder: { ar: 'بحث باسم العميل / البريد الإلكتروني', en: 'Search by customer name / email' },
+        customerFilterPlaceholder: { ar: 'بحث باسم العميل / رقم الهاتف', en: 'Search by customer name / phone number' },
         // Removed balance filters from translations as well
         paymentStatusFilter: { ar: 'حالة الدفع:', en: 'Payment Status:' },
         paymentStatusAll: { ar: 'الكل', en: 'All' },
@@ -1624,7 +1608,8 @@
         n_a: { ar: 'N/A', en: 'N/A' },
     };
 
-    let currentLang = localStorage.getItem('lang') || 'ar'; // Default to Arabic
+    // Set initial language to English, then check localStorage
+    let currentLang = localStorage.getItem('lang') || 'en';
 
     // Function to apply translations
     function applyTranslations() {
@@ -2493,14 +2478,24 @@
         fetchRentHistory(); // Refresh the rent history list
     });
 
+    // Helper to format date toYYYY-MM-DD
+    function formatDateForInput(dateString) {
+        if (!dateString) return '';
+        try {
+            const date = new Date(dateString);
+            return date.toISOString().split('T')[0];
+        } catch (e) {
+            console.error("Error formatting date:", e);
+            return '';
+        }
+    }
+
     // --- Rent History Logic ---
     async function fetchRentHistory() {
         if (!rentHistoryTableBody || !rentHistoryEmptyState) return;
 
         // Get filter values
-        const vehicleQuery = vehicleFilterInput.value.trim().toLowerCase();
-        const customerQuery = customerFilterInput.value.trim().toLowerCase();
-        // Removed balance filter logic
+        // Removed vehicleQuery and customerQuery
         const paymentStatus = paymentStatusFilterSelect.value;
 
 
@@ -2509,19 +2504,12 @@
             .select(`
                 *,
                 cars (plate_number, odometer_km, veh_make (make), veh_model (model)),
-                customers (first_name, last_name, email)
+                customers (first_name, last_name, email, phone_number)
             `)
             .order('created_at', { ascending: false });
 
         // Apply filters
-        if (vehicleQuery) {
-            // Use .or() with an array of conditions for multiple columns
-            query = query.or(`cars.plate_number.ilike.%${vehicleQuery}%,cars.veh_make.make.ilike.%${vehicleQuery}%,cars.veh_model.model.ilike.%${vehicleQuery}%`);
-        }
-        if (customerQuery) {
-            query = query.or(`customers.first_name.ilike.%${customerQuery}%,customers.last_name.ilike.%${customerQuery}%,customers.email.ilike.%${customerQuery}%`);
-        }
-        // Removed balance filter application
+        // Removed vehicle and customer query conditions
         if (paymentStatus !== 'All') {
             query = query.eq('payment_status', paymentStatus);
         }
@@ -2542,7 +2530,7 @@
             rentHistory.forEach(rental => {
                 const row = rentHistoryTableBody.insertRow();
                 const vehicleName = rental.cars ? `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number})` : translations.n_a[currentLang];
-                const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.email})` : translations.n_a[currentLang];
+                const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.phone_number})` : translations.n_a[currentLang];
 
                 row.insertCell().textContent = vehicleName;
                 row.insertCell().textContent = customerName;
@@ -2568,7 +2556,7 @@
                         '${rental.end_date || ''}',
                         '${rental.rental_price_per_day || 0}',
                         '${rental.paid_amount || 0}',
-                        '${rental.actual_return_date || ''}',
+                        '${formatDateForInput(rental.actual_return_date) || ''}', <!-- Formatted actual_return_date -->
                         '${rental.cars.odometer_km || 0}',
                         '${rental.traffic_fines || 0}',
                         '${rental.car_repair || 0}', <!-- NEW: Pass car_repair -->
@@ -2585,9 +2573,7 @@
     }
 
     // Add event listeners to filters to trigger fetchRentHistory
-    vehicleFilterInput.addEventListener('input', fetchRentHistory);
-    customerFilterInput.addEventListener('input', fetchRentHistory);
-    // Removed event listeners for balance filters
+    // Removed event listeners for vehicleFilterInput and customerFilterInput
     paymentStatusFilterSelect.addEventListener('change', fetchRentHistory);
 
 
@@ -2639,10 +2625,10 @@
         editRentHistoryIdInput.value = rentalId;
         editRentHistoryVehicleInfo.value = vehicleName;
         editRentHistoryCustomerInfo.value = customerName;
-        editRentHistoryActualReturnDateInput.value = currentActualReturnDate; // Current actual return date from DB
+        editRentHistoryActualReturnDateInput.value = currentActualReturnDate; // Populate directly with the database value
         editRentHistoryPaidAmountInput.value = rentalPaidAmount; // Populate visible paid amount field
         editRentHistoryTrafficFinesInput.value = trafficFines;
-        editRentHistoryCarRepairInput.value = carRepair; // NEW: Populate car repair
+        editRentHistoryCarRepairInput.value = carRepair; // Populate car repair
 
         // Store original rental details in hidden fields
         editRentHistoryFromDate.value = rentalFromDate;
@@ -2653,15 +2639,6 @@
         // The carOdometerAtRent (initial odometer when rented) is used to populate the Actual Odometer initially
         // user can then update this to the final odometer reading.
         editRentHistoryActualOdometerInput.value = carOdometerAtRent;
-
-        // Immediately calculate costs based on current (or initially fetched) actual return date
-        // If actual_return_date is not set yet, use expected end date for initial calculation,
-        // but actual calculation should always use actualReturnDateInput.value
-        if (currentActualReturnDate) {
-             editRentHistoryActualReturnDateInput.value = currentActualReturnDate;
-        } else {
-             editRentHistoryActualReturnDateInput.value = rentalEndDate; // Use expected end date as a default if not set
-        }
 
         calculateFinalRentalCosts(); // Call initially to show calculated values
         applyTranslations(); // Apply translations to modal content when opened
