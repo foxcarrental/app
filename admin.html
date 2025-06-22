@@ -1074,6 +1074,7 @@
                             <th data-i18n-key="tableReport1FromDate">تاريخ البدء</th>
                             <th data-i18n-key="tableReport1RentedDaysDynamic">أيام الإيجار (حتى اليوم)</th>
                             <th data-i18n-key="tableReport1PricePerDay">السعر / اليوم</th>
+                            <th data-i18n-key="tableReport1PaidAmount">المبلغ المدفوع</th> <!-- NEW TH for Paid Amount -->
                             <th data-i18n-key="tableReport1LastUpdatedBalance">الرصيد المستحق (حتى اليوم)</th>
                         </tr>
                     </thead>
@@ -1664,7 +1665,7 @@
         noImage: { ar: 'لا توجد صورة', en: 'No Image' },
         n_a: { ar: 'N/A', en: 'N/A' },
         reportsTitle: { ar: 'التقارير', en: 'Reports' },
-        report1: { ar: 'تقرير 1: الإيجارات المستمرة', en: 'Report 1: Ongoing Rentals' }, // UPDATED TRANSLATION
+        report1: { ar: 'تقرير 1: الإيجارات المستمرة', en: 'Report 1: Ongoing Rentals' },
         report2: { ar: 'تقرير 2', en: 'Report 2' },
         noReportsFound: { ar: 'لا توجد تقارير متاحة.', en: 'No reports available.' },
         report1Title: { ar: 'تقرير 1: الإيجارات المستمرة', en: 'Report 1: Ongoing Rentals' },
@@ -1673,6 +1674,7 @@
         tableReport1FromDate: { ar: 'تاريخ البدء', en: 'From Date' },
         tableReport1RentedDaysDynamic: { ar: 'أيام الإيجار (حتى اليوم)', en: 'Rented Days (To Date)' },
         tableReport1PricePerDay: { ar: 'السعر / اليوم', en: 'Price / Day' },
+        tableReport1PaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' }, // NEW TRANSLATION KEY
         tableReport1LastUpdatedBalance: { ar: 'الرصيد المستحق (حتى اليوم)', en: 'Balance Due (To Date)' },
         noReport1Data: { ar: 'لا توجد بيانات لتقرير 1.', en: 'No data available for Report 1.' },
     };
@@ -2920,16 +2922,16 @@
             .select(`
                 from_date,
                 rental_price_per_day,
+                paid_amount,
                 cars (plate_number, veh_make (make), veh_model (model)),
-                customers (first_name, last_name, phone_number) /* ADDED phone_number here */
+                customers (first_name, last_name, phone_number)
             `)
             .eq('status', 'Active') // Filter for active rentals
-            .eq('payment_status', 'Partially Paid') // Filter for 'Partially Paid' payment status
             .order('from_date', { ascending: true }); // Order by from_date
 
         if (error) {
             console.error('Error fetching data for Report 1:', error.message);
-            report1TableBody.innerHTML = `<tr><td colspan="6">${translations.statusMessageErrorGeneric[currentLang]} ${error.message}</td></tr>`;
+            report1TableBody.innerHTML = `<tr><td colspan="7">${translations.statusMessageErrorGeneric[currentLang]} ${error.message}</td></tr>`;
             report1EmptyState.style.display = 'block';
             return;
         }
@@ -2941,9 +2943,10 @@
                 const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.phone_number || translations.n_a[currentLang]})` : translations.n_a[currentLang];
                 const fromDate = rental.from_date || translations.n_a[currentLang];
                 const pricePerDay = rental.rental_price_per_day !== null ? `AED${rental.rental_price_per_day.toFixed(2)}` : translations.n_a[currentLang];
+                const paidAmount = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang]; // Get paid amount
 
                 const dynamicRentedDays = getDynamicRentedDays(rental.from_date);
-                const lastUpdatedBalance = dynamicRentedDays * (rental.rental_price_per_day || 0);
+                const lastUpdatedBalance = dynamicRentedDays * (rental.rental_price_per_day || 0); // Calculation remains untouched as requested
 
                 const row = report1TableBody.insertRow();
                 row.insertCell().textContent = vehicleName;
@@ -2951,10 +2954,11 @@
                 row.insertCell().textContent = fromDate;
                 row.insertCell().textContent = dynamicRentedDays;
                 row.insertCell().textContent = pricePerDay;
-                row.insertCell().textContent = `AED${lastUpdatedBalance.toFixed(2)}`;
+                row.insertCell().textContent = paidAmount; // Display paid amount
+                row.insertCell().textContent = `AED${lastUpdatedBalance.toFixed(2)}`; // Display calculated balance
             });
         } else {
-            report1TableBody.innerHTML = '<tr><td colspan="6"></td></tr>';
+            report1TableBody.innerHTML = '<tr><td colspan="7"></td></tr>'; // Adjust colspan for new column
             report1EmptyState.style.display = 'block';
         }
         applyTranslations(); // Apply translations after populating report
