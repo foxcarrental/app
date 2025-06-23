@@ -1006,7 +1006,7 @@
                         <i class="fas fa-credit-card"></i>
                         <select id="paymentStatusFilter">
                             <option value="All" data-i18n-key="paymentStatusAll">الكل</option>
-                            <option value="Paid" data-i18n-key="paymentStatusPaid">مدفوع</option>
+                            <option value="Paid">مدفوع</option>
                             <option value="Partially Paid">مدفوع جزئياً</option>
                             <option value="Pending">معلق</option>
                         </select>
@@ -1074,8 +1074,8 @@
                             <th data-i18n-key="tableReport1FromDate">تاريخ البدء</th>
                             <th data-i18n-key="tableReport1RentedDaysDynamic">أيام الإيجار (حتى اليوم)</th>
                             <th data-i18n-key="tableReport1PricePerDay">السعر / اليوم</th>
-                            <th data-i18n-key="tableReport1PaidAmount">المبلغ المدفوع</th> <!-- NEW TH for Paid Amount -->
-                            <th data-i18n-key="tableReport1LastUpdatedBalance">الرصيد المستحق (حتى اليوم)</th>
+                            <th data-i18n-key="tableReport1PaidAmount">المبلغ المدفوع</th>
+                            <th data-i18n-key="tableReport1OutstandingBalance">الرصيد المستحق (حتى اليوم)</th>
                         </tr>
                     </thead>
                     <tbody id="report1TableBody">
@@ -1289,7 +1289,7 @@
               <input type="hidden" id="editRentHistory-expectedEndDate">
               <input type="hidden" id="editRentHistory-dailyPrice">
               <input type="hidden" id="editRentHistory-carId">
-
+              <input type="hidden" id="editRentHistory-initialRentedDaysFromDB"> <!-- NEW: Hidden input for initial rented days -->
 
               <div class="form-group">
                   <label for="editRentHistoryVehicleInfo" data-i18n-key="vehicleInfoLabel">المركبة:</label>
@@ -1458,6 +1458,7 @@
 
     // Edit Rent History Modal elements
     const editRentHistoryModal = document.getElementById('editRentHistoryModal');
+    // FIX: Corrected ID to match HTML
     const closeEditRentHistoryModalBtn = document.getElementById('closeEditRentHistoryModalBtn');
     const editRentHistoryForm = document.getElementById('editRentHistoryForm');
     const editRentHistoryIdInput = document.getElementById('editRentHistory-id');
@@ -1475,6 +1476,7 @@
     const editRentHistoryExpectedEndDate = document.getElementById('editRentHistory-expectedEndDate');
     const editRentHistoryDailyPrice = document.getElementById('editRentHistory-dailyPrice');
     const editRentHistoryCarId = document.getElementById('editRentHistory-carId');
+    const editRentHistoryInitialRentedDaysFromDB = document.getElementById('editRentHistory-initialRentedDaysFromDB'); // NEW: Reference to the new hidden input
     const saveRentHistoryBtn = document.getElementById('saveRentHistoryBtn');
     const cancelEditRentHistoryBtn = document.getElementById('cancelEditRentHistoryBtn');
     const editRentStatusMessage = document.getElementById('edit-rent-status-message');
@@ -1674,8 +1676,8 @@
         tableReport1FromDate: { ar: 'تاريخ البدء', en: 'From Date' },
         tableReport1RentedDaysDynamic: { ar: 'أيام الإيجار (حتى اليوم)', en: 'Rented Days (To Date)' },
         tableReport1PricePerDay: { ar: 'السعر / اليوم', en: 'Price / Day' },
-        tableReport1PaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' }, // NEW TRANSLATION KEY
-        tableReport1LastUpdatedBalance: { ar: 'الرصيد المستحق (حتى اليوم)', en: 'Balance Due (To Date)' },
+        tableReport1PaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' },
+        tableReport1OutstandingBalance: { ar: 'الرصيد المستحق (حتى اليوم)', en: 'Outstanding Balance (To Date)' }, // Changed key and translation
         noReport1Data: { ar: 'لا توجد بيانات لتقرير 1.', en: 'No data available for Report 1.' },
     };
 
@@ -2519,7 +2521,7 @@
                     from_date: from_date,
                     end_date: end_date,
                     initial_odometer_km: initial_odometer_km,
-                    rental_price_per_day: rental_price_per_day,
+                    rental_price_per_day: rental_price_per_day, // Corrected column name
                     rented_days: rented_days,
                     total_price: total_price,
                     paid_amount: paid_amount,
@@ -2612,9 +2614,14 @@
 
         if (rentHistory && rentHistory.length > 0) {
             rentHistory.forEach(rental => {
-                const row = rentHistoryTableBody.insertRow();
-                const vehicleName = rental.cars ? `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number})` : translations.n_a[currentLang];
-                const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.phone_number})` : translations.n_a[currentLang];
+                const row = rentHistoryTableBody.insertRow(); // Define row here
+                // FIX: Add null checks for nested properties (veh_make, veh_model)
+                const vehicleName = rental.cars && rental.cars.veh_make && rental.cars.veh_model ?
+                                   `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number || translations.n_a[currentLang]})` :
+                                   translations.n_a[currentLang];
+                const customerName = rental.customers ?
+                                     `${rental.customers.first_name || ''} ${rental.customers.last_name || ''} (${rental.customers.phone_number || translations.n_a[currentLang]})` :
+                                     translations.n_a[currentLang];
 
                 row.insertCell().textContent = vehicleName;
                 row.insertCell().textContent = customerName;
@@ -2641,10 +2648,11 @@
                         '${rental.rental_price_per_day || 0}',
                         '${rental.paid_amount || 0}',
                         '${formatDateForInput(rental.actual_return_date) || ''}', <!-- Formatted actual_return_date -->
-                        '${rental.cars.odometer_km || 0}',
+                        '${rental.cars && rental.cars.odometer_km !== null ? rental.cars.odometer_km : 0}',
                         '${rental.traffic_fines || 0}',
                         '${rental.car_repair || 0}', <!-- NEW: Pass car_repair -->
-                        '${rental.car_id || ''}'
+                        '${rental.car_id || ''}',
+                        '${rental.rented_days || 0}' <!-- NEW: Pass rented_days from the record -->
                     )">
                         <i class="fas fa-edit"></i> <span data-i18n-key="editButton">${translations.editButton[currentLang]}</span>
                     </button>
@@ -2670,27 +2678,31 @@
         const paidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0; // Read from visible input
         const trafficFines = parseFloat(editRentHistoryTrafficFinesInput.value) || 0;
         const carRepair = parseFloat(editRentHistoryCarRepairInput.value) || 0; // NEW: Read car repair
+        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0; // NEW: Get initial from DB
 
         let calculatedDays = 0;
         let calculatedTotalPrice = 0;
         let calculatedBalance = 0;
 
-        if (isNaN(fromDate.getTime()) || isNaN(actualReturnDate.getTime())) {
-            // If dates are invalid, show 0 for calculations
-            editRentHistoryCalculatedRentedDays.value = 0;
-            editRentHistoryCalculatedTotalPrice.value = 0;
-            editRentHistoryCalculatedBalance.value = 0;
-            return;
+        // NEW LOGIC: If actual return date is not set, use the initial rented days from DB
+        if (editRentHistoryActualReturnDateInput.value) {
+            // If actual return date is set, calculate based on dates
+            if (isNaN(fromDate.getTime()) || isNaN(actualReturnDate.getTime())) {
+                calculatedDays = 0; // Invalid dates
+            } else {
+                const timeDifference = actualReturnDate.getTime() - fromDate.getTime();
+                calculatedDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
+                if (calculatedDays === 0 && fromDate.getTime() === actualReturnDate.getTime()) {
+                    calculatedDays = 1;
+                } else if (calculatedDays < 0) {
+                    calculatedDays = 0;
+                }
+            }
+        } else {
+            // If actual return date is NOT set, use the initial rented days from DB
+            calculatedDays = initialRentedDaysFromDB;
         }
 
-        // Calculate days based on actual return date vs from date
-        const timeDifference = actualReturnDate.getTime() - fromDate.getTime();
-        calculatedDays = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-        if (calculatedDays === 0 && fromDate.getTime() === actualReturnDate.getTime()) {
-            calculatedDays = 1; // If start and actual return date are the same, count as 1 day
-        } else if (calculatedDays < 0) {
-            calculatedDays = 0; // Cannot have negative rented days
-        }
 
         calculatedTotalPrice = (calculatedDays * dailyPrice) + trafficFines + carRepair; // NEW: Add traffic fines AND car repair to total price
         calculatedBalance = calculatedTotalPrice - paidAmount;
@@ -2700,7 +2712,7 @@
         editRentHistoryCalculatedBalance.value = calculatedBalance.toFixed(2);
     }
 
-    window.openEditRentHistoryModal = function(rentalId, vehicleName, customerName, rentalFromDate, rentalEndDate, rentalPricePerDay, rentalPaidAmount, currentActualReturnDate, carOdometerAtRent, trafficFines, carRepair, carId) { // NEW: Add carRepair parameter
+    window.openEditRentHistoryModal = function(rentalId, vehicleName, customerName, rentalFromDate, rentalEndDate, rentalPricePerDay, rentalPaidAmount, currentActualReturnDate, carOdometerAtRent, trafficFines, carRepair, carId, initialRentedDaysFromDB) { // NEW: Add carRepair parameter AND initialRentedDaysFromDB
         editRentHistoryModal.style.display = 'flex';
         editRentHistoryForm.reset();
         showStatus('', true, editRentStatusMessage); // Clear any previous messages
@@ -2717,11 +2729,11 @@
         editRentHistoryFromDate.value = rentalFromDate;
         editRentHistoryExpectedEndDate.value = rentalEndDate; // Storing this, but actual calculation uses actualReturnDate
         editRentHistoryDailyPrice.value = rentalPricePerDay;
-        // The original paidAmount is now directly in editRentHistoryPaidAmountInput.value
         editRentHistoryCarId.value = carId;
-        // The carOdometerAtRent (initial odometer when rented) is used to populate the Actual Odometer initially
-        // user can then update this to the final odometer reading.
-        editRentHistoryActualOdometerInput.value = carOdometerAtRent;
+        editRentHistoryActualOdometerInput.value = carOdometerAtRent; // Initial odometer at rent
+
+        // NEW: Store the initial rented days from DB for calculation fallback
+        editRentHistoryInitialRentedDaysFromDB.value = initialRentedDaysFromDB;
 
         calculateFinalRentalCosts(); // Call initially to show calculated values
         applyTranslations(); // Apply translations to modal content when opened
@@ -2768,6 +2780,7 @@
         const fromDate = editRentHistoryFromDate.value;
         const dailyPrice = parseFloat(editRentHistoryDailyPrice.value);
         const carId = editRentHistoryCarId.value;
+        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0; // Get initial from DB for persistence
 
         let calculatedDays = 0;
         let calculatedTotalPrice = 0;
@@ -2784,9 +2797,8 @@
                 calculatedDays = 0; // Cannot have negative rented days
             }
         } else {
-            // If actual return date is cleared, revert to original rental days or keep current calculated if available.
-            // For simplicity here, we'll keep the currently displayed calculated days if no actual return date.
-            calculatedDays = parseInt(editRentHistoryCalculatedRentedDays.value);
+            // If actual return date is cleared, revert to original rental days
+            calculatedDays = initialRentedDaysFromDB;
         }
 
         calculatedTotalPrice = (calculatedDays * dailyPrice) + newTrafficFines + newCarRepair; // NEW: Add traffic fines AND car repair to total price calculation
@@ -2938,27 +2950,35 @@
 
         if (rentHistory && rentHistory.length > 0) {
             rentHistory.forEach(rental => {
-                const vehicleName = rental.cars ? `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number})` : translations.n_a[currentLang];
-                // Update customerName to include phone_number
-                const customerName = rental.customers ? `${rental.customers.first_name} ${rental.customers.last_name} (${rental.customers.phone_number || translations.n_a[currentLang]})` : translations.n_a[currentLang];
+                const row = report1TableBody.insertRow(); // Define row here
+                // FIX: Add null checks for nested properties (veh_make, veh_model)
+                const vehicleName = rental.cars && rental.cars.veh_make && rental.cars.veh_model ?
+                                   `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number || translations.n_a[currentLang]})` :
+                                   translations.n_a[currentLang];
+                // Update customerName to include phone_number and null check first/last name
+                const customerName = rental.customers ?
+                                     `${rental.customers.first_name || ''} ${rental.customers.last_name || ''} (${rental.customers.phone_number || translations.n_a[currentLang]})` :
+                                     translations.n_a[currentLang];
                 const fromDate = rental.from_date || translations.n_a[currentLang];
                 const pricePerDay = rental.rental_price_per_day !== null ? `AED${rental.rental_price_per_day.toFixed(2)}` : translations.n_a[currentLang];
-                const paidAmount = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang]; // Get paid amount
+                const paidAmount = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang];
 
                 const dynamicRentedDays = getDynamicRentedDays(rental.from_date);
-                const lastUpdatedBalance = dynamicRentedDays * (rental.rental_price_per_day || 0); // Calculation remains untouched as requested
+                // Calculate outstanding balance: (dynamicRentedDays * rentalPricePerDay) - paidAmount
+                const totalAmountToDate = dynamicRentedDays * (rental.rental_price_per_day || 0);
+                const outstandingBalance = totalAmountToDate - (rental.paid_amount || 0);
 
-                const row = report1TableBody.insertRow();
+
                 row.insertCell().textContent = vehicleName;
                 row.insertCell().textContent = customerName;
                 row.insertCell().textContent = fromDate;
                 row.insertCell().textContent = dynamicRentedDays;
                 row.insertCell().textContent = pricePerDay;
-                row.insertCell().textContent = paidAmount; // Display paid amount
-                row.insertCell().textContent = `AED${lastUpdatedBalance.toFixed(2)}`; // Display calculated balance
+                row.insertCell().textContent = paidAmount;
+                row.insertCell().textContent = `AED${outstandingBalance.toFixed(2)}`; // Display calculated outstanding balance
             });
         } else {
-            report1TableBody.innerHTML = '<tr><td colspan="7"></td></tr>'; // Adjust colspan for new column
+            report1TableBody.innerHTML = '<tr><td colspan="7"></td></tr>';
             report1EmptyState.style.display = 'block';
         }
         applyTranslations(); // Apply translations after populating report
