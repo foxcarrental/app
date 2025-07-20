@@ -492,8 +492,11 @@
     .d-flex {
         display: flex;
     }
-    .justify-content-end {
-        justify-content: flex-end;
+    .justify-content-between {
+        justify-content: space-between;
+    }
+    .align-items-center {
+        align-items: center;
     }
     .mb-4 {
         margin-bottom: 1.5rem; /* ~24px */
@@ -769,15 +772,15 @@
         <button class="tab-button active" data-tab-target="#vehicleInventoryTab">
             <i class="fas fa-car"></i> <span data-i18n-key="vehicleInventoryTab">مخزون المركبات</span>
         </button>
-        <a href="Customer List.html" class="tab-button">
+        <button class="tab-button" data-tab-target="#customerListTab">
             <i class="fas fa-users"></i> <span data-i18n-key="customerListTab">قائمة العملاء</span>
-        </a>
-        <a href="Rent History.html" class="tab-button">
+        </button>
+        <button class="tab-button" data-tab-target="#rentHistoryTab">
             <i class="fas fa-history"></i> <span data-i18n-key="rentHistoryTab">سجل الإيجار</span>
-        </a>
-        <a href="Reports.html" class="tab-button">
+        </button>
+        <button class="tab-button" data-tab-target="#reportsTab">
             <i class="fas fa-chart-line"></i> <span data-i18n-key="reportsTab">التقارير</span>
-        </a>
+        </button>
     </div>
 
     <!-- Tab Content for Vehicle Inventory -->
@@ -953,6 +956,143 @@
             </div>
         </div>
     </div>
+
+    <!-- Tab Content for Customer List -->
+    <div id="customerListTab" class="tab-content">
+        <div class="card mt-4">
+            <div class="card-title">
+                <i class="fas fa-users"></i>
+                <h2 data-i18n-key="customerListTitle">قائمة العملاء</h2>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <!-- Removed ID column -->
+                            <th data-i18n-key="customerName">اسم العميل</th> <!-- Combined First and Last Name -->
+                            <th data-i18n-key="customerEmail">البريد الإلكتروني</th>
+                            <th data-i18n-key="customerPhone">رقم الهاتف</th>
+                            <th data-i18n-key="customerLicenseNo">رقم الرخصة</th>
+                            <th data-i18n-key="customerExpiry">تاريخ الانتهاء</th>
+                            <th data-i18n-key="customerDOB">تاريخ الميلاد</th>
+                            <!-- Removed Actions column -->
+                        </tr>
+                    </thead>
+                    <tbody id="customersTableBody">
+                        <!-- Customer rows will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="customer-list-empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-users-slash"></i>
+                <p data-i18n-key="noCustomersFoundEmpty">لم يتم العثور على عملاء. أضف عميلك الأول!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW Tab Content for Rent History -->
+    <div id="rentHistoryTab" class="tab-content">
+        <div class="card mt-4">
+            <div class="card-title">
+                <i class="fas fa-history"></i>
+                <h2 data-i18n-key="rentHistoryTitle">سجل الإيجار</h2>
+            </div>
+            <!-- Filter Section -->
+            <div class="filter-section">
+                <!-- Removed Vehicle and Customer filters as requested -->
+                <div class="form-group">
+                    <label for="paymentStatusFilter" data-i18n-key="paymentStatusFilter">حالة الدفع:</label>
+                    <div class="input-with-icon">
+                        <i class="fas fa-credit-card"></i>
+                        <select id="paymentStatusFilter">
+                            <option value="All" data-i18n-key="paymentStatusAll">الكل</option>
+                            <option value="Paid">مدفوع</option>
+                            <option value="Partially Paid">مدفوع جزئياً</option>
+                            <option value="Pending">معلق</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n-key="tableRentVehicle">المركبة</th>
+                            <th data-i18n-key="tableRentCustomer">العميل</th>
+                            <th data-i18n-key="tableRentFromDate">تاريخ البدء</th>
+                            <th data-i18n-key="tableRentEndDate">تاريخ الانتهاء</th>
+                            <th data-i18n-key="tableRentedDays">أيام الإيجار</th>
+                            <th data-i18n-key="tablePricePerDay">السعر / اليوم</th>
+                            <th data-i18n-key="tableTotalPrice">إجمالي السعر</th>
+                            <th data-i18n-key="tablePaidAmount">المبلغ المدفوع</th>
+                            <th data-i18n-key="tableBalance">الرصيد</th>
+                            <th data-i18n-key="tableActualReturnDate">تاريخ الإرجاع الفعلي</th>
+                            <th data-i18n-key="tablePaymentStatus">حالة الدفع</th>
+                            <th data-i18n-key="tableTrafficFines">المخالفات المرورية</th>
+                            <th data-i18n-key="tableCarRepair">تصليح السيارة</th> <!-- NEW COLUMN: Car Repair -->
+                            <th data-i18n-key="tableActions">الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rentHistoryTableBody">
+                        <!-- Rent history rows will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="rent-history-empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-clipboard-list"></i>
+                <p data-i18n-key="noRentalHistoryEmpty">لم يتم العثور على سجل إيجار.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW Tab Content for Reports -->
+    <div id="reportsTab" class="tab-content">
+        <div class="card mt-4">
+            <div class="card-title">
+                <i class="fas fa-chart-line"></i>
+                <h2 data-i18n-key="reportsTitle">التقارير</h2>
+            </div>
+            <div class="report-list" style="padding: 10px 20px;">
+                <ul style="list-style-type: disc; padding-left: 20px;">
+                    <li style="margin-bottom: 10px; font-size: 1.1em;">
+                        <a href="#" id="report1Link" data-i18n-key="report1">تقرير 1</a>
+                    </li>
+                    <li style="margin-bottom: 10px; font-size: 1.1em;" data-i18n-key="report2">تقرير 2</li>
+                    <!-- Add more reports here as needed -->
+                </ul>
+            </div>
+            <div id="report1Content" class="table-container" style="display: none; margin-top: 20px;">
+                <div class="card-title" style="border-bottom: none; margin-bottom: 25px;">
+                    <i class="fas fa-file-alt"></i>
+                    <h2 data-i18n-key="report1Title">تقرير 1: الإيجارات المستمرة</h2>
+                </div>
+                <table>
+                    <thead>
+                        <tr>
+                            <th data-i18n-key="tableReport1Vehicle">المركبة</th>
+                            <th data-i18n-key="tableReport1Customer">العميل</th>
+                            <th data-i18n-key="tableReport1FromDate">تاريخ البدء</th>
+                            <th data-i18n-key="tableReport1RentedDaysDynamic">أيام الإيجار (حتى اليوم)</th>
+                            <th data-i18n-key="tableReport1PricePerDay">السعر / اليوم</th>
+                            <th data-i18n-key="tableReport1PaidAmount">المبلغ المدفوع</th>
+                            <th data-i18n-key="tableReport1OutstandingBalance">الرصيد المستحق (حتى اليوم)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="report1TableBody">
+                        <!-- Report 1 rows will be loaded here by JavaScript -->
+                    </tbody>
+                </table>
+                <div id="report1-empty-state" class="empty-state" style="display: none;">
+                    <i class="fas fa-chart-bar"></i>
+                    <p data-i18n-key="noReport1Data">لا توجد بيانات لتقرير 1.</p>
+                </div>
+            </div>
+            <div id="reports-empty-state" class="empty-state" style="display: none;">
+                <i class="fas fa-file-alt"></i>
+                <p data-i18n-key="noReportsFound">لا توجد تقارير متاحة.</p>
+            </div>
+        </div>
+    </div>
   </div>
 
   <!-- Customer Modal Structure -->
@@ -1120,6 +1260,8 @@
                   <input type="number" id="balanceAmount" class="form-control" readonly step="0.01" value="0">
               </div>
 
+              <!-- The Notes form group has been removed from here -->
+
               <div class="btn-group">
                   <button type="submit" class="btn-submit" id="confirmRentalBtn">
                       <i class="fas fa-check"></i> <span data-i18n-key="confirmRentalButton">تأكيد الإيجار</span>
@@ -1260,18 +1402,20 @@
     const rentedCountSpan = document.getElementById('rented-count');
     const maintenanceCountSpan = document.getElementById('maintenance-count');
 
-    // Customer management elements (modals only, not the list display)
+    // Customer management elements
     const showAddCustomerFormBtn = document.getElementById('showAddCustomerFormBtn');
     const addCustomerModal = document.getElementById('addCustomerModal');
-    const closeCustomerModalBtn = document.getElementById('closeCustomerModalBtn');
+    const closeCustomerModalBtn = document = document.getElementById('closeCustomerModalBtn');
     const addCustomerForm = document.getElementById('addCustomerForm');
     const cancelAddCustomerBtn = document.getElementById('cancelAddCustomerBtn');
     const customerStatusMessage = document.getElementById('customer-status-message');
+    const customersTableBody = document.getElementById('customersTableBody');
+    const customerListEmptyState = document.getElementById('customer-list-empty-state');
 
 
-    // Tab elements - Only query for the active tab, others are external links
+    // Tab elements - Re-query to include the new tab
     const tabButtons = document.querySelectorAll('.tab-button');
-    const vehicleInventoryTabContent = document.getElementById('vehicleInventoryTab');
+    const tabContents = document.querySelectorAll('.tab-content');
 
     // Rent Car Modal elements
     const rentCarModal = document.getElementById('rentCarModal');
@@ -1286,7 +1430,7 @@
     const rentCarCustomerIdInput = document.getElementById('rentCar-customerId');
     const selectedCustomerInfo = document.getElementById('selectedCustomerInfo');
     const rentFromDateInput = document.getElementById('rentFromDate');
-    const rentEndDateInput = document = document.getElementById('rentEndDate');
+    const rentEndDateInput = document.getElementById('rentEndDate');
     const rentedDaysInput = document.getElementById('rentedDays');
     const rentalPricePerDayInput = document.getElementById('rentalPricePerDay');
     const totalPriceInput = document.getElementById('totalPrice');
@@ -1296,8 +1440,25 @@
     const rentStatusMessage = document.getElementById('rent-status-message');
     const confirmRentalBtn = document.getElementById('confirmRentalBtn');
 
+    // Rent History tab elements
+    const rentHistoryTableBody = document.getElementById('rentHistoryTableBody');
+    const rentHistoryEmptyState = document.getElementById('rent-history-empty-state');
+
+    // Filter elements for Rent History
+    const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+
+    // Reports tab elements
+    const reportsTab = document.getElementById('reportsTab');
+    const reportsEmptyState = document.getElementById('reports-empty-state');
+    const report1Link = document.getElementById('report1Link'); // New Report 1 link
+    const report1Content = document.getElementById('report1Content'); // New Report 1 content div
+    const report1TableBody = document.getElementById('report1TableBody'); // New Report 1 table body
+    const report1EmptyState = document.getElementById('report1-empty-state'); // New Report 1 empty state
+
+
     // Edit Rent History Modal elements
     const editRentHistoryModal = document.getElementById('editRentHistoryModal');
+    // FIX: Corrected ID to match HTML
     const closeEditRentHistoryModalBtn = document.getElementById('closeEditRentHistoryModalBtn');
     const editRentHistoryForm = document.getElementById('editRentHistoryForm');
     const editRentHistoryIdInput = document.getElementById('editRentHistory-id');
@@ -1307,7 +1468,7 @@
     const editRentHistoryActualOdometerInput = document.getElementById('editRentHistoryActualOdometer');
     const editRentHistoryPaidAmountInput = document.getElementById('editRentHistoryPaidAmount');
     const editRentHistoryTrafficFinesInput = document.getElementById('editRentHistoryTrafficFines');
-    const editRentHistoryCarRepairInput = document.getElementById('editRentHistoryCarRepair');
+    const editRentHistoryCarRepairInput = document.getElementById('editRentHistoryCarRepair'); // NEW: Car Repair input
     const editRentHistoryCalculatedRentedDays = document.getElementById('editRentHistoryCalculatedRentedDays');
     const editRentHistoryCalculatedTotalPrice = document.getElementById('editRentHistoryCalculatedTotalPrice');
     const editRentHistoryCalculatedBalance = document.getElementById('editRentHistoryCalculatedBalance');
@@ -1315,7 +1476,7 @@
     const editRentHistoryExpectedEndDate = document.getElementById('editRentHistory-expectedEndDate');
     const editRentHistoryDailyPrice = document.getElementById('editRentHistory-dailyPrice');
     const editRentHistoryCarId = document.getElementById('editRentHistory-carId');
-    const editRentHistoryInitialRentedDaysFromDB = document.getElementById('editRentHistory-initialRentedDaysFromDB');
+    const editRentHistoryInitialRentedDaysFromDB = document.getElementById('editRentHistory-initialRentedDaysFromDB'); // NEW: Reference to the new hidden input
     const saveRentHistoryBtn = document.getElementById('saveRentHistoryBtn');
     const cancelEditRentHistoryBtn = document.getElementById('cancelEditRentHistoryBtn');
     const editRentStatusMessage = document.getElementById('edit-rent-status-message');
@@ -1339,7 +1500,7 @@
         vehicleInventoryTab: { ar: 'مخزون المركبات', en: 'Vehicle Inventory' },
         customerListTab: { ar: 'قائمة العملاء', en: 'Customer List' },
         rentHistoryTab: { ar: 'سجل الإيجار', en: 'Rent History' },
-        reportsTab: { ar: 'التقارير', en: 'Reports' },
+        reportsTab: { ar: 'التقارير', en: 'Reports' }, // NEW: Reports tab translation
         addUpdateVehicleTitle: { ar: 'إضافة / تحديث مركبة', en: 'Add / Update Vehicle' },
         makeLabel: { ar: 'صنع المركبة', en: 'Vehicle Make' },
         selectMake: { ar: 'اختر الصنع', en: 'Select Make' },
@@ -1394,6 +1555,36 @@
         deleteButton: { ar: 'حذف', en: 'Delete' },
         noVehiclesFound: { ar: 'لم يتم العثور على مركبات. أضف مركبتك الأولى!', en: 'No vehicles found. Add your first vehicle!' },
         accessDenied: { ar: 'تم رفض الوصول أو لم يتم العثور على مركبات مطابقة لأذوناتك.', en: 'Access denied or no vehicles found matching your permissions.' },
+        customerListTitle: { ar: 'قائمة العملاء', en: 'Customer List' },
+        customerName: { ar: 'اسم العميل', en: 'Customer Name' },
+        customerEmail: { ar: 'البريد الإلكتروني', en: 'Email' },
+        customerPhone: { ar: 'رقم الهاتف', en: 'Phone' },
+        customerLicenseNo: { ar: 'رقم الرخصة', en: 'License No.' },
+        customerExpiry: { ar: 'تاريخ الانتهاء', en: 'Expiry' },
+        customerDOB: { ar: 'تاريخ الميلاد', en: 'DOB' },
+        noCustomersFoundEmpty: { ar: 'لم يتم العثور على عملاء. أضف عميلك الأول!', en: 'No customers found. Add your first customer!' },
+        rentHistoryTitle: { ar: 'سجل الإيجار', en: 'Rent History' },
+        vehicleFilter: { ar: 'المركبة:', en: 'Vehicle:' },
+        customerFilter: { ar: 'العميل:', en: 'Customer:' },
+        paymentStatusFilter: { ar: 'حالة الدفع:', en: 'Payment Status:' },
+        paymentStatusAll: { ar: 'الكل', en: 'All' },
+        paymentStatusPaid: { ar: 'مدفوع', en: 'Paid' },
+        paymentStatusPartiallyPaid: { ar: 'مدفوع جزئياً', en: 'Partially Paid' },
+        paymentStatusPending: { ar: 'معلق', en: 'Pending' },
+        tableRentVehicle: { ar: 'المركبة', en: 'Vehicle' },
+        tableRentCustomer: { ar: 'العميل', en: 'Customer' },
+        tableRentFromDate: { ar: 'تاريخ البدء', en: 'From Date' },
+        tableRentEndDate: { ar: 'تاريخ الانتهاء', en: 'End Date' },
+        tableRentedDays: { ar: 'أيام الإيجار', en: 'Rented Days' },
+        tablePricePerDay: { ar: 'السعر / اليوم', en: 'Price / Day' },
+        tableTotalPrice: { ar: 'إجمالي السعر', en: 'Total Price' },
+        tablePaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' },
+        tableBalance: { ar: 'الرصيد', en: 'Balance' },
+        tableActualReturnDate: { ar: 'تاريخ الإرجاع الفعلي', en: 'Actual Return Date' },
+        tablePaymentStatus: { ar: 'حالة الدفع', en: 'Payment Status' },
+        tableTrafficFines: { ar: 'المخالفات المرورية', en: 'Traffic Fines' },
+        tableCarRepair: { ar: 'تصليح السيارة', en: 'Car Repair' },
+        noRentalHistoryEmpty: { ar: 'لم يتم العثور على سجل إيجار.', en: 'No rental history found.' },
         addCustomerModalTitle: { ar: 'إضافة عميل جديد', en: 'Add New Customer' },
         firstNameLabel: { ar: 'الاسم الأول', en: 'First Name' },
         firstNamePlaceholder: { ar: 'أدخل الاسم الأول', en: 'Enter first name' },
@@ -1475,7 +1666,19 @@
         selectMakeModel: { ar: 'الرجاء اختيار كل من الصنع والموديل.', en: 'Please select both Make and Model.'},
         noImage: { ar: 'لا توجد صورة', en: 'No Image' },
         n_a: { ar: 'N/A', en: 'N/A' },
-        noCustomersFound: { ar: 'لم يتم العثور على عملاء.', en: 'No customers found.' }, // Added for customer search dropdown
+        reportsTitle: { ar: 'التقارير', en: 'Reports' },
+        report1: { ar: 'تقرير 1: الإيجارات المستمرة', en: 'Report 1: Ongoing Rentals' },
+        report2: { ar: 'تقرير 2', en: 'Report 2' },
+        noReportsFound: { ar: 'لا توجد تقارير متاحة.', en: 'No reports available.' },
+        report1Title: { ar: 'تقرير 1: الإيجارات المستمرة', en: 'Report 1: Ongoing Rentals' },
+        tableReport1Vehicle: { ar: 'المركبة', en: 'Vehicle' },
+        tableReport1Customer: { ar: 'العميل', en: 'Customer' },
+        tableReport1FromDate: { ar: 'تاريخ البدء', en: 'From Date' },
+        tableReport1RentedDaysDynamic: { ar: 'أيام الإيجار (حتى اليوم)', en: 'Rented Days (To Date)' },
+        tableReport1PricePerDay: { ar: 'السعر / اليوم', en: 'Price / Day' },
+        tableReport1PaidAmount: { ar: 'المبلغ المدفوع', en: 'Paid Amount' },
+        tableReport1OutstandingBalance: { ar: 'الرصيد المستحق (حتى اليوم)', en: 'Outstanding Balance (To Date)' }, // Changed key and translation
+        noReport1Data: { ar: 'لا توجد بيانات لتقرير 1.', en: 'No data available for Report 1.' },
     };
 
     // Set initial language to English, then check localStorage
@@ -1501,6 +1704,14 @@
             statusSelect.querySelector('option[value="Available"]').textContent = translations.availableStatus[currentLang];
             statusSelect.querySelector('option[value="Rented"]').textContent = translations.rentedStatus[currentLang];
             statusSelect.querySelector('option[value="Under Maintenance"]').textContent = translations.maintenanceStatus[currentLang];
+        }
+        // Handle select options for payment status filter
+        const paymentStatusFilterSelect = document.getElementById('paymentStatusFilter');
+        if (paymentStatusFilterSelect) {
+            paymentStatusFilterSelect.querySelector('option[value="All"]').textContent = translations.paymentStatusAll[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Paid"]').textContent = translations.paymentStatusPaid[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Partially Paid"]').textContent = translations.paymentStatusPartiallyPaid[currentLang];
+            paymentStatusFilterSelect.querySelector('option[value="Pending"]').textContent = translations.paymentStatusPending[currentLang];
         }
 
         // Update document direction and language attribute
@@ -1864,6 +2075,8 @@
             toggleAdminPanel(true, data.user.email);
             fetchMakes();
             fetchCars();
+            fetchCustomers();
+            fetchRentHistory(); // Fetch rent history on login
             // applyTranslations() is called by onAuthStateChange now
         } else {
             showStatus('statusMessageUnauthorizedUser', false, authStatusMessage);
@@ -1888,7 +2101,16 @@
         modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
         modelSelect.disabled = true;
         updateCarSummary([]);
-        applyTranslations(); // Apply translations is called by onAuthStateChange now
+        const customersTableBody = document.getElementById('customersTableBody');
+        if (customersTableBody) customersTableBody.innerHTML = '';
+        const customerListEmptyState = document.getElementById('customer-list-empty-state');
+        if (customerListEmptyState) customerListEmptyState.style.display = 'none';
+        // Clear rent history list if visible
+        if (rentHistoryTableBody) rentHistoryTableBody.innerHTML = '';
+        if (rentHistoryEmptyState) rentHistoryEmptyState.style.display = 'none';
+        // Hide report 1 content on logout
+        if (report1Content) report1Content.style.display = 'none';
+        // applyTranslations() is called by onAuthStateChange now
     }
     });
 
@@ -1912,6 +2134,8 @@
         toggleAdminPanel(true, session.user.email);
         fetchMakes();
         fetchCars();
+        fetchCustomers();
+        fetchRentHistory(); // Fetch rent history on initial load
       } else {
         toggleAdminPanel(false);
       }
@@ -1928,6 +2152,8 @@
             toggleAdminPanel(true, session.user.email);
             fetchMakes();
             fetchCars();
+            fetchCustomers();
+            fetchRentHistory();
             applyTranslations(); // Apply translations after auth state change
         } else if (event === 'SIGNED_OUT') {
             toggleAdminPanel(false);
@@ -1938,11 +2164,18 @@
             modelSelect.innerHTML = `<option value="">${translations.selectModel[currentLang]}</option>`;
             modelSelect.disabled = true;
             updateCarSummary([]);
+            if (customersTableBody) customersTableBody.innerHTML = '';
+            if (customerListEmptyState) customerListEmptyState.style.display = 'none';
+            // Clear rent history list if visible
+            if (rentHistoryTableBody) rentHistoryTableBody.innerHTML = '';
+            if (rentHistoryEmptyState) rentHistoryEmptyState.style.display = 'none';
+            // Hide report 1 content on sign out
+            if (report1Content) report1Content.style.display = 'none';
             applyTranslations(); // Apply translations after auth state change
         }
     });
 
-    // --- Customer Management Logic (Modal only) ---
+    // --- Customer Management Logic ---
 
     // Event listener for "Add New Customer" button to open the modal
     if (showAddCustomerFormBtn) {
@@ -2027,22 +2260,77 @@
                 if (addCustomerModal) {
                     addCustomerModal.style.display = 'none';
                 }
+                fetchCustomers(); // Refresh the customer list on the main page
             }
         });
     }
 
-    // --- Tab Switching Logic (Simplified for single tab content) ---
+    // Function to fetch and display customers
+    async function fetchCustomers() {
+        if (!customersTableBody || !customerListEmptyState) return;
+
+        const { data: customers, error } = await supabaseClient
+            .from('customers')
+            .select('*')
+            .order('created_at', { ascending: false });
+
+        customersTableBody.innerHTML = '';
+        customerListEmptyState.style.display = 'none';
+
+        if (error) {
+            console.error('Error fetching customers:', error.message);
+            customersTableBody.innerHTML = `<tr><td colspan="6">${translations.statusMessageErrorLoadingCustomers[currentLang]}</td></tr>`;
+            customerListEmptyState.style.display = 'block';
+            return;
+        }
+
+        if (customers && customers.length > 0) {
+            customers.forEach(customer => {
+                const row = customersTableBody.insertRow();
+                row.insertCell().textContent = `${customer.first_name || translations.n_a[currentLang]} ${customer.last_name || ''}`;
+                row.insertCell().textContent = customer.email || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.phone_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.driver_license_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.driver_license_expiry_date || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.date_of_birth || translations.n_a[currentLang];
+            });
+        } else {
+            customersTableBody.innerHTML = '<tr><td colspan="6"></td></tr>';
+            customerListEmptyState.style.display = 'block';
+        }
+    }
+
+    // --- Tab Switching Logic ---
     tabButtons.forEach(button => {
         button.addEventListener('click', () => {
             const targetTabId = button.dataset.tabTarget;
+            const targetTabContent = document.querySelector(targetTabId);
 
-            // If it's the vehicle inventory tab, manage its display
-            if (targetTabId === '#vehicleInventoryTab') {
-                tabButtons.forEach(btn => btn.classList.remove('active'));
-                button.classList.add('active');
-                vehicleInventoryTabContent.classList.add('active');
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+            // Hide all report content when switching tabs, unless it's the reports tab itself
+            if (targetTabId !== '#reportsTab') {
+                if (report1Content) report1Content.style.display = 'none';
+                // Add similar lines for other reports here if they are added later
             }
-            // For other tabs, the 'a' tag handles navigation to external HTML files
+
+
+            button.classList.add('active');
+            if (targetTabContent) {
+                targetTabContent.classList.add('active');
+            }
+
+            if (targetTabId === '#vehicleInventoryTab') {
+                fetchCars();
+            } else if (targetTabId === '#customerListTab') {
+                fetchCustomers();
+            } else if (targetTabId === '#rentHistoryTab') {
+                fetchRentHistory(); // Call the new fetch function for rent history
+            } else if (targetTabId === '#reportsTab') {
+                // By default, hide all specific reports until a link is clicked
+                if (report1Content) report1Content.style.display = 'none';
+                if (reportsEmptyState) reportsEmptyState.style.display = 'block'; // Show general reports empty state
+            }
         });
     });
 
@@ -2155,7 +2443,7 @@
         const dailyPrice = parseFloat(rentCarDailyPriceInput.value);
         const paidAmount = parseFloat(paidAmountInput.value) || 0;
 
-        if (isNaN(fromDate.getTime()) || isNaN(endDate.getTime())) {
+        if (isNaN(fromDate.getTime()) || isNaN(endDate.getTime())) { // Remove fromDate > endDate check here
             rentedDaysInput.value = 0;
             totalPriceInput.value = 0;
             balanceAmountInput.value = 0;
@@ -2164,10 +2452,10 @@
         }
 
         const timeDifference = endDate.getTime() - fromDate.getTime();
-        let days = Math.ceil(timeDifference / (1000 * 60 * 60 * 24));
-        if (days === 0 && fromDate.getTime() <= endDate.getTime()) {
-            days = 1;
-        } else if (days < 0) {
+        let days = Math.ceil(timeDifference / (1000 * 60 * 60 * 24)); // Calculate days, round up
+        if (days === 0 && fromDate.getTime() <= endDate.getTime()) { // Changed fromDate.getTime() === endDate.getTime() to <=
+            days = 1; // If start and end date are the same or end date is before start, count as 1 day (for cases where user might pick same day by mistake)
+        } else if (days < 0) { // If end date is actually before start date resulting in negative days, default to 0
             days = 0;
         }
 
@@ -2233,7 +2521,7 @@
                     from_date: from_date,
                     end_date: end_date,
                     initial_odometer_km: initial_odometer_km,
-                    rental_price_per_day: rental_price_per_day,
+                    rental_price_per_day: rental_price_per_day, // Corrected column name
                     rented_days: rented_days,
                     total_price: total_price,
                     paid_amount: paid_amount,
@@ -2261,7 +2549,7 @@
                 from_date: from_date,
                 end_date: end_date
             })
-            .eq('id', car_id);
+            .eq('id', car_id); // Use car_id here, not carId
 
         if (carUpdateError) {
             console.error('Error updating car status:', carUpdateError.message);
@@ -2275,6 +2563,7 @@
         rentCarModal.style.display = 'none';
         confirmRentalBtn.disabled = false; // Re-enable after successful operation
         fetchCars(); // Refresh the car list to reflect the status change
+        fetchRentHistory(); // Refresh the rent history list
     });
 
     // Helper to format date toYYYY-MM-DD
@@ -2289,6 +2578,96 @@
         }
     }
 
+    // --- Rent History Logic ---
+    async function fetchRentHistory() {
+        if (!rentHistoryTableBody || !rentHistoryEmptyState) return;
+
+        // Get filter values
+        const paymentStatus = paymentStatusFilterSelect.value;
+
+
+        let query = supabaseClient
+            .from('rent_history')
+            .select(`
+                *,
+                cars (plate_number, odometer_km, veh_make (make), veh_model (model)),
+                customers (first_name, last_name, email, phone_number)
+            `)
+            .order('created_at', { ascending: false });
+
+        // Apply filters
+        if (paymentStatus !== 'All') {
+            query = query.eq('payment_status', paymentStatus);
+        }
+
+        const { data: rentHistory, error } = await query;
+
+        rentHistoryTableBody.innerHTML = '';
+        rentHistoryEmptyState.style.display = 'none';
+
+        if (error) {
+            console.error('Error fetching rent history:', error.message);
+            rentHistoryTableBody.innerHTML = `<tr><td colspan="13">${translations.statusMessageErrorFetchingRentHistory[currentLang]}</td></tr>`;
+            rentHistoryEmptyState.style.display = 'block';
+            return;
+        }
+
+        if (rentHistory && rentHistory.length > 0) {
+            rentHistory.forEach(rental => {
+                const row = rentHistoryTableBody.insertRow(); // Define row here
+                // FIX: Add null checks for nested properties (veh_make, veh_model)
+                const vehicleName = rental.cars && rental.cars.veh_make && rental.cars.veh_model ?
+                                   `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number || translations.n_a[currentLang]})` :
+                                   translations.n_a[currentLang];
+                const customerName = rental.customers ?
+                                     `${rental.customers.first_name || ''} ${rental.customers.last_name || ''} (${rental.customers.phone_number || translations.n_a[currentLang]})` :
+                                     translations.n_a[currentLang];
+
+                row.insertCell().textContent = vehicleName;
+                row.insertCell().textContent = customerName;
+                row.insertCell().textContent = rental.from_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.end_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.rented_days !== null ? rental.rented_days : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.rental_price_per_day !== null ? `AED${rental.rental_price_per_day.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.total_price !== null ? `AED${rental.total_price.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.balance !== null ? `AED${rental.balance.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.actual_return_date || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.payment_status || translations.n_a[currentLang];
+                row.insertCell().textContent = rental.traffic_fines !== null ? `AED${rental.traffic_fines.toFixed(2)}` : translations.n_a[currentLang];
+                row.insertCell().textContent = rental.car_repair !== null ? `AED${rental.car_repair.toFixed(2)}` : translations.n_a[currentLang]; // NEW: Car Repair cell
+
+                const actionsCell = row.insertCell();
+                actionsCell.innerHTML = `
+                    <button class="btn-edit" onclick="openEditRentHistoryModal(
+                        '${rental.id}',
+                        '${vehicleName.replace(/'/g, "\\'")}',
+                        '${customerName.replace(/'/g, "\\'")}',
+                        '${rental.from_date || ''}',
+                        '${rental.end_date || ''}',
+                        '${rental.rental_price_per_day || 0}',
+                        '${rental.paid_amount || 0}',
+                        '${formatDateForInput(rental.actual_return_date) || ''}', <!-- Formatted actual_return_date -->
+                        '${rental.cars && rental.cars.odometer_km !== null ? rental.cars.odometer_km : 0}',
+                        '${rental.traffic_fines || 0}',
+                        '${rental.car_repair || 0}', <!-- NEW: Pass car_repair -->
+                        '${rental.car_id || ''}',
+                        '${rental.rented_days || 0}' <!-- NEW: Pass rented_days from the record -->
+                    )">
+                        <i class="fas fa-edit"></i> <span data-i18n-key="editButton">${translations.editButton[currentLang]}</span>
+                    </button>
+                `;
+            });
+        } else {
+            rentHistoryTableBody.innerHTML = '<tr><td colspan="13"></td></tr>';
+            rentHistoryEmptyState.style.display = 'block';
+        }
+    }
+
+    // Add event listeners to filters to trigger fetchRentHistory
+    paymentStatusFilterSelect.addEventListener('change', fetchRentHistory);
+
+
     // --- Edit Rent History Modal Logic ---
 
     // Function to calculate and update display fields in the edit rent history modal
@@ -2296,10 +2675,10 @@
         const fromDate = new Date(editRentHistoryFromDate.value);
         const actualReturnDate = new Date(editRentHistoryActualReturnDateInput.value);
         const dailyPrice = parseFloat(editRentHistoryDailyPrice.value);
-        const paidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0;
+        const paidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0; // Read from visible input
         const trafficFines = parseFloat(editRentHistoryTrafficFinesInput.value) || 0;
-        const carRepair = parseFloat(editRentHistoryCarRepairInput.value) || 0;
-        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0;
+        const carRepair = parseFloat(editRentHistoryCarRepairInput.value) || 0; // NEW: Read car repair
+        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0; // NEW: Get initial from DB
 
         let calculatedDays = 0;
         let calculatedTotalPrice = 0;
@@ -2325,7 +2704,7 @@
         }
 
 
-        calculatedTotalPrice = (calculatedDays * dailyPrice) + trafficFines + carRepair;
+        calculatedTotalPrice = (calculatedDays * dailyPrice) + trafficFines + carRepair; // NEW: Add traffic fines AND car repair to total price
         calculatedBalance = calculatedTotalPrice - paidAmount;
 
         editRentHistoryCalculatedRentedDays.value = calculatedDays;
@@ -2333,25 +2712,25 @@
         editRentHistoryCalculatedBalance.value = calculatedBalance.toFixed(2);
     }
 
-    window.openEditRentHistoryModal = function(rentalId, vehicleName, customerName, rentalFromDate, rentalEndDate, rentalPricePerDay, rentalPaidAmount, currentActualReturnDate, carOdometerAtRent, trafficFines, carRepair, carId, initialRentedDaysFromDB) {
+    window.openEditRentHistoryModal = function(rentalId, vehicleName, customerName, rentalFromDate, rentalEndDate, rentalPricePerDay, rentalPaidAmount, currentActualReturnDate, carOdometerAtRent, trafficFines, carRepair, carId, initialRentedDaysFromDB) { // NEW: Add carRepair parameter AND initialRentedDaysFromDB
         editRentHistoryModal.style.display = 'flex';
         editRentHistoryForm.reset();
-        showStatus('', true, editRentStatusMessage);
+        showStatus('', true, editRentStatusMessage); // Clear any previous messages
 
         editRentHistoryIdInput.value = rentalId;
         editRentHistoryVehicleInfo.value = vehicleName;
         editRentHistoryCustomerInfo.value = customerName;
-        editRentHistoryActualReturnDateInput.value = currentActualReturnDate;
-        editRentHistoryPaidAmountInput.value = rentalPaidAmount;
+        editRentHistoryActualReturnDateInput.value = currentActualReturnDate; // Populate directly with the database value
+        editRentHistoryPaidAmountInput.value = rentalPaidAmount; // Populate visible paid amount field
         editRentHistoryTrafficFinesInput.value = trafficFines;
-        editRentHistoryCarRepairInput.value = carRepair;
+        editRentHistoryCarRepairInput.value = carRepair; // Populate car repair
 
         // Store original rental details in hidden fields
         editRentHistoryFromDate.value = rentalFromDate;
-        editRentHistoryExpectedEndDate.value = rentalEndDate;
+        editRentHistoryExpectedEndDate.value = rentalEndDate; // Storing this, but actual calculation uses actualReturnDate
         editRentHistoryDailyPrice.value = rentalPricePerDay;
         editRentHistoryCarId.value = carId;
-        editRentHistoryActualOdometerInput.value = carOdometerAtRent;
+        editRentHistoryActualOdometerInput.value = carOdometerAtRent; // Initial odometer at rent
 
         // NEW: Store the initial rented days from DB for calculation fallback
         editRentHistoryInitialRentedDaysFromDB.value = initialRentedDaysFromDB;
@@ -2381,7 +2760,8 @@
     editRentHistoryActualReturnDateInput.addEventListener('change', calculateFinalRentalCosts);
     editRentHistoryPaidAmountInput.addEventListener('input', calculateFinalRentalCosts);
     editRentHistoryTrafficFinesInput.addEventListener('input', calculateFinalRentalCosts);
-    editRentHistoryCarRepairInput.addEventListener('input', calculateFinalRentalCosts);
+    editRentHistoryCarRepairInput.addEventListener('input', calculateFinalRentalCosts); // NEW: Listen to car repair changes
+    // Actual Odometer input doesn't affect calculated days/price, so no need to call calculateFinalRentalCosts on its change.
 
     editRentHistoryForm.addEventListener('submit', async (event) => {
         event.preventDefault();
@@ -2394,13 +2774,13 @@
         const actualOdometerKm = parseFloat(editRentHistoryActualOdometerInput.value);
         const newPaidAmount = parseFloat(editRentHistoryPaidAmountInput.value) || 0;
         const newTrafficFines = parseFloat(editRentHistoryTrafficFinesInput.value) || 0;
-        const newCarRepair = parseFloat(editRentHistoryCarRepairInput.value) || 0;
+        const newCarRepair = parseFloat(editRentHistoryCarRepairInput.value) || 0; // NEW: Get updated car repair
 
         // Retrieve original rental details from hidden inputs (except paidAmount which is now from input)
         const fromDate = editRentHistoryFromDate.value;
         const dailyPrice = parseFloat(editRentHistoryDailyPrice.value);
         const carId = editRentHistoryCarId.value;
-        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0;
+        const initialRentedDaysFromDB = parseFloat(editRentHistoryInitialRentedDaysFromDB.value) || 0; // Get initial from DB for persistence
 
         let calculatedDays = 0;
         let calculatedTotalPrice = 0;
@@ -2412,30 +2792,31 @@
             const timeDiff = returnDate.getTime() - startDate.getTime();
             calculatedDays = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
             if (calculatedDays === 0 && startDate.getTime() === returnDate.getTime()) {
-                calculatedDays = 1;
+                calculatedDays = 1; // If start and actual return date are the same, count as 1 day
             } else if (calculatedDays < 0) {
-                calculatedDays = 0;
+                calculatedDays = 0; // Cannot have negative rented days
             }
         } else {
             // If actual return date is cleared, revert to original rental days
             calculatedDays = initialRentedDaysFromDB;
         }
 
-        calculatedTotalPrice = (calculatedDays * dailyPrice) + newTrafficFines + newCarRepair;
+        calculatedTotalPrice = (calculatedDays * dailyPrice) + newTrafficFines + newCarRepair; // NEW: Add traffic fines AND car repair to total price calculation
         calculatedBalance = calculatedTotalPrice - newPaidAmount;
 
         // Determine status and payment status based on return and balance
-        let newRentalStatus = 'Active';
-        let newPaymentStatus = 'Pending';
+        let newRentalStatus = 'Active'; // Default, if no actual return date
+        let newPaymentStatus = 'Pending'; // Default
 
         if (actualReturnDate) {
-            newRentalStatus = 'Completed';
-            if (calculatedBalance <= 0) {
+            newRentalStatus = 'Completed'; // Marking as completed once actual return date is set
+            if (calculatedBalance <= 0) { // Paid or Overpaid
                 newPaymentStatus = 'Paid';
-            } else {
+            } else { // Still has balance
                 newPaymentStatus = 'Partially Paid';
             }
         } else {
+             // If actual return date is not set, keep status as 'Active' and determine payment status based on current balance
              if (calculatedBalance <= 0) {
                  newPaymentStatus = 'Paid';
              } else if (newPaidAmount > 0) {
@@ -2451,15 +2832,15 @@
             .from('rent_history')
             .update({
                 actual_return_date: actualReturnDate,
-                final_odometer_km: actualOdometerKm,
-                rented_days: calculatedDays,
-                total_price: calculatedTotalPrice,
-                paid_amount: newPaidAmount,
-                balance: calculatedBalance,
-                status: newRentalStatus,
-                payment_status: newPaymentStatus,
+                final_odometer_km: actualOdometerKm, // Store actual odometer
+                rented_days: calculatedDays, // Update rented_days based on actual return
+                total_price: calculatedTotalPrice, // Update total_price
+                paid_amount: newPaidAmount, // Update paid_amount
+                balance: calculatedBalance, // Update balance
+                status: newRentalStatus, // Update status
+                payment_status: newPaymentStatus, // Update payment status
                 traffic_fines: newTrafficFines,
-                car_repair: newCarRepair
+                car_repair: newCarRepair // NEW: Update car_repair
             })
             .eq('id', rentalId);
 
@@ -2475,10 +2856,10 @@
             const { data: carUpdateData, error: carUpdateError } = await supabaseClient
                 .from('cars')
                 .update({
-                    status: 'Available',
-                    odometer_km: actualOdometerKm,
-                    from_date: null,
-                    end_date: null
+                    status: 'Available', // Mark car as available
+                    odometer_km: actualOdometerKm, // Update car's odometer with the final reading
+                    from_date: null, // Clear from_date on the car (as it's returned)
+                    end_date: null // Clear end_date on the car (as it's returned)
                 })
                 .eq('id', carId);
 
@@ -2495,6 +2876,7 @@
         editRentHistoryModal.style.display = 'none';
         editRentHistoryForm.reset();
         fetchCars(); // Refresh car list to reflect status change
+        fetchRentHistory(); // Refresh the rent history list
         saveRentHistoryBtn.disabled = false;
     });
 
@@ -2504,6 +2886,8 @@
         localStorage.setItem('lang', 'ar');
         applyTranslations();
         fetchCars(); // Re-fetch to update N/A, image text dynamically
+        fetchCustomers(); // Re-fetch for N/A
+        fetchRentHistory(); // Re-fetch for N/A
     });
 
     langEnBtn.addEventListener('click', () => {
@@ -2511,7 +2895,105 @@
         localStorage.setItem('lang', 'en');
         applyTranslations();
         fetchCars(); // Re-fetch to update N/A, image text dynamically
+        fetchCustomers(); // Re-fetch for N/A
+        fetchRentHistory(); // Re-fetch for N/A
     });
+
+    // Helper function to calculate dynamic rented days
+    function getDynamicRentedDays(fromDateStr) {
+        if (!fromDateStr) return 0;
+        const fromDate = new Date(fromDateStr);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); // Normalize today to start of day
+
+        fromDate.setHours(0, 0, 0, 0); // Normalize fromDate to start of day
+
+        if (fromDate.getTime() > today.getTime()) {
+            return 0; // Rental hasn't started yet
+        } else {
+            const timeDifference = today.getTime() - fromDate.getTime();
+            // Calculate days, ensuring at least 1 day if it's today or a past date
+            let days = Math.floor(timeDifference / (1000 * 60 * 60 * 24));
+            return Math.max(1, days + 1); // +1 because a rental from today to today is 1 day.
+        }
+    }
+
+    // NEW: Function to generate Report 1
+    async function generateReport1() {
+        if (!report1TableBody || !report1EmptyState) return;
+
+        // Hide main reports empty state if we're showing a specific report
+        if (reportsEmptyState) reportsEmptyState.style.display = 'none';
+        if (report1Content) report1Content.style.display = 'block';
+
+        report1TableBody.innerHTML = '';
+        report1EmptyState.style.display = 'none';
+
+        const { data: rentHistory, error } = await supabaseClient
+            .from('rent_history')
+            .select(`
+                from_date,
+                rental_price_per_day,
+                paid_amount,
+                cars (plate_number, veh_make (make), veh_model (model)),
+                customers (first_name, last_name, phone_number)
+            `)
+            .eq('status', 'Active') // Filter for active rentals
+            .order('from_date', { ascending: true }); // Order by from_date
+
+        if (error) {
+            console.error('Error fetching data for Report 1:', error.message);
+            report1TableBody.innerHTML = `<tr><td colspan="7">${translations.statusMessageErrorGeneric[currentLang]} ${error.message}</td></tr>`;
+            report1EmptyState.style.display = 'block';
+            return;
+        }
+
+        if (rentHistory && rentHistory.length > 0) {
+            rentHistory.forEach(rental => {
+                const row = report1TableBody.insertRow(); // Define row here
+                // FIX: Add null checks for nested properties (veh_make, veh_model)
+                const vehicleName = rental.cars && rental.cars.veh_make && rental.cars.veh_model ?
+                                   `${rental.cars.veh_make.make} ${rental.cars.veh_model.model} (${rental.cars.plate_number || translations.n_a[currentLang]})` :
+                                   translations.n_a[currentLang];
+                // Update customerName to include phone_number and null check first/last name
+                const customerName = rental.customers ?
+                                     `${rental.customers.first_name || ''} ${rental.customers.last_name || ''} (${rental.customers.phone_number || translations.n_a[currentLang]})` :
+                                     translations.n_a[currentLang];
+                const fromDate = rental.from_date || translations.n_a[currentLang];
+                const pricePerDay = rental.rental_price_per_day !== null ? `AED${rental.rental_price_per_day.toFixed(2)}` : translations.n_a[currentLang];
+                const paidAmount = rental.paid_amount !== null ? `AED${rental.paid_amount.toFixed(2)}` : translations.n_a[currentLang];
+
+                const dynamicRentedDays = getDynamicRentedDays(rental.from_date);
+                // Calculate outstanding balance: (dynamicRentedDays * rentalPricePerDay) - paidAmount
+                const totalAmountToDate = dynamicRentedDays * (rental.rental_price_per_day || 0);
+                const outstandingBalance = totalAmountToDate - (rental.paid_amount || 0);
+
+
+                row.insertCell().textContent = vehicleName;
+                row.insertCell().textContent = customerName;
+                row.insertCell().textContent = fromDate;
+                row.insertCell().textContent = dynamicRentedDays;
+                row.insertCell().textContent = pricePerDay;
+                row.insertCell().textContent = paidAmount;
+                row.insertCell().textContent = `AED${outstandingBalance.toFixed(2)}`; // Display calculated outstanding balance
+            });
+        } else {
+            report1TableBody.innerHTML = '<tr><td colspan="7"></td></tr>';
+            report1EmptyState.style.display = 'block';
+        }
+        applyTranslations(); // Apply translations after populating report
+    }
+
+    // Event listener for Report 1 link
+    if (report1Link) {
+        report1Link.addEventListener('click', (e) => {
+            e.preventDefault(); // Prevent default link behavior
+            // Hide other report content if any (for future reports)
+            // For now, ensure the general empty state is hidden.
+            if (reportsEmptyState) reportsEmptyState.style.display = 'none';
+            generateReport1();
+        });
+    }
 
     // Apply translations on initial load
     window.addEventListener('DOMContentLoaded', applyTranslations);
