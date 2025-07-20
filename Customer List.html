@@ -383,7 +383,7 @@
 
     /* Styles for login form */
     #login-container {
-        display: flex;
+        display: none; /* Always hidden now */
         flex-direction: column;
         align-items: center;
         justify-content: center;
@@ -716,33 +716,9 @@
   </style>
 </head>
 <body dir="rtl">
-  <div id="login-container">
-    <div id="login-card" class="card">
-      <h2 data-i18n-key="adminLoginTitle">تسجيل دخول المسؤول</h2>
-      <form id="auth-form">
-        <div class="form-group">
-          <label for="email" data-i18n-key="emailLabel">البريد الإلكتروني</label>
-          <div class="input-with-icon">
-            <i class="fas fa-envelope"></i>
-            <input type="email" id="email" data-i18n-key="emailPlaceholder" placeholder="أدخل بريدك الإلكتروني" required>
-          </div>
-        </div>
-        <div class="form-group">
-          <label for="password" data-i18n-key="passwordLabel">كلمة المرور</label>
-          <div class="input-with-icon">
-            <i class="fas fa-lock"></i>
-            <input type="password" id="password" data-i18n-key="passwordPlaceholder" placeholder="أدخل كلمة المرور" required>
-          </div>
-        </div>
-        <button type="submit" class="btn-submit">
-          <i class="fas fa-sign-in-alt"></i> <span data-i18n-key="loginButton">تسجيل الدخول</span>
-        </button>
-      </form>
-      <div id="auth-status-message" class="status-message"></div>
-    </div>
-  </div>
+  <!-- Login Container removed -->
 
-  <div class="container" id="admin-panel" style="display: none;">
+  <div class="container" id="admin-panel">
     <header>
       <div class="logo">
         <i class="fas fa-car"></i>
@@ -777,8 +753,8 @@
         </a>
         <a href="Rent History.html" class="tab-button">
             <i class="fas fa-history"></i> <span data-i18n-key="rentHistoryTab">سجل الإيجار</span>
-        </a>
-        <a href="Reports.html" class="tab-button">
+        </a
+        ><a href="Reports.html" class="tab-button">
             <i class="fas fa-chart-line"></i> <span data-i18n-key="reportsTab">التقارير</span>
         </a>
     </div>
@@ -798,9 +774,15 @@
                             <th data-i18n-key="customerName">اسم العميل</th> <!-- Combined First and Last Name -->
                             <th data-i18n-key="customerEmail">البريد الإلكتروني</th>
                             <th data-i18n-key="customerPhone">رقم الهاتف</th>
+                            <th data-i18n-key="customerAddress">العنوان</th>
+                            <th data-i18n-key="customerCity">المدينة</th>
+                            <th data-i18n-key="customerCountry">الدولة</th>
                             <th data-i18n-key="customerLicenseNo">رقم الرخصة</th>
                             <th data-i18n-key="customerExpiry">تاريخ الانتهاء</th>
                             <th data-i18n-key="customerDOB">تاريخ الميلاد</th>
+                            <th data-i18n-key="customerIDNumber">رقم الهوية</th>
+                            <th data-i18n-key="customerNationality">الجنسية</th>
+                            <th data-i18n-key="customerLicenseIssuedBy">جهة إصدار الرخصة</th>
                             <!-- Removed Actions column -->
                         </tr>
                     </thead>
@@ -818,6 +800,119 @@
 
   </div>
 
+  <!-- Add Customer Modal -->
+  <div id="addCustomerModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button" id="closeAddCustomerModal">&times;</span>
+        <div class="card-title">
+            <i class="fas fa-user-plus"></i>
+            <h2 data-i18n-key="addNewCustomerTitle">إضافة عميل جديد</h2>
+        </div>
+        <form id="addCustomerForm">
+            <div class="form-group">
+                <label for="add-first-name" data-i18n-key="customerFirstName">الاسم الأول</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="add-first-name" data-i18n-key="customerFirstNamePlaceholder" placeholder="أدخل الاسم الأول" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-last-name" data-i18n-key="customerLastName">اسم العائلة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="add-last-name" data-i18n-key="customerLastNamePlaceholder" placeholder="أدخل اسم العائلة" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-email" data-i18n-key="customerEmail">البريد الإلكتروني</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-envelope"></i>
+                    <input type="email" id="add-email" data-i18n-key="customerEmailPlaceholder" placeholder="أدخل البريد الإلكتروني" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-phone-number" data-i18n-key="customerPhone">رقم الهاتف</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-phone"></i>
+                    <input type="text" id="add-phone-number" data-i18n-key="customerPhonePlaceholder" placeholder="أدخل رقم الهاتف" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-address" data-i18n-key="customerAddress">العنوان</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <input type="text" id="add-address" data-i18n-key="customerAddressPlaceholder" placeholder="أدخل العنوان">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-city" data-i18n-key="customerCity">المدينة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-city"></i>
+                    <input type="text" id="add-city" data-i18n-key="customerCityPlaceholder" placeholder="أدخل المدينة">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-country" data-i18n-key="customerCountry">الدولة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-globe"></i>
+                    <input type="text" id="add-country" data-i18n-key="customerCountryPlaceholder" placeholder="أدخل الدولة">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-driver-license-number" data-i18n-key="customerLicenseNo">رقم الرخصة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-id-card"></i>
+                    <input type="text" id="add-driver-license-number" data-i18n-key="customerLicenseNoPlaceholder" placeholder="أدخل رقم الرخصة" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-driver-license-expiry-date" data-i18n-key="customerExpiry">تاريخ انتهاء الرخصة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-calendar-alt"></i>
+                    <input type="date" id="add-driver-license-expiry-date" data-i18n-key="customerExpiryPlaceholder" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-date-of-birth" data-i18n-key="customerDOB">تاريخ الميلاد</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-birthday-cake"></i>
+                    <input type="date" id="add-date-of-birth" data-i18n-key="customerDOBPlaceholder" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-id-number" data-i18n-key="customerIDNumber">رقم الهوية</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-id-badge"></i>
+                    <input type="text" id="add-id-number" data-i18n-key="customerIDNumberPlaceholder" placeholder="أدخل رقم الهوية">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-nationality" data-i18n-key="customerNationality">الجنسية</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-flag"></i>
+                    <input type="text" id="add-nationality" data-i18n-key="customerNationalityPlaceholder" placeholder="أدخل الجنسية">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="add-license-issued-by" data-i18n-key="customerLicenseIssuedBy">جهة إصدار الرخصة</label>
+                <div class="input-with-icon">
+                    <i class="fas fa-building"></i>
+                    <input type="text" id="add-license-issued-by" data-i18n-key="customerLicenseIssuedByPlaceholder" placeholder="أدخل جهة إصدار الرخصة">
+                </div>
+            </div>
+            <div class="btn-group">
+                <button type="reset" class="btn-reset" id="resetAddCustomerForm">
+                    <i class="fas fa-undo"></i> <span data-i18n-key="resetButton">إعادة تعيين</span>
+                </button>
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-plus-circle"></i> <span data-i18n-key="addCustomerButton">إضافة عميل</span>
+                </button>
+            </div>
+        </form>
+        <div id="add-customer-status-message" class="status-message"></div>
+    </div>
+  </div>
+
   <script>
     const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
@@ -825,19 +920,17 @@
     const { createClient } = supabase;
     const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // Login/Logout elements
-    const loginContainer = document.getElementById('login-container');
+    // Elements
     const adminPanel = document.getElementById('admin-panel');
-    const authForm = document.getElementById('auth-form');
-    const authStatusMessage = document.getElementById('auth-status-message');
     const userEmailSpan = document.getElementById('user-email');
     const logoutBtn = document.getElementById('logout-btn');
-
-    // Customer management elements
     const customersTableBody = document.getElementById('customersTableBody');
     const customerListEmptyState = document.getElementById('customer-list-empty-state');
-
-    // Language switcher elements
+    const showAddCustomerFormBtn = document.getElementById('showAddCustomerFormBtn');
+    const addCustomerModal = document.getElementById('addCustomerModal');
+    const closeAddCustomerModal = document.getElementById('closeAddCustomerModal');
+    const addCustomerForm = document.getElementById('addCustomerForm');
+    const addCustomerStatusMessage = document.getElementById('add-customer-status-message');
     const langArBtn = document.getElementById('lang-ar');
     const langEnBtn = document.getElementById('lang-en');
 
@@ -861,12 +954,43 @@
         customerName: { ar: 'اسم العميل', en: 'Customer Name' },
         customerEmail: { ar: 'البريد الإلكتروني', en: 'Email' },
         customerPhone: { ar: 'رقم الهاتف', en: 'Phone' },
+        customerAddress: { ar: 'العنوان', en: 'Address' },
+        customerCity: { ar: 'المدينة', en: 'City' },
+        customerCountry: { ar: 'الدولة', en: 'Country' },
         customerLicenseNo: { ar: 'رقم الرخصة', en: 'License No.' },
         customerExpiry: { ar: 'تاريخ الانتهاء', en: 'Expiry' },
         customerDOB: { ar: 'تاريخ الميلاد', en: 'DOB' },
+        customerIDNumber: { ar: 'رقم الهوية', en: 'ID Number' },
+        customerNationality: { ar: 'الجنسية', en: 'Nationality' },
+        customerLicenseIssuedBy: { ar: 'جهة إصدار الرخصة', en: 'License Issued By' },
         noCustomersFoundEmpty: { ar: 'لم يتم العثور على عملاء. أضف عميلك الأول!', en: 'No customers found. Add your first customer!' },
         statusMessageErrorLoadingCustomers: { ar: 'خطأ في تحميل العملاء.', en: 'Error loading customers.' },
         n_a: { ar: 'N/A', en: 'N/A' },
+        addNewCustomerTitle: { ar: 'إضافة عميل جديد', en: 'Add New Customer' },
+        customerFirstName: { ar: 'الاسم الأول', en: 'First Name' },
+        customerFirstNamePlaceholder: { ar: 'أدخل الاسم الأول', en: 'Enter first name' },
+        customerLastName: { ar: 'اسم العائلة', en: 'Last Name' },
+        customerLastNamePlaceholder: { ar: 'أدخل اسم العائلة', en: 'Enter last name' },
+        customerEmailPlaceholder: { ar: 'أدخل البريد الإلكتروني', en: 'Enter email' },
+        customerPhonePlaceholder: { ar: 'أدخل رقم الهاتف', en: 'Enter phone number' },
+        customerAddressPlaceholder: { ar: 'أدخل العنوان', en: 'Enter address' },
+        customerCityPlaceholder: { ar: 'أدخل المدينة', en: 'Enter city' },
+        customerCountryPlaceholder: { ar: 'أدخل الدولة', en: 'Enter country' },
+        customerLicenseNoPlaceholder: { ar: 'أدخل رقم الرخصة', en: 'Enter license number' },
+        customerExpiryPlaceholder: { ar: 'أدخل تاريخ انتهاء الرخصة', en: 'Enter expiry date' },
+        customerDOBPlaceholder: { ar: 'أدخل تاريخ الميلاد', en: 'Enter date of birth' },
+        customerIDNumberPlaceholder: { ar: 'أدخل رقم الهوية', en: 'Enter ID number' },
+        customerNationalityPlaceholder: { ar: 'أدخل الجنسية', en: 'Enter nationality' },
+        customerLicenseIssuedByPlaceholder: { ar: 'أدخل جهة إصدار الرخصة', en: 'Enter license issuing authority' },
+        resetButton: { ar: 'إعادة تعيين', en: 'Reset' },
+        addCustomerButton: { ar: 'إضافة عميل', en: 'Add Customer' },
+        statusMessageCustomerAddedSuccess: { ar: 'تم إضافة العميل بنجاح!', en: 'Customer added successfully!' },
+        statusMessageCustomerAddedError: { ar: 'خطأ في إضافة العميل:', en: 'Error adding customer:' },
+        statusMessageLoginError: { ar: 'خطأ في تسجيل الدخول: ', en: 'Login error: ' },
+        statusMessageUnauthorizedUser: { ar: 'مستخدم غير مصرح به. يرجى التحقق من بيانات الاعتماد الخاصة بك.', en: 'Unauthorized user. Please check your credentials.' },
+        statusMessageLoginSuccess: { ar: 'تم تسجيل الدخول بنجاح!', en: 'Login successful!' },
+        statusMessageLogoutError: { ar: 'خطأ في تسجيل الخروج: ', en: 'Logout error: ' },
+        statusMessageLoggedOut: { ar: 'تم تسجيل الخروج بنجاح.', en: 'Logged out successfully.' },
     };
 
     // Set initial language to English, then check localStorage
@@ -899,8 +1023,10 @@
         });
 
         // Update user email span direction explicitly if needed
-        userEmailSpan.style.direction = (currentLang === 'ar') ? 'rtl' : 'ltr';
-        userEmailSpan.style.textAlign = (currentLang === 'ar') ? 'right' : 'left';
+        if (userEmailSpan) { // Check if element exists before accessing
+            userEmailSpan.style.direction = (currentLang === 'ar') ? 'rtl' : 'ltr';
+            userEmailSpan.style.textAlign = (currentLang === 'ar') ? 'right' : 'left';
+        }
     }
 
     // Function to show status messages
@@ -923,88 +1049,52 @@
         }, 3000);
     }
 
-    // --- Authentication Logic ---
+    // --- Authentication Check and Redirect Logic ---
+    const ADMIN_UID = '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f'; // Replace with your actual admin UID
 
-    // Function to handle login
-    authForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const email = document.getElementById('email').value;
-      const password = document.getElementById('password').value;
+    async function checkAdminSession() {
+        const { data: { session }, error } = await supabaseClient.auth.getSession();
 
-      const { data, error } = await supabaseClient.auth.signInWithPassword({
-        email: email,
-        password: password,
-      });
-
-      if (error) {
-        showStatus('statusMessageLoginError' + error.message, false, authStatusMessage);
-      } else {
-        const admin_uid = '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f'; // Replace with your actual admin UID
-        if (data.user && data.user.id === admin_uid) {
-            showStatus('statusMessageLoginSuccess', true, authStatusMessage);
-            toggleAdminPanel(true, data.user.email);
-            fetchCustomers();
+        if (error || !session || session.user.id !== ADMIN_UID) {
+            // If no session, or session is invalid/not admin, redirect to admin.html
+            window.location.href = 'admin.html';
         } else {
-            showStatus('statusMessageUnauthorizedUser', false, authStatusMessage);
-            await supabaseClient.auth.signOut();
-            toggleAdminPanel(false);
+            // If authenticated as admin, display panel and user info
+            adminPanel.style.display = 'block';
+            userEmailSpan.textContent = session.user.email;
+            fetchCustomers(); // Fetch customers only after successful authentication
+            applyTranslations(); // Apply translations after authentication check
         }
-      }
-    });
+    }
 
     // Function to handle logout
     logoutBtn.addEventListener('click', async () => {
       const { error } = await supabaseClient.auth.signOut();
       if (error) {
-        showStatus('statusMessageLogoutError' + error.message, false, authStatusMessage);
-      } else {
-        showStatus('statusMessageLoggedOut', true, authStatusMessage);
-        toggleAdminPanel(false);
-        customersTableBody.innerHTML = '';
-        customerListEmptyState.style.display = 'none';
-    }
+        // Use a generic error message as we are redirecting anyway
+        console.error('Logout error:', error.message);
+      }
+      // Always redirect to admin.html after logout, regardless of error
+      window.location.href = 'admin.html';
     });
 
-    // Function to show/hide admin panel and update user info
-    function toggleAdminPanel(loggedIn, userEmail = '') {
-      if (loggedIn) {
-        loginContainer.style.display = 'none';
-        adminPanel.style.display = 'block';
-        userEmailSpan.textContent = userEmail;
-      } else {
-        loginContainer.style.display = 'flex';
-        adminPanel.style.display = 'none';
-        userEmailSpan.textContent = '';
-      }
-    }
-
-    // Check session on page load
-    async function checkSession() {
-      const { data: { session }, error } = await supabaseClient.auth.getSession();
-      if (session && session.user && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') {
-        toggleAdminPanel(true, session.user.email);
-        fetchCustomers();
-      } else {
-        toggleAdminPanel(false);
-      }
-      applyTranslations(); // Apply translations on initial load
-    }
-
-    // Initial check on load
-    checkSession();
-
-    // Listen for auth state changes
+    // Listen for auth state changes (optional, but good practice for real-time updates)
     supabaseClient.auth.onAuthStateChange((event, session) => {
-        if (event === 'SIGNED_IN' && session && session.user.id === '3f39694d-b3a9-48ce-96dc-89a2b9aebc7f') {
-            toggleAdminPanel(true, session.user.email);
+        if (event === 'SIGNED_OUT') {
+            window.location.href = 'admin.html'; // Redirect if signed out
+        } else if (event === 'SIGNED_IN' && session && session.user.id === ADMIN_UID) {
+            adminPanel.style.display = 'block';
+            userEmailSpan.textContent = session.user.email;
             fetchCustomers();
             applyTranslations();
-        } else if (event === 'SIGNED_OUT') {
-            toggleAdminPanel(false);
-            customersTableBody.innerHTML = '';
-            customerListEmptyState.style.display = 'none';
-            applyTranslations();
         }
+    });
+
+
+    // Initial load logic: Perform authentication check
+    window.addEventListener('DOMContentLoaded', () => {
+        checkAdminSession();
+        addCustomerModal.style.display = 'none'; // Explicitly ensure modal is hidden on load
     });
 
     // Function to fetch and display customers
@@ -1021,7 +1111,7 @@
 
         if (error) {
             console.error('Error fetching customers:', error.message);
-            customersTableBody.innerHTML = `<tr><td colspan="6">${translations.statusMessageErrorLoadingCustomers[currentLang]}</td></tr>`;
+            customersTableBody.innerHTML = `<tr><td colspan="12">${translations.statusMessageErrorLoadingCustomers[currentLang]}</td></tr>`;
             customerListEmptyState.style.display = 'block';
             return;
         }
@@ -1032,15 +1122,75 @@
                 row.insertCell().textContent = `${customer.first_name || translations.n_a[currentLang]} ${customer.last_name || ''}`;
                 row.insertCell().textContent = customer.email || translations.n_a[currentLang];
                 row.insertCell().textContent = customer.phone_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.address || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.city || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.country || translations.n_a[currentLang];
                 row.insertCell().textContent = customer.driver_license_number || translations.n_a[currentLang];
                 row.insertCell().textContent = customer.driver_license_expiry_date || translations.n_a[currentLang];
                 row.insertCell().textContent = customer.date_of_birth || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.id_number || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.nationality || translations.n_a[currentLang];
+                row.insertCell().textContent = customer.license_issued_by || translations.n_a[currentLang];
             });
         } else {
-            customersTableBody.innerHTML = '<tr><td colspan="6"></td></tr>';
+            customersTableBody.innerHTML = '<tr><td colspan="12"></td></tr>';
             customerListEmptyState.style.display = 'block';
         }
     }
+
+    // --- Add Customer Modal Logic ---
+    showAddCustomerFormBtn.addEventListener('click', () => {
+        if (addCustomerModal.style.display !== 'flex') {
+            addCustomerModal.style.display = 'flex';
+            addCustomerForm.reset(); // Clear form fields
+            addCustomerStatusMessage.style.display = 'none'; // Hide any previous status messages
+            applyTranslations(); // Apply translations to modal content
+        }
+    });
+
+    closeAddCustomerModal.addEventListener('click', () => {
+        addCustomerModal.style.display = 'none';
+    });
+
+    window.addEventListener('click', (event) => {
+        if (event.target == addCustomerModal) {
+            addCustomerModal.style.display = 'none';
+        }
+    });
+
+    addCustomerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const newCustomer = {
+            first_name: document.getElementById('add-first-name').value,
+            last_name: document.getElementById('add-last-name').value,
+            email: document.getElementById('add-email').value,
+            phone_number: document.getElementById('add-phone-number').value,
+            address: document.getElementById('add-address').value,
+            city: document.getElementById('add-city').value,
+            country: document.getElementById('add-country').value,
+            driver_license_number: document.getElementById('add-driver-license-number').value,
+            driver_license_expiry_date: document.getElementById('add-driver-license-expiry-date').value,
+            date_of_birth: document.getElementById('add-date-of-birth').value,
+            id_number: document.getElementById('add-id-number').value,
+            nationality: document.getElementById('add-nationality').value,
+            license_issued_by: document.getElementById('add-license-issued-by').value,
+        };
+
+        const { data, error } = await supabaseClient
+            .from('customers')
+            .insert([newCustomer]);
+
+        if (error) {
+            console.error('Error adding customer:', error.message);
+            showStatus('statusMessageCustomerAddedError' + error.message, false, addCustomerStatusMessage);
+        } else {
+            showStatus('statusMessageCustomerAddedSuccess', true, addCustomerStatusMessage);
+            addCustomerForm.reset();
+            addCustomerModal.style.display = 'none';
+            fetchCustomers(); // Refresh the customer list
+        }
+    });
 
     // Language switch event listeners
     langArBtn.addEventListener('click', () => {
@@ -1056,9 +1206,6 @@
         applyTranslations();
         fetchCustomers();
     });
-
-    // Apply translations on initial load
-    window.addEventListener('DOMContentLoaded', applyTranslations);
 
   </script>
 </body>
