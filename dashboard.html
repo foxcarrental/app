@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fox Car Rental Admin Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Custom scrollbar for the sidebar */
+        .sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #5AB9EA #F3F4F6;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 10px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #5AB9EA;
+            border-radius: 10px;
+            border: 2px solid #F3F4F6;
+        }
+
+        /* Custom styles for the background gradient */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors from the image */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen text-gray-800">
+
+    <!-- Sidebar for Desktop -->
+    <aside class="hidden lg:flex flex-col w-64 bg-white shadow-lg rounded-r-xl p-4 overflow-y-auto sidebar-scroll">
+        <div class="flex items-center justify-center p-4 mb-6">
+            <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+            <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-2">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-car mr-3"></i>
+                        Vehicle Inventory
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-users mr-3"></i>
+                        Customer List
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-history mr-3"></i>
+                        Rent History
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Reports
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-dollar-sign mr-3"></i>
+                        Financial Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-wrench mr-3"></i>
+                        Vehicle Maintenance
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-chart-pie mr-3"></i>
+                        Business Analytics
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Mobile & Desktop -->
+        <header class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between lg:hidden">
+            <div class="flex items-center">
+                <img src="https://placehold.co/30x30/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-8 h-8 rounded-full mr-2">
+                <h1 class="text-lg font-bold text-gray-800">Fox Car Rental Admin</h1>
+            </div>
+            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+        <aside id="mobile-sidebar" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto sidebar-scroll">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+                    <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+                </div>
+                <button id="close-mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <nav class="p-4">
+                <ul>
+                    <li class="mb-2">
+                        <a href="dashboard.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-car mr-3"></i>
+                            Vehicle Inventory
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-users mr-3"></i>
+                            Customer List
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-history mr-3"></i>
+                            Rent History
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-dollar-sign mr-3"></i>
+                            Financial Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-wrench mr-3"></i>
+                            Vehicle Maintenance
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-chart-pie mr-3"></i>
+                            Business Analytics
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Dashboard Header -->
+        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-gray-800">Dashboard</h2>
+            <div class="flex items-center space-x-4">
+                <span id="user-email" class="text-gray-600 hidden sm:block"></span>
+                <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors duration-200">
+                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Total Vehicles Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
+                <div>
+                    <p class="text-sm text-gray-500">Total Vehicles</p>
+                    <p class="text-3xl font-bold text-gray-900">41</p>
+                </div>
+                <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
+                    <i class="fas fa-car"></i>
+                </div>
+            </div>
+
+            <!-- Available Vehicles Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-cyan">
+                <div>
+                    <p class="text-sm text-gray-500">Available</p>
+                    <p class="text-3xl font-bold text-gray-900">7</p>
+                </div>
+                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+            </div>
+
+            <!-- Rented Vehicles Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-light-purple">
+                <div>
+                    <p class="text-sm text-gray-500">Rented</p>
+                    <p class="text-3xl font-bold text-gray-900">33</p>
+                </div>
+                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl">
+                    <i class="fas fa-calendar-alt"></i>
+                </div>
+            </div>
+
+            <!-- Maintenance Vehicles Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-red-500">
+                <div>
+                    <p class="text-sm text-gray-500">Maintenance</p>
+                    <p class="text-3xl font-bold text-gray-900">1</p>
+                </div>
+                <div class="p-3 bg-red-500 rounded-full text-white text-xl">
+                    <i class="fas fa-tools"></i>
+                </div>
+            </div>
+
+            <!-- Total Customers Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
+                <div>
+                    <p class="text-sm text-gray-500">Total Customers</p>
+                    <p class="text-3xl font-bold text-gray-900">3</p>
+                </div>
+                <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+
+            <!-- Active Rentals Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-cyan">
+                <div>
+                    <p class="text-sm text-gray-500">Active Rentals</p>
+                    <p class="text-3xl font-bold text-gray-900">1</p>
+                </div>
+                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl">
+                    <i class="fas fa-file-invoice"></i>
+                </div>
+            </div>
+
+            <!-- Monthly Revenue Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-light-purple">
+                <div>
+                    <p class="text-sm text-gray-500">Monthly Revenue</p>
+                    <p class="text-3xl font-bold text-gray-900">AED 6650.00</p>
+                </div>
+                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl">
+                    <i class="fas fa-dollar-sign"></i>
+                </div>
+            </div>
+
+            <!-- Pending Payments Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-orange-500">
+                <div>
+                    <p class="text-sm text-gray-500">Pending Payments</p>
+                    <p class="text-3xl font-bold text-gray-900">AED 5550.00</p>
+                </div>
+                <div class="p-3 bg-orange-500 rounded-full text-white text-xl">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Section -->
+        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
+                    <i class="fas fa-plus-circle mr-2"></i>
+                    Add New Vehicle
+                </button>
+                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-cyan text-white shadow-md transition-all duration-200 hover:bg-custom-blue-light">
+                    <i class="fas fa-user-plus mr-2"></i>
+                    Add New Customer
+                </button>
+                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-purple text-white shadow-md transition-all duration-200 hover:bg-custom-light-purple">
+                    <i class="fas fa-chart-line mr-2"></i>
+                    View Reports
+                </button>
+            </div>
+        </div>
+
+        <!-- Refresh Data Button -->
+        <div class="flex justify-end mt-auto">
+            <button class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
+                Refresh Data
+            </button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Redirect to login if not authenticated
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'login.html'; // Redirect to login page
+            } else {
+                // Display user email if logged in
+                document.getElementById('user-email').textContent = session.user.email;
+            }
+        });
+
+        // DOM Elements
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+        const logoutButton = document.getElementById('logout-button');
+
+        // --- Mobile Sidebar Logic ---
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.remove('-translate-x-full');
+            mobileSidebarOverlay.classList.remove('hidden');
+        });
+
+        closeMobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.add('-translate-x-full');
+            mobileSidebarOverlay.classList.add('hidden');
+        });
+
+        mobileSidebarOverlay.addEventListener('click', () => {
+            mobileSidebar.classList.add('-translate-x-full');
+            mobileSidebarOverlay.classList.add('hidden');
+        });
+
+        // --- Logout Functionality ---
+        logoutButton.addEventListener('click', async () => {
+            try {
+                const { error } = await supabaseClient.auth.signOut();
+                if (error) {
+                    console.error("Error logging out:", error.message);
+                    alert("Error logging out: " + error.message);
+                } else {
+                    console.log("User logged out successfully.");
+                    window.location.href = 'login.html'; // Redirect to login page after logout
+                }
+            } catch (error) {
+                console.error("An unexpected error occurred during logout:", error);
+                alert("An unexpected error occurred during logout.");
+            }
+        });
+    </script>
+</body>
+</html>

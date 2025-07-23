@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Analytics - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase CDN (for authentication redirect) -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Custom scrollbar for the sidebar */
+        .sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #5AB9EA #F3F4F6;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 10px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #5AB9EA;
+            border-radius: 10px;
+            border: 2px solid #F3F4F6;
+        }
+
+        /* Custom styles for the background gradient */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors from the image */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen text-gray-800">
+
+    <!-- Sidebar for Desktop -->
+    <aside class="hidden lg:flex flex-col w-64 bg-white shadow-lg rounded-r-xl p-4 overflow-y-auto sidebar-scroll">
+        <div class="flex items-center justify-center p-4 mb-6">
+            <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+            <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-2">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-car mr-3"></i>
+                        Vehicle Inventory
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-users mr-3"></i>
+                        Customer List
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-history mr-3"></i>
+                        Rent History
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Reports
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-dollar-sign mr-3"></i>
+                        Financial Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-wrench mr-3"></i>
+                        Vehicle Maintenance
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg bg-custom-purple text-white shadow-md transition-all duration-200 hover:bg-custom-light-purple">
+                        <i class="fas fa-chart-pie mr-3"></i>
+                        Business Analytics
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Mobile & Desktop -->
+        <header class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between lg:hidden">
+            <div class="flex items-center">
+                <img src="https://placehold.co/30x30/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-8 h-8 rounded-full mr-2">
+                <h1 class="text-lg font-bold text-gray-800">Fox Car Rental Admin</h1>
+            </div>
+            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+        <aside id="mobile-sidebar" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto sidebar-scroll">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+                    <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+                </div>
+                <button id="close-mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <nav class="p-4">
+                <ul>
+                    <li class="mb-2">
+                        <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-car mr-3"></i>
+                            Vehicle Inventory
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-users mr-3"></i>
+                            Customer List
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-history mr-3"></i>
+                            Rent History
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            Reports
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-dollar-sign mr-3"></i>
+                            Financial Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-wrench mr-3"></i>
+                            Vehicle Maintenance
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="business-analytics.html" class="flex items-center p-3 rounded-lg bg-custom-purple text-white shadow-md transition-all duration-200 hover:bg-custom-light-purple">
+                            <i class="fas fa-chart-pie mr-3"></i>
+                            Business Analytics
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </aside>
+
+        <!-- Business Analytics Header -->
+        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-gray-800">Business Analytics</h2>
+            <button class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh Analytics
+            </button>
+        </div>
+
+        <!-- Analytics Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Total Bookings Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex flex-col items-start border-l-4 border-green-500">
+                <div class="p-3 bg-green-500 rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <p class="text-sm text-gray-500">Total Bookings</p>
+                <p class="text-3xl font-bold text-gray-900">4</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +1.2%
+                </span>
+            </div>
+
+            <!-- Avg Rental Duration Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex flex-col items-start border-l-4 border-custom-cyan">
+                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <p class="text-sm text-gray-500">Avg Rental Duration</p>
+                <p class="text-3xl font-bold text-gray-900">25.0 days</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +5.7%
+                </span>
+            </div>
+
+            <!-- Customer Retention Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex flex-col items-start border-l-4 border-custom-light-purple">
+                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-users"></i>
+                </div>
+                <p class="text-sm text-gray-500">Customer Retention</p>
+                <p class="text-3xl font-bold text-gray-900">78.5%</p>
+                <span class="text-xs text-red-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-down mr-1"></i> -1.2%
+                </span>
+            </div>
+
+            <!-- Service Utilization Card -->
+            <div class="bg-white rounded-xl shadow-md p-5 flex flex-col items-start border-l-4 border-orange-500">
+                <div class="p-3 bg-orange-500 rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-chart-area"></i>
+                </div>
+                <p class="text-sm text-gray-500">Service Utilization</p>
+                <p class="text-3xl font-bold text-gray-900">74.4%</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +1.5%
+                </span>
+            </div>
+        </div>
+
+        <!-- Popular Vehicle Types & Peak Booking Hours Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Popular Vehicle Types Card -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Popular Vehicle Types</h3>
+                <ul id="popular-vehicle-types-list" class="space-y-3">
+                    <!-- Dynamic content will be loaded here -->
+                    <li class="text-gray-500 text-center">Loading...</li>
+                </ul>
+            </div>
+
+            <!-- Peak Booking Hours Card -->
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Peak Booking Hours</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-blue-dark mr-2"></span> 10:00 AM
+                        </div>
+                        <span class="font-semibold">85%</span>
+                    </li>
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-cyan mr-2"></span> 2:00 PM
+                        </div>
+                        <span class="font-semibold">70%</span>
+                    </li>
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-purple mr-2"></span> 6:00 PM
+                        </div>
+                        <span class="font-semibold">55%</span>
+                    </li>
+                </ul>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 border border-gray-200">
+                    <p class="font-semibold">Optimization Tip:</p>
+                    <p>Consider offering discounts during off-peak hours (9 AM - 12 PM) to increase utilization.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Performance Trends Section -->
+        <div class="bg-white shadow-md rounded-xl p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Monthly Performance Trends</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
+                <!-- Data will likely be dynamic from a chart library in a real app -->
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Jan</p>
+                    <p class="font-bold text-gray-900">45</p>
+                    <p class="text-xs text-green-600">AED 12,500</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Feb</p>
+                    <p class="font-bold text-gray-900">52</p>
+                    <p class="text-xs text-green-600">AED 14,200</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Mar</p>
+                    <p class="font-bold text-gray-900">48</p>
+                    <p class="text-xs text-red-600">AED 13,800</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Apr</p>
+                    <p class="font-bold text-gray-900">61</p>
+                    <p class="text-xs text-green-600">AED 16,000</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">May</p>
+                    <p class="font-bold text-gray-900">58</p>
+                    <p class="text-xs text-red-600">AED 15,700</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Jun</p>
+                    <p class="font-bold text-gray-900">67</p>
+                    <p class="text-xs text-green-600">AED 18,200</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Redirect to login if not authenticated
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+
+        // DOM Elements
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
+        const mobileSidebar = document.getElementById('mobile-sidebar');
+        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+        const popularVehicleTypesList = document.getElementById('popular-vehicle-types-list'); // New DOM element
+
+        // Predefined colors for the list items
+        const itemColors = [
+            'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-red-500',
+            'bg-indigo-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500', 'bg-cyan-500'
+        ];
+
+        // --- Mobile Sidebar Logic ---
+        mobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.remove('-translate-x-full');
+            mobileSidebarOverlay.classList.remove('hidden');
+        });
+
+        closeMobileMenuButton.addEventListener('click', () => {
+            mobileSidebar.classList.add('-translate-x-full');
+            mobileSidebarOverlay.classList.add('hidden');
+        });
+
+        mobileSidebarOverlay.addEventListener('click', () => {
+            mobileSidebar.classList.add('-translate-x-full');
+            mobileSidebarOverlay.classList.add('hidden');
+        });
+
+        // --- Fetch Popular Vehicle Types ---
+        async function fetchPopularVehicleTypes() {
+            popularVehicleTypesList.innerHTML = '<li class="text-gray-500 text-center">Loading popular vehicles...</li>';
+            try {
+                // Fetch rent history and join with cars and veh_make to get the make name
+                const { data, error } = await supabaseClient
+                    .from('rent_history')
+                    .select('cars(veh_make(make))');
+
+                if (error) {
+                    console.error("Error fetching popular vehicle types:", error.message);
+                    popularVehicleTypesList.innerHTML = '<li class="text-red-500 text-center">Error loading data.</li>';
+                    return;
+                }
+
+                // Process data to count bookings per car make
+                const makeCounts = new Map();
+                data.forEach(rental => {
+                    const makeName = rental.cars?.veh_make?.make;
+                    if (makeName) {
+                        makeCounts.set(makeName, (makeCounts.get(makeName) || 0) + 1);
+                    }
+                });
+
+                // Convert map to array and sort by count descending
+                const sortedMakes = Array.from(makeCounts.entries())
+                    .sort((a, b) => b[1] - a[1]);
+
+                renderPopularVehicleTypes(sortedMakes);
+
+            } catch (error) {
+                console.error("An unexpected error occurred in fetchPopularVehicleTypes:", error.message);
+                popularVehicleTypesList.innerHTML = '<li class="text-red-500 text-center">An unexpected error occurred.</li>';
+            }
+        }
+
+        // --- Render Popular Vehicle Types ---
+        function renderPopularVehicleTypes(data) {
+            popularVehicleTypesList.innerHTML = ''; // Clear existing content
+
+            if (data.length === 0) {
+                popularVehicleTypesList.innerHTML = '<li class="text-gray-500 text-center">No popular vehicle data available.</li>';
+                return;
+            }
+
+            data.forEach(([make, count], index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'flex items-center justify-between text-gray-700';
+                listItem.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 rounded-full ${itemColors[index % itemColors.length]} mr-2"></span> ${make}
+                    </div>
+                    <span class="font-semibold">${count} bookings</span>
+                `;
+                popularVehicleTypesList.appendChild(listItem);
+            });
+        }
+
+        // Initial fetch when the page loads
+        fetchPopularVehicleTypes();
+    </script>
+</body>
+</html>

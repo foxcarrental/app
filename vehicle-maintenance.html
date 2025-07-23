@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Maintenance - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Custom scrollbar for the sidebar */
+        .sidebar-scroll {
+            scrollbar-width: thin;
+            scrollbar-color: #5AB9EA #F3F4F6;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #F3F4F6;
+            border-radius: 10px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #5AB9EA;
+            border-radius: 10px;
+            border: 2px solid #F3F4F6;
+        }
+
+        /* Custom styles for the background gradient */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors from the image */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+    </style>
+</head>
+<body class="flex flex-col lg:flex-row min-h-screen text-gray-800">
+
+    <!-- Sidebar for Desktop -->
+    <aside class="hidden lg:flex flex-col w-64 bg-white shadow-lg rounded-r-xl p-4 overflow-y-auto sidebar-scroll">
+        <div class="flex items-center justify-center p-4 mb-6">
+            <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+            <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-2">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-tachometer-alt mr-3"></i>
+                        Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-car mr-3"></i>
+                        Vehicle Inventory
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-users mr-3"></i>
+                        Customer List
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-history mr-3"></i>
+                        Rent History
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Reports
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-dollar-sign mr-3"></i>
+                        Financial Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
+                        <i class="fas fa-wrench mr-3"></i>
+                        Vehicle Maintenance
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Mobile & Desktop -->
+        <header class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between lg:hidden">
+            <div class="flex items-center">
+                <img src="https://placehold.co/30x30/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-8 h-8 rounded-full mr-2">
+                <h1 class="text-lg font-bold text-gray-800">Fox Car Rental Admin</h1>
+            </div>
+            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </header>
+
+        <!-- Mobile Sidebar Overlay -->
+        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
+        <aside id="mobile-sidebar" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto sidebar-scroll">
+            <div class="flex items-center justify-between p-4 border-b border-gray-200">
+                <div class="flex items-center">
+                    <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
+                    <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+                </div>
+                <button id="close-mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <nav class="p-4">
+                <ul>
+                    <li class="mb-2">
+                        <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-tachometer-alt mr-3"></i>
+                            Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                            <i class="fas fa-car mr-3"></i>
+                            Vehicle Inventory
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-users mr-3"></i>
+                        Customer List
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-history mr-3"></i>
+                        Rent History
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        Reports
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
+                        <i class="fas fa-dollar-sign mr-3"></i>
+                        Financial Dashboard
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
+                        <i class="fas fa-wrench mr-3"></i>
+                        Vehicle Maintenance
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </aside>
+
+    <!-- Vehicle Maintenance Header -->
+    <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
+        <h2 class="text-2xl font-semibold text-gray-800">Vehicle Maintenance</h2>
+        <button id="schedule-maintenance-button" class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
+            <i class="fas fa-plus mr-2"></i>Schedule Maintenance
+        </button>
+    </div>
+
+    <p class="text-gray-600 mb-6">Manage vehicle maintenance schedules and records</p>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- Scheduled Card -->
+        <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-purple-500">
+            <div>
+                <p class="text-sm text-gray-500">Scheduled</p>
+                <p id="scheduled-count" class="text-3xl font-bold text-gray-900">0</p>
+            </div>
+            <div class="p-3 bg-purple-500 rounded-full text-white text-xl">
+                <i class="fas fa-clock"></i>
+            </div>
+        </div>
+
+        <!-- In Progress Card -->
+        <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-yellow-500">
+            <div>
+                <p class="text-sm text-gray-500">In Progress</p>
+                <p id="in-progress-count" class="text-3xl font-bold text-gray-900">0</p>
+            </div>
+            <div class="p-3 bg-yellow-500 rounded-full text-white text-xl">
+                <i class="fas fa-sync-alt"></i>
+            </div>
+        </div>
+
+        <!-- Completed Card -->
+        <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-green-500">
+            <div>
+                <p class="text-sm text-gray-500">Completed</p>
+                <p id="completed-count" class="text-3xl font-bold text-gray-900">0</p>
+            </div>
+            <div class="p-3 bg-green-500 rounded-full text-white text-xl">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            </div>
+
+        <!-- Total Cost Card -->
+        <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
+            <div>
+                <p class="text-sm text-gray-500">Total Cost</p>
+                <p id="total-cost" class="text-3xl font-bold text-gray-900">AED 0</p>
+            </div>
+            <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+        </div>
+    </div>
+
+    <!-- Maintenance Records Section -->
+    <div class="bg-white shadow-md rounded-xl p-6 mb-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+            <i class="fas fa-clipboard-list mr-2 text-custom-blue-dark"></i> Maintenance Records
+        </h3>
+
+        <div class="overflow-x-auto">
+            <table class="min-w-full bg-white rounded-lg overflow-hidden">
+                <thead class="bg-gray-50 border-b border-gray-200">
+                    <tr>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Date</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="maintenance-records-table-body" class="divide-y divide-gray-200">
+                    <!-- Data will be loaded dynamically here -->
+                    <tr>
+                        <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading maintenance records...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <p id="no-records-message" class="text-center text-gray-600 mt-4 hidden">
+            <i class="fas fa-clipboard-check text-4xl text-gray-300 mb-2"></i><br>
+            No maintenance records found. Get started by scheduling your first maintenance.
+        </p>
+    </div>
+</div>
+
+<!-- Schedule Maintenance Modal -->
+<div id="maintenance-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+        <h3 id="modal-title" class="text-2xl font-semibold text-gray-800 mb-4">Schedule New Maintenance</h3>
+        <form id="maintenance-form" class="space-y-4">
+            <div>
+                <label for="car_search_input" class="block text-sm font-medium text-gray-700">Search Vehicle</label>
+                <input type="text" id="car_search_input" placeholder="Search by plate number, make, or model" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+            </div>
+            <div>
+                <label for="car_id" class="block text-sm font-medium text-gray-700">Vehicle</label>
+                <select id="car_id" name="car_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <option value="">Loading vehicles...</option>
+                    <!-- Options will be loaded dynamically -->
+                </select>
+                <p id="car-select-error" class="text-red-500 text-sm mt-1 hidden">Failed to load vehicles. Please check your Supabase setup.</p>
+            </div>
+            <div>
+                <label for="maintenance_type" class="block text-sm font-medium text-gray-700">Maintenance Type</label>
+                <input type="text" id="maintenance_type" name="maintenance_type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+            </div>
+            <div>
+                <label for="scheduled_date" class="block text-sm font-medium text-gray-700">Scheduled Date</label>
+                <input type="date" id="scheduled_date" name="scheduled_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+            </div>
+            <div>
+                <label for="completion_date" class="block text-sm font-medium text-gray-700">Completion Date (Optional)</label>
+                <input type="date" id="completion_date" name="completion_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+            </div>
+            <div>
+                <label for="cost" class="block text-sm font-medium text-gray-700">Cost (AED)</label>
+                <input type="number" id="cost" name="cost" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+            </div>
+            <div>
+                <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
+                <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <option value="Scheduled">Scheduled</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                    <option value="Under Maintenance">Under Maintenance</option> <!-- Added for consistency -->
+                </select>
+            </div>
+            <div>
+                <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+            </div>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-maintenance-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Save Maintenance</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    // Supabase Configuration
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    // Corrected SUPABASE_KEY based on consistency with other working files
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+    // Initialize Supabase client
+    const { createClient } = supabase;
+    const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Redirect if not logged in
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html'; // Redirect to login page
+        }
+    });
+
+    // DOM Elements
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
+    const mobileSidebar = document.getElementById('mobile-sidebar');
+    const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
+
+    const scheduleMaintenanceButton = document.getElementById('schedule-maintenance-button');
+    const maintenanceModal = document.getElementById('maintenance-modal');
+    const modalTitle = document.getElementById('modal-title');
+    const maintenanceForm = document.getElementById('maintenance-form');
+    const cancelMaintenanceButton = document.getElementById('cancel-maintenance-button');
+    const carSearchInput = document.getElementById('car_search_input'); // New search input
+    const carIdSelect = document.getElementById('car_id');
+    const carSelectError = document.getElementById('car-select-error'); // New error element for select
+    const maintenanceRecordsTableBody = document.getElementById('maintenance-records-table-body');
+    const noRecordsMessage = document.getElementById('no-records-message');
+
+    const scheduledCountElem = document.getElementById('scheduled-count');
+    const inProgressCountElem = document.getElementById('in-progress-count');
+    const completedCountElem = document.getElementById('completed-count');
+    const totalCostElem = document.getElementById('total-cost');
+
+    let currentEditMaintenanceId = null; // To store the ID of the maintenance record being edited
+    let allVehiclesData = []; // Store all vehicles for filtering
+
+    // --- Mobile Sidebar Logic ---
+    mobileMenuButton.addEventListener('click', () => {
+        mobileSidebar.classList.remove('-translate-x-full');
+        mobileSidebarOverlay.classList.remove('hidden');
+    });
+
+    closeMobileMenuButton.addEventListener('click', () => {
+        mobileSidebar.classList.add('-translate-x-full');
+        mobileSidebarOverlay.classList.add('hidden');
+    });
+
+    mobileSidebarOverlay.addEventListener('click', () => {
+        mobileSidebar.classList.add('-translate-x-full');
+        mobileSidebarOverlay.classList.add('hidden');
+    });
+
+    // --- Helper Functions ---
+
+    // Function to format date for display
+    function formatDate(dateString) {
+        if (!dateString) return 'N/A';
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+    }
+
+    // Helper to populate select dropdowns
+    function populateSelect(selectElement, data, textKey, valueKey, selectedValue = null) {
+        selectElement.innerHTML = '<option value="">Select Vehicle</option>'; // Clear existing options
+        carSelectError.classList.add('hidden'); // Hide any previous errors
+
+        if (data.length === 0) {
+            const noOption = document.createElement('option');
+            noOption.value = "";
+            noOption.textContent = "No vehicles found";
+            noOption.disabled = true;
+            selectElement.appendChild(noOption);
+            return;
+        }
+        data.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item[valueKey];
+            option.textContent = item[textKey];
+            if (selectedValue && item[valueKey] == selectedValue) {
+                option.selected = true;
+            }
+            selectElement.appendChild(option);
+        });
+    }
+
+    function getStatusBadgeColor(status) {
+        switch (status) {
+            case 'Scheduled': return 'bg-purple-500';
+            case 'In Progress': return 'bg-yellow-500';
+            case 'Completed': return 'bg-green-500';
+            case 'Cancelled': return 'bg-red-500';
+            case 'Under Maintenance': return 'bg-red-500'; // Added for consistency
+            default: return 'bg-gray-500';
+        }
+    }
+
+    // --- Fetch and Render Maintenance Records ---
+    async function fetchMaintenanceRecords() {
+        maintenanceRecordsTableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading maintenance records...</td></tr>';
+        noRecordsMessage.classList.add('hidden');
+
+        const { data, error } = await supabaseClient
+            .from('vehicle_maintenance')
+            .select(`
+                *,
+                cars (
+                    plate_number,
+                    veh_make (make),
+                    veh_model (model)
+                )
+            `);
+
+        if (error) {
+            console.error("Error fetching maintenance records:", error);
+            maintenanceRecordsTableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading maintenance records.</td></tr>';
+            return;
+        }
+
+        maintenanceRecordsTableBody.innerHTML = ''; // Clear loading message
+
+        if (data.length === 0) {
+            noRecordsMessage.classList.remove('hidden');
+            return;
+        }
+
+        let scheduledCount = 0;
+        let inProgressCount = 0;
+        let completedCount = 0;
+        let totalCost = 0;
+
+        data.forEach(record => {
+            const carInfo = record.cars || {};
+            const makeInfo = carInfo.veh_make || {};
+            const modelInfo = carInfo.veh_model || {};
+
+            const vehicleDisplay = `${makeInfo.make || 'N/A'} ${modelInfo.model || 'N/A'} (${carInfo.plate_number || 'N/A'})`;
+            const scheduledDate = formatDate(record.scheduled_date);
+            const completionDate = formatDate(record.completion_date);
+            const cost = parseFloat(record.cost || 0).toFixed(2);
+
+            const row = document.createElement('tr');
+            row.className = 'hover:bg-gray-100';
+            row.innerHTML = `
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${vehicleDisplay}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${record.maintenance_type || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${scheduledDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${completionDate}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">AED ${cost}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${getStatusBadgeColor(record.status)}">
+                        ${record.status || 'N/A'}
+                    </span>
+                </td>
+                <td class="px-6 py-4 text-sm text-gray-700">${record.notes || 'N/A'}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button data-id="${record.id}" class="edit-maintenance-btn text-custom-blue-dark hover:text-custom-blue-dark/80 transition-colors duration-200 p-2 rounded-full">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button data-id="${record.id}" class="delete-maintenance-btn text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </td>
+            `;
+            maintenanceRecordsTableBody.appendChild(row);
+
+            // Update stats
+            if (record.status === 'Scheduled') {
+                scheduledCount++;
+            } else if (record.status === 'In Progress') {
+                inProgressCount++;
+            } else if (record.status === 'Completed') {
+                completedCount++;
+                totalCost += parseFloat(record.cost || 0);
+            }
+        });
+
+        scheduledCountElem.textContent = scheduledCount;
+        inProgressCountElem.textContent = inProgressCount;
+        completedCountElem.textContent = completedCount;
+        totalCostElem.textContent = `AED ${totalCost.toFixed(2)}`;
+
+        // Add event listeners for edit and delete buttons
+        document.querySelectorAll('.edit-maintenance-btn').forEach(button => {
+            button.addEventListener('click', (e) => openEditMaintenanceModal(e.currentTarget.dataset.id));
+        });
+        document.querySelectorAll('.delete-maintenance-btn').forEach(button => {
+            button.addEventListener('click', (e) => deleteMaintenanceRecord(e.currentTarget.dataset.id));
+        });
+    }
+
+    // Fetch all vehicles once and store them
+    async function fetchAllVehicles() {
+        console.log("Fetching all vehicles for dropdown...");
+        carIdSelect.innerHTML = '<option value="">Loading vehicles...</option>'; // Show loading state
+        carIdSelect.disabled = true; // Disable until loaded
+        carSelectError.classList.add('hidden'); // Hide any previous errors
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('cars')
+                .select('id, plate_number, veh_make (make), veh_model (model)');
+
+            if (error) {
+                console.error("Error fetching all cars:", error);
+                carIdSelect.innerHTML = '<option value="">Error loading vehicles</option>';
+                carSelectError.textContent = `Error: ${error.message}. Check Supabase RLS.`;
+                carSelectError.classList.remove('hidden');
+                return [];
+            }
+            console.log("Vehicles fetched:", data);
+            allVehiclesData = data.map(car => ({
+                id: car.id,
+                plate_number: car.plate_number,
+                make: car.veh_make ? car.veh_make.make : '',
+                model: car.veh_model ? car.veh_model.model : '',
+                text: `${car.veh_make ? car.veh_make.make : 'N/A'} ${car.veh_model ? car.veh_model.model : 'N/A'} (${car.plate_number || 'N/A'})`
+            }));
+            carIdSelect.disabled = false; // Enable select after data is loaded
+            return allVehiclesData;
+        } catch (e) {
+            console.error("An unexpected error occurred in fetchAllVehicles:", e);
+            carIdSelect.innerHTML = '<option value="">An unexpected error occurred</option>';
+            carSelectError.textContent = `Unexpected error: ${e.message}.`;
+            carSelectError.classList.remove('hidden');
+            carIdSelect.disabled = true;
+            return [];
+        }
+    }
+
+    // Function to populate vehicle dropdown based on search term
+    function filterAndPopulateVehicles(searchTerm = '', selectedCarId = null) {
+        const filtered = allVehiclesData.filter(car =>
+            (car.plate_number && car.plate_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (car.make && car.make.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (car.model && car.model.toLowerCase().includes(searchTerm.toLowerCase()))
+        );
+        populateSelect(carIdSelect, filtered, 'text', 'id', selectedCarId);
+    }
+
+    // --- Modal Logic for Schedule/Edit Maintenance ---
+
+    scheduleMaintenanceButton.addEventListener('click', async () => {
+        modalTitle.textContent = 'Schedule New Maintenance';
+        maintenanceForm.reset(); // Clear form
+        currentEditMaintenanceId = null; // Reset edit ID
+        carSearchInput.value = ''; // Clear search input
+        carIdSelect.disabled = false; // Enable select
+        await fetchAllVehicles(); // Ensure all vehicles are fetched
+        filterAndPopulateVehicles(); // Populate with all vehicles initially
+        maintenanceModal.classList.remove('hidden');
+    });
+
+    cancelMaintenanceButton.addEventListener('click', () => {
+        maintenanceModal.classList.add('hidden');
+    });
+
+    maintenanceModal.addEventListener('click', (e) => {
+        if (e.target === maintenanceModal) { // Close when clicking outside the modal content
+            maintenanceModal.classList.add('hidden');
+        }
+    });
+
+    // Event listener for vehicle search input
+    carSearchInput.addEventListener('input', (e) => {
+        filterAndPopulateVehicles(e.target.value);
+    });
+
+    // Open modal for editing maintenance record
+    async function openEditMaintenanceModal(id) {
+        const { data, error } = await supabaseClient
+            .from('vehicle_maintenance')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) {
+            console.error("Error fetching maintenance record for edit:", error);
+            return;
+        }
+
+        if (data) {
+            modalTitle.textContent = 'Edit Maintenance Record';
+            // Populate form fields
+            document.getElementById('maintenance_type').value = data.maintenance_type || '';
+            document.getElementById('scheduled_date').value = data.scheduled_date ? data.scheduled_date.split('T')[0] : '';
+            document.getElementById('completion_date').value = data.completion_date ? data.completion_date.split('T')[0] : '';
+            document.getElementById('cost').value = data.cost || '';
+            document.getElementById('status').value = data.status || 'Scheduled';
+            document.getElementById('notes').value = data.notes || '';
+
+            await fetchAllVehicles(); // Ensure all vehicles are fetched
+            filterAndPopulateVehicles('', data.car_id); // Populate and pre-select vehicle dropdown
+
+            currentEditMaintenanceId = id;
+            maintenanceModal.classList.remove('hidden');
+        } else {
+            console.error("No maintenance record found with ID:", id);
+        }
+    }
+
+    // Handle form submission (Add or Update)
+    maintenanceForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(maintenanceForm);
+        const maintenanceData = {
+            car_id: parseInt(formData.get('car_id')), // Ensure car_id is an integer
+            maintenance_type: formData.get('maintenance_type'),
+            scheduled_date: formData.get('scheduled_date') || null,
+            completion_date: formData.get('completion_date') || null,
+            cost: parseFloat(formData.get('cost')) || 0,
+            status: formData.get('status'),
+            notes: formData.get('notes') || null,
+            created_at: currentEditMaintenanceId ? undefined : new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        };
+
+        try {
+            if (currentEditMaintenanceId) {
+                // Update existing maintenance record
+                const { data, error } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .update(maintenanceData)
+                    .eq('id', currentEditMaintenanceId);
+
+                if (error) throw error;
+                console.log("Maintenance record updated:", data);
+                alert("Maintenance record updated successfully!");
+            } else {
+                // Add new maintenance record
+                const { data, error } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .insert([maintenanceData]);
+
+                if (error) throw error;
+                console.log("Maintenance record inserted:", data);
+                alert("Maintenance record scheduled successfully!");
+            }
+
+            // --- NEW LOGIC: Update car status in 'cars' table ---
+            // Use 'Under Maintenance' string for consistency with your data
+            let newCarStatus;
+            if (maintenanceData.status === 'Maintenance' || maintenanceData.status === 'In Progress') {
+                newCarStatus = 'Under Maintenance';
+            } else if (maintenanceData.status === 'Completed' || maintenanceData.status === 'Cancelled') {
+                newCarStatus = 'Available';
+            } else {
+                // Default or fallback if status is something else
+                newCarStatus = 'Available';
+            }
+
+            console.log(`Attempting to update car status for car_id: ${maintenanceData.car_id} to '${newCarStatus}'`);
+
+            const { data: carUpdateData, error: carUpdateError } = await supabaseClient
+                .from('cars')
+                .update({ status: newCarStatus })
+                .eq('id', maintenanceData.car_id)
+                .select(); // Select to get response data for debugging
+
+            if (carUpdateError) {
+                console.error("Error updating car status in 'cars' table:", carUpdateError.message, carUpdateError);
+                alert(`Warning: Could not update car's status to '${newCarStatus}' in inventory. Please check RLS for 'cars' table.`);
+            } else {
+                console.log(`Car status for ${maintenanceData.car_id} updated to '${newCarStatus}' in 'cars' table. Response:`, carUpdateData);
+            }
+            // --- END NEW LOGIC ---
+
+            maintenanceModal.classList.add('hidden'); // Close modal
+            maintenanceForm.reset(); // Clear form
+            fetchMaintenanceRecords(); // Re-fetch records to update the list and stats
+        } catch (error) {
+            console.error("Error saving maintenance record:", error.message);
+            alert("Error saving maintenance record: " + error.message);
+        }
+    });
+
+    // Delete maintenance record
+    async function deleteMaintenanceRecord(id) {
+        if (!confirm("Are you sure you want to delete this maintenance record?")) {
+            return;
+        }
+
+        try {
+            const { data, error } = await supabaseClient
+                .from('vehicle_maintenance')
+                .delete()
+                .eq('id', id)
+                .select('car_id'); // Select car_id to potentially revert car status
+
+            if (error) throw error;
+            console.log("Maintenance record successfully deleted!", data);
+
+            // --- NEW LOGIC: Potentially revert car status after maintenance record deletion ---
+            if (data && data.length > 0) {
+                const deletedCarId = data[0].car_id;
+                // Check if there are any other active 'Under Maintenance' records for this car
+                const { data: activeMaintenance, error: activeMaintenanceError } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .select('id')
+                    .eq('car_id', deletedCarId)
+                    .eq('status', 'Maintenance'); // Still checking for 'Maintenance' status from maintenance table
+
+                if (activeMaintenanceError) {
+                    console.error("Error checking for active maintenance records:", activeMaintenanceError.message, activeMaintenanceError);
+                } else if (!activeMaintenance || activeMaintenance.length === 0) {
+                    // If no other active 'Maintenance' records, revert car status to 'Available'
+                    console.log(`No other active maintenance records for car_id: ${deletedCarId}. Reverting car status to 'Available'.`);
+                    const { data: carRevertData, error: carRevertError } = await supabaseClient
+                        .from('cars')
+                        .update({ status: 'Available' })
+                        .eq('id', deletedCarId)
+                        .select(); // Select to get response data for debugging
+
+                    if (carRevertError) {
+                        console.error("Error reverting car status after maintenance deletion:", carRevertError.message, carRevertError);
+                        alert("Warning: Could not revert car's status to 'Available' after maintenance deletion. Check RLS for 'cars' table.");
+                    } else {
+                        console.log(`Car status for ${deletedCarId} reverted to 'Available'. Response:`, carRevertData);
+                    }
+                }
+            }
+            // --- END NEW LOGIC ---
+
+            fetchMaintenanceRecords(); // Re-fetch records to update the list and stats
+        } catch (error) {
+            console.error("Error removing maintenance record: ", error.message);
+            alert("Error removing maintenance record: " + error.message);
+        }
+    }
+
+    // Initial fetch when the page loads
+    fetchMaintenanceRecords();
+</script>
+</body>
+</html>

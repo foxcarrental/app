@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .text-custom-blue-dark { color: #5680E9; }
+    </style>
+</head>
+<body>
+    <div class="bg-white p-8 rounded-xl shadow-lg w-11/12 max-w-md">
+        <div class="flex flex-col items-center mb-6">
+            <img src="https://placehold.co/60x60/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-16 h-16 rounded-full mb-4">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Fox Car Rental Admin</h1>
+            <p class="text-gray-600">Sign in to your account</p>
+        </div>
+
+        <form id="login-form" class="space-y-4">
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+            </div>
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" id="password" name="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+            </div>
+            <button type="submit" class="w-full bg-custom-blue-dark text-white py-2 px-4 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-custom-blue-dark focus:ring-offset-2">
+                Login
+            </button>
+            <p id="error-message" class="text-red-600 text-center text-sm mt-3 hidden"></p>
+        </form>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DOM Elements
+        const loginForm = document.getElementById('login-form');
+        const emailInput = document.getElementById('email');
+        const passwordInput = document.getElementById('password');
+        const errorMessage = document.getElementById('error-message');
+
+        // Check if user is already logged in
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                window.location.href = 'dashboard.html'; // Redirect to dashboard if already logged in
+            }
+        });
+
+        // Handle login form submission
+        loginForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            errorMessage.classList.add('hidden'); // Hide previous errors
+
+            const email = emailInput.value;
+            const password = passwordInput.value;
+
+            try {
+                const { data, error } = await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password,
+                });
+
+                if (error) {
+                    console.error("Login error:", error.message);
+                    errorMessage.textContent = error.message;
+                    errorMessage.classList.remove('hidden');
+                } else {
+                    console.log("User logged in:", data.user);
+                    window.location.href = 'dashboard.html'; // Redirect to dashboard on successful login
+                }
+            } catch (error) {
+                console.error("An unexpected error occurred:", error);
+                errorMessage.textContent = "An unexpected error occurred. Please try again.";
+                errorMessage.classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
