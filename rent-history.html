@@ -651,6 +651,10 @@
         let allCustomersData = []; // To store all customers for dropdown
         let currentEditRecordId = null; // To store the ID of the record being edited
 
+        // Office Incharge details for printing
+        const OFFICE_INCHARGE_ID = '441d9674-4a1a-4141-8791-3703ed06853f'; // The specific UUID for the office incharge
+        let officeInchargeDetails = null; // To store the fetched details of the office incharge
+
         // --- Modal Logic ---
         function showCustomMessageBox(title, message) {
             ui.notificationTitle.textContent = title;
@@ -1321,6 +1325,28 @@
             ui.confirmationModal.classList.add('hidden');
         });
 
+        // Function to fetch office incharge details
+        async function fetchOfficeInchargeDetails() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('first_name, last_name, signature')
+                    .eq('id', OFFICE_INCHARGE_ID)
+                    .single();
+
+                if (error) {
+                    console.error("Error fetching office incharge details:", error.message);
+                    officeInchargeDetails = null; // Ensure it's null on error
+                    return;
+                }
+                officeInchargeDetails = data;
+                console.log("Office Incharge Details fetched:", officeInchargeDetails);
+            } catch (error) {
+                console.error("An unexpected error occurred while fetching office incharge details:", error);
+                officeInchargeDetails = null;
+            }
+        }
+
         // --- Print Rental Agreement Function ---
         async function printRentalAgreement(rentalId) {
             // Fetch full rental details
@@ -1402,6 +1428,14 @@
                     }
                 }
             }
+
+            // Office Incharge details for print
+            const officeInchargeSignatureHtml = officeInchargeDetails && officeInchargeDetails.signature
+                ? `<img src="${officeInchargeDetails.signature}" alt="Office Incharge Signature" class="signature-image">`
+                : '';
+            const officeInchargeName = officeInchargeDetails
+                ? `${officeInchargeDetails.first_name || ''} ${officeInchargeDetails.last_name || ''}`.trim()
+                : '';
 
 
             const printContent = `
@@ -1911,8 +1945,9 @@
                                 <p data-i18n-key="sponsorSignature">${getTranslation('sponsorSignature')}</p>
                             </div>
                             <div class="signature-block">
+                                ${officeInchargeSignatureHtml}
                                 <div class="signature-line"></div>
-                                <p data-i18n-key="officeInchargeSignature">${getTranslation('officeInchargeSignature')}</p>
+                                <p data-i18n-key="officeInchargeSignature">${officeInchargeName} (${getTranslation('officeInchargeSignature')})</p>
                             </div>
                         </div>
                     </div>
@@ -1971,8 +2006,9 @@
         }
         
         // --- Initial Load ---
-        window.addEventListener('DOMContentLoaded', () => {
+        window.addEventListener('DOMContentLoaded', async () => {
             setupDesktopSidebar();
+            await fetchOfficeInchargeDetails(); // Fetch office incharge details on load
             fetchRentHistory(); // Fetch data on initial load
         });
     </script>
