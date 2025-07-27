@@ -337,14 +337,15 @@
                     <label for="price" class="block text-sm font-medium text-gray-700">Price (AED)</label>
                     <input type="number" id="price" name="price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
-                <div>
+                <!-- Status field is now hidden -->
+                <!-- <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
                     <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                         <option value="Available">Available</option>
                         <option value="Rented">Rented</option>
                         <option value="Under Maintenance">Under Maintenance</option>
                     </select>
-                </div>
+                </div> -->
                 <div>
                     <label for="fuel" class="block text-sm font-medium text-gray-700">Fuel (%)</label>
                     <input type="number" id="fuel" name="fuel" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
@@ -515,6 +516,7 @@
         const statusFilter = document.getElementById('status-filter');
         const makeSelect = document.getElementById('make_id');
         const modelSelect = document.getElementById('model_id');
+        // Removed: const statusSelect = document.getElementById('status'); // Status select element is now hidden
 
         // DOM Elements - Add New Model Modal
         const addModelButton = document.getElementById('add-model-button');
@@ -890,6 +892,8 @@
             makeSelect.value = ""; // Reset make dropdown
             modelSelect.innerHTML = '<option value="">Select Model</option>'; // Clear models
             populateSelect(makeSelect, makesData, 'make', 'id'); // Re-populate makes
+
+            // No need to set statusSelect.value or disable it as the element is removed from HTML
             vehicleModal.classList.remove('hidden');
         });
 
@@ -928,7 +932,8 @@
                 document.getElementById('year').value = data.year || '';
                 document.getElementById('color').value = data.color || '';
                 document.getElementById('price').value = data.price || '';
-                document.getElementById('status').value = data.status || 'Available';
+                // Status field is now hidden, so no need to set its value or disable it
+                
                 document.getElementById('fuel').value = data.fuel || '';
                 document.getElementById('odometer_km').value = data.odometer_km || '';
                 document.getElementById('features').value = data.features || '';
@@ -964,7 +969,6 @@
                 year: parseInt(formData.get('year')) || null,
                 color: formData.get('color'),
                 price: parseFloat(formData.get('price')) || null,
-                status: formData.get('status'),
                 features: formData.get('features'),
                 fuel: parseInt(formData.get('fuel')) || null,
                 odometer_km: parseFloat(formData.get('odometer_km')) || null,
@@ -974,6 +978,14 @@
                 from_date: null, // Not in form, default to null
                 end_date: null   // Not in form, default to null
             };
+
+            // Handle status based on whether it's an add or edit operation
+            if (!currentEditDocId) {
+                // For new vehicles, explicitly set status to 'Available'
+                carData.status = 'Available';
+            }
+            // For existing vehicles (currentEditDocId is true), status is not included in carData
+            // so it remains unchanged in the database.
 
             console.log("Submitting car data:", carData); // Log data being sent
 
@@ -1322,7 +1334,7 @@
                         if (unpinBtn) unpinBtn.classList.remove('hidden');
                     } else {
                         desktopSidebar.classList.add('collapsed');
-                        document.body.classList.remove('sidebar-expanded'); // Remove class from body
+                        document.body.classList.remove('sidebar-expanded');
                         if (unpinBtn) unpinBtn.classList.add('hidden');
                         if (pinBtn) pinBtn.classList.remove('hidden');
                     }
