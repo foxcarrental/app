@@ -10,213 +10,276 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         /* Custom scrollbar for the sidebar */
         .sidebar-scroll {
             scrollbar-width: thin;
-            scrollbar-color: #5AB9EA #F3F4F6;
+            scrollbar-color: #a8a8a8 #f1f1f1; /* Consistent with dashboard.html */
+            overflow-y: auto; /* Ensure vertical scrollbar is always enabled if content overflows */
         }
         .sidebar-scroll::-webkit-scrollbar {
-            width: 8px;
+            width: 6px; /* Consistent with dashboard.html */
         }
         .sidebar-scroll::-webkit-scrollbar-track {
-            background: #F3F4F6;
-            border-radius: 10px;
+            background: #f1f1f1; /* Consistent with dashboard.html */
         }
         .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #5AB9EA;
-            border-radius: 10px;
-            border: 2px solid #F3F4F6;
+            background-color: #a8a8a8;
+            border-radius: 6px; /* Consistent with dashboard.html */
         }
 
-        /* Custom styles for the background gradient */
+        /* Custom styles for the background gradient - matching dashboard.html */
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
+            background: linear-gradient(to bottom right, #C1C8E4, #84CEEB); /* From dashboard.html */
+            background-attachment: fixed; /* Keep the background fixed during scroll */
         }
 
-        @keyframes gradientAnimation {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
+        /* Fixed header and sidebar positioning */
+        #main-header {
+            position: fixed;
+            top: 0;
+            left: 0; /* Will be adjusted by JS based on sidebar state */
+            right: 0;
+            z-index: 40;
+            background-color: transparent; /* Made transparent */
+            box-shadow: none; /* Removed shadow */
+            border-radius: 0; /* Removed rounded corners for transparency */
+            transition: left 0.3s ease-in-out; /* Add transition for smooth movement */
+        }
+        /* Initial margin for desktop sidebar */
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+            padding-top: 80px; /* Adjust based on header height */
+            margin-left: 5rem; /* Corresponds to collapsed sidebar width */
+        }
+        /* Adjust main content margin when sidebar expands */
+        body.sidebar-expanded #main-content {
+            margin-left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+        /* Adjust header left position when sidebar expands */
+        body.sidebar-expanded #main-header {
+            left: 16rem;
+        }
+        /* Initial header left position for collapsed sidebar */
+        #main-header {
+            left: 5rem;
         }
 
-        /* Define custom colors from the image */
-        .bg-custom-blue-dark { background-color: #5680E9; }
-        .bg-custom-blue-light { background-color: #84CEEB; }
-        .bg-custom-cyan { background-color: #5AB9EA; }
-        .bg-custom-light-purple { background-color: #C1C8E4; }
-        .bg-custom-purple { background-color: #8860D0; }
+        /* Styles for the desktop sidebar elements */
+        #desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
+            /* Ensure it's always displayed as a flex column for desktop */
+            display: flex;
+            flex-direction: column;
+        }
+        #desktop-sidebar.collapsed {
+            width: 5rem;
+        }
+        #desktop-sidebar.collapsed .nav-text,
+        #desktop-sidebar.collapsed .sidebar-title,
+        #desktop-sidebar.collapsed #logout-text {
+             display: none;
+        }
+        #desktop-sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+        }
+        #desktop-sidebar.collapsed .sidebar-pin-controls {
+            justify-content: center;
+        }
+        #desktop-sidebar .nav-item i {
+            width: 2rem;
+            text-align: center;
+        }
 
-        .text-custom-blue-dark { color: #5680E9; }
-        .text-custom-blue-light { color: #84CEEB; }
-        .text-custom-cyan { color: #5AB9EA; }
-        .text-custom-light-purple { color: #C1C8E4; }
-        .text-custom-purple { color: #8860D0; }
-
-        .border-custom-blue-dark { border-color: #5680E9; }
-        .border-custom-blue-light { border-color: #84CEEB; }
-        .border-custom-cyan { border-color: #5AB9EA; }
-        .border-custom-light-purple { border-color: #C1C8E4; }
-        .border-custom-purple { border-color: #8860D0; }
+        /* Vehicle Card Styling */
+        .vehicle-card {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2 px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .vehicle-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .status-badge {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        /* Status badge colors - keeping existing for good contrast */
+        .status-available { background-color: #dcfce7; color: #166534; }
+        .status-rented { background-color: #dbeafe; color: #1e40af; }
+        .status-maintenance { background-color: #ffedd5; color: #9a3412; }
     </style>
 </head>
-<body class="flex flex-col lg:flex-row min-h-screen text-gray-800">
+<body class="flex flex-row min-h-screen text-gray-800">
 
-    <!-- Sidebar for Desktop -->
-    <aside class="hidden lg:flex flex-col w-64 bg-white shadow-lg rounded-r-xl p-4 overflow-y-auto sidebar-scroll">
-        <div class="flex items-center justify-center p-4 mb-6">
-            <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
-            <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+    <!-- Desktop Sidebar -->
+    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
+        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
+            <img src="https://placehold.co/40x40/8860D0/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
+            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
         </div>
         <nav class="flex-grow">
             <ul>
+                <!-- Navigation items -->
                 <li class="mb-2">
-                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-tachometer-alt mr-3"></i>
-                        Dashboard
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
-                        <i class="fas fa-car mr-3"></i>
-                        Vehicle Inventory
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
+                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-users mr-3"></i>
-                        Customer List
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-history mr-3"></i>
-                        Rent History
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-chart-bar mr-3"></i>
-                        Reports
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-dollar-sign mr-3"></i>
-                        Financial Dashboard
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-wrench mr-3"></i>
-                        Vehicle Maintenance
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <!-- Duplicated items to demonstrate scrollbar -->
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-calendar-alt mr-3"></i> <span class="nav-text">Bookings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-map-marker-alt mr-3"></i> <span class="nav-text">Locations</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-tags mr-3"></i> <span class="nav-text">Promotions</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-invoice-dollar mr-3"></i> <span class="nav-text">Invoices</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-comments mr-3"></i> <span class="nav-text">Feedback</span>
                     </a>
                 </li>
             </ul>
         </nav>
+        <div class="pt-4 border-t">
+            <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+            <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
+                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
+            </a>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
-        <!-- Top Nav for Mobile & Desktop -->
-        <header class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between lg:hidden">
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 mb-6 flex items-center justify-between transition-all duration-300 ease-in-out">
             <div class="flex items-center">
-                <img src="https://placehold.co/30x30/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-8 h-8 rounded-full mr-2">
-                <h1 class="text-lg font-bold text-gray-800">Fox Car Rental Admin</h1>
-            </div>
-            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
-        </header>
-
-        <!-- Mobile Sidebar Overlay -->
-        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
-        <aside id="mobile-sidebar" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto sidebar-scroll">
-            <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                <div class="flex items-center">
-                    <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
-                    <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Vehicle Inventory</h2>
+                    <p class="text-sm text-gray-800 opacity-80">Manage your vehicle fleet</p>
                 </div>
-                <button id="close-mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
             </div>
-            <nav class="p-4">
-                <ul>
-                    <li class="mb-2">
-                        <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-tachometer-alt mr-3"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
-                            <i class="fas fa-car mr-3"></i>
-                            Vehicle Inventory
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-users mr-3"></i>
-                            Customer List
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-history mr-3"></i>
-                            Rent History
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-dollar-sign mr-3"></i>
-                            Financial Dashboard
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-wrench mr-3"></i>
-                            Vehicle Maintenance
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
-
-        <!-- Vehicle Inventory Header -->
-        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
-            <h2 class="text-2xl font-semibold text-gray-800">Vehicle Inventory</h2>
             <div class="flex items-center space-x-4">
-                <button id="add-vehicle-button" class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
+                <button id="add-vehicle-button" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200">
                     <i class="fas fa-plus mr-2"></i>Add Vehicle
                 </button>
                 <button id="add-model-button" class="bg-purple-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-600 transition-colors duration-200">
                     <i class="fas fa-plus mr-2"></i>Add New Model
                 </button>
             </div>
-        </div>
+        </header>
 
         <!-- Search and Filter Section -->
         <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0 sm:space-x-4">
             <div class="relative w-full sm:w-1/2 lg:w-1/3">
-                <input type="text" id="search-input" placeholder="Search vehicles..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+                <input type="text" id="search-input" placeholder="Search vehicles by plate number..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
                 <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
             </div>
             <div class="relative w-full sm:w-1/2 lg:w-1/4">
-                <select id="status-filter" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+                <select id="status-filter" class="w-full pl-4 pr-10 py-2 border border-gray-300 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-purple-500">
                     <option value="All">All Status</option>
                     <option value="Available">Available</option>
                     <option value="Rented">Rented</option>
-                    <option value="Under Maintenance">Under Maintenance</option> <!-- Changed value to match database -->
+                    <option value="Under Maintenance">Under Maintenance</option>
                 </select>
                 <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
             </div>
@@ -246,61 +309,61 @@
             <form id="vehicle-form" class="space-y-4">
                 <div>
                     <label for="plate_number" class="block text-sm font-medium text-gray-700">Plate Number</label>
-                    <input type="text" id="plate_number" name="plate_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <input type="text" id="plate_number" name="plate_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                 </div>
                 <div>
                     <label for="make_id" class="block text-sm font-medium text-gray-700">Make</label>
-                    <select id="make_id" name="make_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <select id="make_id" name="make_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                         <option value="">Select Make</option>
                         <!-- Options will be loaded dynamically -->
                     </select>
                 </div>
                 <div>
                     <label for="model_id" class="block text-sm font-medium text-gray-700">Model</label>
-                    <select id="model_id" name="model_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <select id="model_id" name="model_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                         <option value="">Select Model</option>
                         <!-- Options will be loaded dynamically based on make selection -->
                     </select>
                 </div>
                 <div>
                     <label for="year" class="block text-sm font-medium text-gray-700">Year</label>
-                    <input type="number" id="year" name="year" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="year" name="year" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="color" class="block text-sm font-medium text-gray-700">Color</label>
-                    <input type="text" id="color" name="color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="text" id="color" name="color" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="price" class="block text-sm font-medium text-gray-700">Price (AED)</label>
-                    <input type="number" id="price" name="price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="price" name="price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                         <option value="Available">Available</option>
                         <option value="Rented">Rented</option>
-                        <option value="Under Maintenance">Under Maintenance</option> <!-- Changed value to match database -->
+                        <option value="Under Maintenance">Under Maintenance</option>
                     </select>
                 </div>
                 <div>
                     <label for="fuel" class="block text-sm font-medium text-gray-700">Fuel (%)</label>
-                    <input type="number" id="fuel" name="fuel" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="fuel" name="fuel" min="0" max="100" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="odometer_km" class="block text-sm font-medium text-gray-700">Odometer (KM)</label>
-                    <input type="number" id="odometer_km" name="odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="odometer_km" name="odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="features" class="block text-sm font-medium text-gray-700">Features</label>
-                    <textarea id="features" name="features" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+                    <textarea id="features" name="features" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
                 </div>
                 <div>
                     <label for="pic_url" class="block text-sm font-medium text-gray-700">Picture URL (Optional)</label>
-                    <input type="text" id="pic_url" name="pic_url" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="text" id="pic_url" name="pic_url" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div class="flex justify-end space-x-3">
                     <button type="button" id="cancel-vehicle-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Save Vehicle</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200">Save Vehicle</button>
                 </div>
             </form>
         </div>
@@ -343,11 +406,11 @@
 
                 <div>
                     <label for="rent_customer_search_input" class="block text-sm font-medium text-gray-700">Search Customer</label>
-                    <input type="text" id="rent_customer_search_input" placeholder="Search by name or phone number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="text" id="rent_customer_search_input" placeholder="Search by name or phone number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
-                    <select id="rent_customer_id" name="customer_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <select id="rent_customer_id" name="customer_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                         <option value="">Loading customers...</option>
                     </select>
                     <p id="rent-customer-select-error" class="text-red-500 text-sm mt-1 hidden">Failed to load customers. Please check your Supabase setup.</p>
@@ -355,35 +418,35 @@
 
                 <div>
                     <label for="rent_from_date" class="block text-sm font-medium text-gray-700">From Date</label>
-                    <input type="date" id="rent_from_date" name="from_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <input type="date" id="rent_from_date" name="from_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                 </div>
                 <div>
                     <label for="rent_end_date" class="block text-sm font-medium text-gray-700">End Date</label>
-                    <input type="date" id="rent_end_date" name="end_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <input type="date" id="rent_end_date" name="end_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
                 </div>
                 <div>
                     <label for="rent_initial_odometer_km" class="block text-sm font-medium text-gray-700">Initial Odometer (KM)</label>
-                    <input type="number" id="rent_initial_odometer_km" name="initial_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="rent_initial_odometer_km" name="initial_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_rental_price_per_day" class="block text-sm font-medium text-gray-700">Rental Price Per Day (AED)</label>
-                    <input type="number" id="rent_rental_price_per_day" name="rental_price_per_day" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="rent_rental_price_per_day" name="rental_price_per_day" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_paid_amount" class="block text-sm font-medium text-gray-700">Paid Amount (AED)</label>
-                    <input type="number" id="rent_paid_amount" name="paid_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="rent_paid_amount" name="paid_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_traffic_fines" class="block text-sm font-medium text-gray-700">Traffic Fines (AED)</label>
-                    <input type="number" id="rent_traffic_fines" name="traffic_fines" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="rent_traffic_fines" name="traffic_fines" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_car_repair" class="block text-sm font-medium text-gray-700">Car Repair Cost (AED)</label>
-                    <input type="number" id="rent_car_repair" name="car_repair" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="rent_car_repair" name="car_repair" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
                 <div>
                     <label for="rent_notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                    <textarea id="rent_notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+                    <textarea id="rent_notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
                 </div>
                 <!-- These fields are for display/calculation and are updated by JS -->
                 <input type="hidden" id="rented_days" name="rented_days">
@@ -393,7 +456,7 @@
 
                 <div class="flex justify-end space-x-3">
                     <button type="button" id="cancel-rent-car-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Create Rent Record</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200">Create Rent Record</button>
                 </div>
             </form>
         </div>
@@ -408,7 +471,7 @@
             <div class="flex justify-end space-x-3">
                 <button type="button" id="cancel-confirm-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
                 <button type="button" id="confirm-delete-button" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200">Delete</button>
-            </div>
+                </div>
         </div>
     </div>
 
@@ -416,7 +479,6 @@
         console.log("Vehicle Inventory Script Started."); // Initial script execution log
         // Supabase Configuration
         const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
-        // Updated Supabase "anon" public key
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
 
         console.log("[Supabase Config] URL:", SUPABASE_URL); // Log URL
@@ -440,10 +502,6 @@
         });
 
         // DOM Elements - Vehicle Inventory
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
-        const mobileSidebar = document.getElementById('mobile-sidebar');
-        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
         const vehicleCardsGrid = document.getElementById('vehicle-cards-grid');
         const loadingMessage = document.getElementById('loading-message');
         const noVehiclesMessage = document.getElementById('no-vehicles-message');
@@ -505,28 +563,19 @@
         const cancelConfirmButton = document.getElementById('cancel-confirm-button');
         const confirmDeleteButton = document.getElementById('confirm-delete-button');
 
+        // Sidebar elements (now directly available)
+        const desktopSidebar = document.getElementById('desktop-sidebar');
+        const pinBtn = document.getElementById('pin-sidebar-btn');
+        const unpinBtn = document.getElementById('unpin-sidebar-btn');
+        const logoutButtonDesktop = document.getElementById('logout-button-desktop');
+
+
         let currentEditDocId = null; // To store the ID of the document being edited (for vehicle modal)
         let vehicleToDeleteId = null; // To store the ID of the vehicle to be deleted
         let allCarsData = []; // Store all fetched cars for filtering/searching
         let makesData = []; // Store fetched makes
         let modelsData = []; // Store fetched models
         let allCustomersData = []; // Store all customers for rent modal dropdown
-
-        // --- Mobile Sidebar Logic ---
-        mobileMenuButton.addEventListener('click', () => {
-            mobileSidebar.classList.remove('-translate-x-full');
-            mobileSidebarOverlay.classList.remove('hidden');
-        });
-
-        closeMobileMenuButton.addEventListener('click', () => {
-            mobileSidebar.classList.add('-translate-x-full');
-            mobileSidebarOverlay.classList.add('hidden');
-        });
-
-        mobileSidebarOverlay.addEventListener('click', () => {
-            mobileSidebar.classList.add('-translate-x-full');
-            mobileSidebarOverlay.classList.add('hidden');
-        });
 
         // --- Helper Functions ---
 
@@ -540,28 +589,28 @@
         // Helper functions for dynamic styling based on status
         function getBorderColor(status) {
             switch (status) {
-                case 'Available': return 'border-custom-cyan';
-                case 'Rented': return 'border-custom-blue-dark';
-                case 'Under Maintenance': return 'border-red-500';
+                case 'Available': return 'border-green-500'; /* Using Tailwind green for available */
+                case 'Rented': return 'border-blue-500'; /* Using Tailwind blue for rented */
+                case 'Under Maintenance': return 'border-orange-500'; /* Using Tailwind orange for maintenance */
                 default: return 'border-gray-400';
             }
         }
 
         function getStatusBgColor(status) {
             switch (status) {
-                case 'Available': return 'bg-custom-cyan';
-                case 'Rented': return 'bg-custom-blue-light';
-                case 'Under Maintenance': return 'bg-red-500';
+                case 'Available': return 'bg-green-500';
+                case 'Rented': return 'bg-blue-500';
+                case 'Under Maintenance': return 'bg-orange-500';
                 default: return 'bg-gray-500';
             }
         }
 
         function getPlaceholderColor(status) {
             switch (status) {
-                case 'Available': return '5AB9EA';
-                case 'Rented': return '5680E9';
-                case 'Under Maintenance': return 'DC2626'; /* red-600 */
-                default: return '9CA3AF'; /* gray-400 */
+                case 'Available': return '166534'; /* dark green */
+                case 'Rented': return '1e40af'; /* dark blue */
+                case 'Under Maintenance': return '9a3412'; /* dark orange/brown */
+                default: return '8860D0'; /* purple from palette */
             }
         }
 
@@ -570,11 +619,7 @@
             selectElement.innerHTML = '<option value="">Select...</option>'; // Clear existing options
 
             if (selectElement === rentCustomerIdSelect) rentCustomerSelectError.classList.add('hidden');
-            // No specific error elements for make/model yet, but could be added
-            // if (selectElement === makeSelect) { /* ... */ }
-            // if (selectElement === modelSelect) { /* ... */ }
-
-
+            
             if (!data || data.length === 0) {
                 const noOption = document.createElement('option');
                 noOption.value = "";
@@ -621,7 +666,6 @@
         rentCustomerSearchInput.addEventListener('input', () => {
             const searchTerm = rentCustomerSearchInput.value.toLowerCase();
             const filtered = allCustomersData.filter(customer =>
-                customer.text.toLowerCase().includes(searchTerm) ||
                 (customer.first_name && customer.first_name.toLowerCase().includes(searchTerm)) ||
                 (customer.last_name && customer.last_name.toLowerCase().includes(searchTerm)) ||
                 (customer.phone_number && customer.phone_number.toLowerCase().includes(searchTerm))
@@ -635,6 +679,7 @@
         // Function to render vehicle cards
         function renderVehicles(vehicles) {
             vehicleCardsGrid.innerHTML = ''; // Clear existing cards
+            loadingMessage.classList.add('hidden'); // Hide loading message
             noVehiclesMessage.classList.add('hidden'); // Hide no vehicles message
             fetchErrorMessage.classList.add('hidden'); // Hide fetch error message
 
@@ -657,7 +702,7 @@
                     </div>
                     <div class="p-4">
                         <h3 class="text-xl font-semibold text-gray-900 mb-1">${makeName} ${modelName}</h3>
-                        <p class="text-lg font-bold text-custom-blue-dark mb-3">AED ${car.price ? parseFloat(car.price).toFixed(2) : 'N/A'}</p>
+                        <p class="text-lg font-bold text-purple-600 mb-3">AED ${car.price ? parseFloat(car.price).toFixed(2) : 'N/A'}</p>
                         <div class="text-sm text-gray-600 space-y-1">
                             <p><strong>Plate:</strong> ${car.plate_number || 'N/A'}</p>
                             <p><strong>Year:</strong> ${car.year || 'N/A'}</p>
@@ -667,7 +712,7 @@
                             <p><strong>Features:</strong> ${car.features || 'N/A'}</p>
                         </div>
                         <div class="mt-4 flex justify-end space-x-2">
-                            <button data-id="${car.id}" class="edit-btn text-custom-blue-dark hover:text-custom-blue-dark/80 transition-colors duration-200 p-2 rounded-full">
+                            <button data-id="${car.id}" class="edit-btn text-purple-600 hover:text-purple-700 transition-colors duration-200 p-2 rounded-full">
                                 <i class="fas fa-edit"></i>
                             </button>
                             <button data-id="${car.id}" class="delete-btn text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full">
@@ -737,7 +782,7 @@
 
                 if (error) {
                     console.error("Error fetching cars:", error.message, error); // Log error.message and full error object
-                    fetchErrorMessage.textContent = `Error loading vehicles: ${error.message}. Please check your Supabase URL and API Key, and RLS policies for 'cars', 'veh_make', and 'veh_model'.`;
+                    fetchErrorMessage.textContent = `Error loading vehicles: ${error.message}. Please check your Supabase URL and API Key, and RLS policies.`;
                     fetchErrorMessage.classList.remove('hidden');
                     return;
                 }
@@ -810,7 +855,7 @@
 
             if (searchTerm) {
                 filteredCars = filteredCars.filter(car =>
-                    (car.plate_number && car.plate_number.toLowerCase().includes(searchTerm)) ||
+                    (car.plate_number && String(car.plate_number).toLowerCase().includes(searchTerm)) ||
                     (car.color && car.color.toLowerCase().includes(searchTerm)) ||
                     (car.features && car.features.toLowerCase().includes(searchTerm)) ||
                     (car.veh_make && car.veh_make.make && car.veh_make.make.toLowerCase().includes(searchTerm)) || // Search by make name
@@ -1179,8 +1224,36 @@
             console.log("[Form Submit] Rent car form submitted.");
 
             const formData = new FormData(rentCarForm);
+            const carId = parseInt(formData.get('car_id'));
+
+            // --- NEW: Check for existing active rent record ---
+            console.log(`[Rent Check] Checking for active rent records for car_id: ${carId}`);
+            try {
+                const { data: activeRentRecords, error: activeRentError } = await supabaseClient
+                    .from('rent_history')
+                    .select('id')
+                    .eq('car_id', carId)
+                    .eq('status', 'Active'); // Assuming 'Active' status means currently rented
+
+                if (activeRentError) {
+                    throw activeRentError;
+                }
+
+                if (activeRentRecords && activeRentRecords.length > 0) {
+                    alert("This car is currently rented and has an active rent record. Cannot create a new rent record until the current one is completed.");
+                    console.warn(`[Rent Check] Car ${carId} is already actively rented. Preventing new rent record.`);
+                    return; // Stop the function execution
+                }
+                console.log(`[Rent Check] No active rent records found for car_id: ${carId}. Proceeding with new rent.`);
+            } catch (checkError) {
+                console.error("Error checking for active rent records:", checkError.message);
+                alert("Error checking car availability: " + checkError.message);
+                return; // Stop the function execution due to error
+            }
+            // --- END NEW CHECK ---
+
             const newRentRecord = {
-                car_id: parseInt(formData.get('car_id')),
+                car_id: carId, // Use the parsed carId
                 customer_id: formData.get('customer_id'),
                 from_date: formData.get('from_date') || null,
                 end_date: formData.get('end_date') || null,
@@ -1235,6 +1308,78 @@
             }
         });
 
+        // --- Sidebar Initialization ---
+        function initializeSidebar() {
+            // Sidebar pinning logic
+            let isSidebarPinned = localStorage.getItem('sidebarPinned') === 'true';
+
+            const applySidebarState = () => {
+                if (desktopSidebar) { // Ensure desktopSidebar exists
+                    if(isSidebarPinned) {
+                        desktopSidebar.classList.remove('collapsed');
+                        document.body.classList.add('sidebar-expanded'); // Add class to body to adjust main content
+                        if (pinBtn) pinBtn.classList.add('hidden');
+                        if (unpinBtn) unpinBtn.classList.remove('hidden');
+                    } else {
+                        desktopSidebar.classList.add('collapsed');
+                        document.body.classList.remove('sidebar-expanded'); // Remove class from body
+                        if (unpinBtn) unpinBtn.classList.add('hidden');
+                        if (pinBtn) pinBtn.classList.remove('hidden');
+                    }
+                }
+            };
+            
+            // Set initial state on load
+            applySidebarState();
+
+
+            if (desktopSidebar) {
+                desktopSidebar.addEventListener('mouseenter', () => {
+                    if (!isSidebarPinned) {
+                        desktopSidebar.classList.remove('collapsed');
+                        document.body.classList.add('sidebar-expanded');
+                    }
+                });
+                desktopSidebar.addEventListener('mouseleave', () => {
+                    if (!isSidebarPinned) {
+                        desktopSidebar.classList.add('collapsed');
+                        document.body.classList.remove('sidebar-expanded');
+                    }
+                });
+            }
+            
+            if (pinBtn) {
+                pinBtn.addEventListener('click', () => {
+                    isSidebarPinned = true;
+                    localStorage.setItem('sidebarPinned', 'true');
+                    applySidebarState();
+                });
+            }
+            if (unpinBtn) {
+                unpinBtn.addEventListener('click', () => {
+                    isSidebarPinned = false;
+                    localStorage.setItem('sidebarPinned', 'false');
+                    applySidebarState();
+                });
+            }
+            
+            // Logout button (desktop)
+            if (logoutButtonDesktop) {
+                logoutButtonDesktop.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    await supabaseClient.auth.signOut();
+                    console.log("Logged out (simulated).");
+                    window.location.href = 'login.html'; // Redirect after logout
+                });
+            }
+        }
+
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeSidebar(); // Initialize sidebar directly
+            fetchCars(); // Fetch car data
+            fetchMakes(); // Fetch makes for modals
+        });
     </script>
 </body>
 </html>

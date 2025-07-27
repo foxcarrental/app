@@ -3,38 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fox Car Rental Admin Dashboard</title>
+    <title>Dashboard - Fox Car Rental Admin</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Custom scrollbar for the sidebar */
-        .sidebar-scroll {
-            scrollbar-width: thin;
-            scrollbar-color: #5AB9EA #F3F4F6;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 8px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: #F3F4F6;
-            border-radius: 10px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #5AB9EA;
-            border-radius: 10px;
-            border: 2px solid #F3F4F6;
-        }
-
-        /* Custom styles for the background gradient */
         body {
             font-family: 'Inter', sans-serif;
+            /* Using a subtle gradient from the image colors for the body background */
             background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
         }
 
         @keyframes gradientAnimation {
@@ -43,353 +30,672 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Define custom colors from the image */
-        .bg-custom-blue-dark { background-color: #5680E9; }
-        .bg-custom-blue-light { background-color: #84CEEB; }
-        .bg-custom-cyan { background-color: #5AB9EA; }
-        .bg-custom-light-purple { background-color: #C1C8E4; }
-        .bg-custom-purple { background-color: #8860D0; }
+        /* Custom styles to match the image */
+        .kpi-card {
+            background-color: white; /* Keep KPI cards white for contrast */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer; /* Add cursor pointer to indicate clickability */
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        .quick-action-card {
+            border-radius: 1rem;
+            padding: 1.5rem;
+            color: white;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .quick-action-card:hover {
+            transform: scale(1.05);
+        }
+        /* Specific gradients for quick action cards based on image colors */
+        .quick-action-card.add-vehicle {
+            background: linear-gradient(to right, #5680E9, #8860D0); /* Blue to Purple */
+        }
+        .quick-action-card.add-customer {
+            background: linear-gradient(to right, #5AB9EA, #5680E9); /* Medium Blue to Blue */
+        }
+        .quick-action-card.view-reports {
+            background: linear-gradient(to right, #84CEEB, #5AB9EA); /* Light Blue to Medium Blue */
+        }
 
-        .text-custom-blue-dark { color: #5680E9; }
-        .text-custom-blue-light { color: #84CEEB; }
-        .text-custom-cyan { color: #5AB9EA; }
-        .text-custom-light-purple { color: #C1C8E4; }
-        .text-custom-purple { color: #8860D0; }
+        .sidebar-scroll {
+            /* Enable scrolling */
+            overflow-y: auto;
+            /* Custom scrollbar styles */
+            scrollbar-width: thin;
+            scrollbar-color: #a8a8a8 #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 6px;
+        }
+        
+        /* New styles for fixed header and sidebar */
+        #main-header {
+            position: fixed;
+            top: 0;
+            /* Set initial left to match collapsed sidebar margin */
+            left: 5rem; /* Corresponds to collapsed sidebar width */
+            right: 0;
+            z-index: 40; /* Below sidebar overlay */
+            background-color: transparent; /* Made transparent */
+            box-shadow: none; /* Removed shadow */
+            transition: left 0.3s ease-in-out; /* Add transition for smooth movement */
+        }
+        /* Adjust header left position when sidebar expands */
+        body.sidebar-expanded #main-header {
+            left: 16rem; /* Corresponds to expanded sidebar width */
+        }
 
-        .border-custom-blue-dark { border-color: #5680E9; }
-        .border-custom-blue-light { border-color: #84CEEB; }
-        .border-custom-cyan { border-color: #5AB9EA; }
-        .border-custom-light-purple { border-color: #C1C8E4; }
-        .border-custom-purple { border-color: #8860D0; }
+        #desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+            padding-top: 100px; /* Adjust based on header height */
+            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
+        }
+        /* Adjust main content margin when sidebar expands */
+        body.sidebar-expanded #main-content {
+            margin-left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+        
+        /* Collapsed state for the sidebar */
+        #desktop-sidebar.collapsed {
+            width: 5rem; /* Width when collapsed */
+        }
+        
+        #desktop-sidebar.collapsed .nav-text,
+        #desktop-sidebar.collapsed .sidebar-title,
+        #desktop-sidebar.collapsed #logout-text {
+             display: none;
+        }
+
+        #desktop-sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+        }
+        
+        #desktop-sidebar.collapsed .sidebar-pin-controls {
+            justify-content: center;
+        }
+
+        #desktop-sidebar .nav-item i {
+            width: 2rem; /* Ensure icons align */
+            text-align: center;
+        }
+
+        /* Styles for the new dashboard sections */
+        .chart-placeholder {
+            height: 250px; /* Fixed height for the chart area */
+            background-color: #f8faff; /* Light background for chart area */
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #a0aec0;
+            font-size: 0.9rem;
+            border: 1px solid #e2e8f0;
+        }
+
+        .activity-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 1rem;
+        }
+
+        .activity-icon {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 50%;
+            margin-top: 0.3rem; /* Align with text baseline */
+            margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        .activity-icon.blue { background-color: #5680E9; }
+        .activity-icon.orange { background-color: #FFBF00; } /* A shade of orange for maintenance */
+        .activity-icon.purple { background-color: #8860D0; }
+        .activity-icon.green { background-color: #10B981; } /* Example for a return */
+
+        .activity-details {
+            flex-grow: 1;
+        }
+
+        .activity-details p {
+            margin: 0;
+            line-height: 1.3;
+        }
+
+        .activity-details .main-text {
+            font-weight: 500;
+            color: #333;
+        }
+
+        .activity-details .sub-text {
+            font-size: 0.85rem;
+            color: #718096;
+        }
     </style>
 </head>
-<body class="flex flex-col lg:flex-row min-h-screen text-gray-800">
+<body class="flex flex-row min-h-screen text-gray-800">
 
     <!-- Sidebar for Desktop -->
-    <aside class="hidden lg:flex flex-col w-64 bg-white shadow-lg rounded-r-xl p-4 overflow-y-auto sidebar-scroll">
-        <div class="flex items-center justify-center p-4 mb-6">
-            <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
-            <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
+    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
+        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
+            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
+            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
         </div>
         <nav class="flex-grow">
             <ul>
+                <!-- Navigation items -->
                 <li class="mb-2">
-                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
-                        <i class="fas fa-tachometer-alt mr-3"></i>
-                        Dashboard
+                    <a href="#" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-car mr-3"></i>
-                        Vehicle Inventory
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-users mr-3"></i>
-                        Customer List
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-history mr-3"></i>
-                        Rent History
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-chart-bar mr-3"></i>
-                        Reports
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-dollar-sign mr-3"></i>
-                        Financial Dashboard
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-wrench mr-3"></i>
-                        Vehicle Maintenance
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <!-- Duplicated items to demonstrate scrollbar -->
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
                     </a>
                 </li>
                 <li class="mb-2">
-                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                        <i class="fas fa-chart-pie mr-3"></i>
-                        Business Analytics
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
                     </a>
                 </li>
             </ul>
         </nav>
+        <div class="pt-4 border-t">
+             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
+                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
+            </a>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
-    <div class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
-        <!-- Top Nav for Mobile & Desktop -->
-        <header class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between lg:hidden">
-            <div class="flex items-center">
-                <img src="https://placehold.co/30x30/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-8 h-8 rounded-full mr-2">
-                <h1 class="text-lg font-bold text-gray-800">Fox Car Rental Admin</h1>
+    <div id="main-content" class="flex-1 flex flex-col p-4 overflow-y-auto">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+             <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Dashboard</h2>
             </div>
-            <button id="mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
-                <i class="fas fa-bars text-xl"></i>
-            </button>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                 <div class="flex items-center space-x-2">
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                 </div>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
         </header>
 
-        <!-- Mobile Sidebar Overlay -->
-        <div id="mobile-sidebar-overlay" class="fixed inset-0 bg-black bg-opacity-50 z-40 hidden lg:hidden"></div>
-        <aside id="mobile-sidebar" class="fixed top-0 left-0 w-64 h-full bg-white shadow-lg z-50 transform -translate-x-full transition-transform duration-300 ease-in-out lg:hidden overflow-y-auto sidebar-scroll">
-            <div class="flex items-center justify-between p-4 border-b border-gray-200">
-                <div class="flex items-center">
-                    <img src="https://placehold.co/40x40/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3">
-                    <h1 class="text-xl font-bold text-gray-800">Fox Car Rental Admin</h1>
-                </div>
-                <button id="close-mobile-menu-button" class="text-gray-600 focus:outline-none focus:text-gray-900">
-                    <i class="fas fa-times text-xl"></i>
-                </button>
-            </div>
-            <nav class="p-4">
-                <ul>
-                    <li class="mb-2">
-                        <a href="dashboard.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
-                            <i class="fas fa-tachometer-alt mr-3"></i>
-                            Dashboard
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-car mr-3"></i>
-                            Vehicle Inventory
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-users mr-3"></i>
-                            Customer List
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-history mr-3"></i>
-                            Rent History
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            Reports
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-dollar-sign mr-3"></i>
-                            Financial Dashboard
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-wrench mr-3"></i>
-                            Vehicle Maintenance
-                        </a>
-                    </li>
-                    <li class="mb-2">
-                        <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200">
-                            <i class="fas fa-chart-pie mr-3"></i>
-                            Business Analytics
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </aside>
+        <!-- Welcome Message -->
+        <p class="text-gray-500 mb-6">Welcome back to your admin dashboard</p>
 
-        <!-- Dashboard Header -->
-        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
-            <h2 class="text-2xl font-semibold text-gray-800">Dashboard</h2>
-            <div class="flex items-center space-x-4">
-                <span id="user-email" class="text-gray-600 hidden sm:block"></span>
-                <button id="logout-button" class="bg-red-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-red-600 transition-colors duration-200">
-                    <i class="fas fa-sign-out-alt mr-2"></i>Logout
-                </button>
+        <!-- KPI Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- Card Templates -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='Total Vehicles.html';">
+                <div>
+                    <p class="text-gray-500">Total Vehicles</p>
+                    <p id="total-vehicles" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-purple-500"><i class="fas fa-car"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='Available.html';">
+                <div>
+                    <p class="text-gray-500">Available</p>
+                    <p id="available-vehicles" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-green-500"><i class="fas fa-check-circle"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='Rented.html';">
+                <div>
+                    <p class="text-gray-500">Rented</p>
+                    <p id="rented-vehicles" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-blue-500"><i class="fas fa-key"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='Maintenance.html';">
+                <div>
+                    <p class="text-gray-500">Maintenance</p>
+                    <p id="maintenance-vehicles" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-orange-500"><i class="fas fa-tools"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='customer-list.html';">
+                <div>
+                    <p class="text-gray-500">Total Customers</p>
+                    <p id="total-customers" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-indigo-500"><i class="fas fa-users"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='Pending-Payments.html';">
+                <div>
+                    <p class="text-gray-500">Pending Payments</p>
+                    <p id="pending-payments" class="text-4xl font-extrabold text-gray-900">AED 0</p>
+                </div>
+                <div class="text-3xl text-red-500"><i class="fas fa-credit-card"></i></div>
             </div>
         </div>
 
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <!-- Total Vehicles Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
-                <div>
-                    <p class="text-sm text-gray-500">Total Vehicles</p>
-                    <p class="text-3xl font-bold text-gray-900">41</p>
-                </div>
-                <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
-                    <i class="fas fa-car"></i>
-                </div>
-            </div>
-
-            <!-- Available Vehicles Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-cyan">
-                <div>
-                    <p class="text-sm text-gray-500">Available</p>
-                    <p class="text-3xl font-bold text-gray-900">7</p>
-                </div>
-                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-            </div>
-
-            <!-- Rented Vehicles Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-light-purple">
-                <div>
-                    <p class="text-sm text-gray-500">Rented</p>
-                    <p class="text-3xl font-bold text-gray-900">33</p>
-                </div>
-                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl">
-                    <i class="fas fa-calendar-alt"></i>
-                </div>
-            </div>
-
-            <!-- Maintenance Vehicles Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-red-500">
-                <div>
-                    <p class="text-sm text-gray-500">Maintenance</p>
-                    <p class="text-3xl font-bold text-gray-900">1</p>
-                </div>
-                <div class="p-3 bg-red-500 rounded-full text-white text-xl">
-                    <i class="fas fa-tools"></i>
-                </div>
-            </div>
-
-            <!-- Total Customers Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
-                <div>
-                    <p class="text-sm text-gray-500">Total Customers</p>
-                    <p class="text-3xl font-bold text-gray-900">3</p>
-                </div>
-                <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-
-            <!-- Active Rentals Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-cyan">
-                <div>
-                    <p class="text-sm text-gray-500">Active Rentals</p>
-                    <p class="text-3xl font-bold text-gray-900">1</p>
-                </div>
-                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl">
-                    <i class="fas fa-file-invoice"></i>
-                </div>
-            </div>
-
-            <!-- Monthly Revenue Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-custom-light-purple">
-                <div>
-                    <p class="text-sm text-gray-500">Monthly Revenue</p>
-                    <p class="text-3xl font-bold text-gray-900">AED 6650.00</p>
-                </div>
-                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl">
-                    <i class="fas fa-dollar-sign"></i>
-                </div>
-            </div>
-
-            <!-- Pending Payments Card -->
-            <div class="bg-white rounded-xl shadow-md p-5 flex items-center justify-between border-l-4 border-orange-500">
-                <div>
-                    <p class="text-sm text-gray-500">Pending Payments</p>
-                    <p class="text-3xl font-bold text-gray-900">AED 5550.00</p>
-                </div>
-                <div class="p-3 bg-orange-500 rounded-full text-white text-xl">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
+        <!-- New sections: Recent Activity -->
+        <div class="grid grid-cols-1 lg:grid-cols-1 gap-6 mb-8">
+            <!-- Recent Activity Card -->
+            <div class="kpi-card">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Activity</h3>
+                <ul id="recent-activity-list">
+                    <!-- Recent activity items will be dynamically loaded here -->
+                </ul>
             </div>
         </div>
 
         <!-- Quick Actions Section -->
-        <div class="bg-white rounded-xl shadow-md p-6 mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-4">Quick Actions</h3>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark">
-                    <i class="fas fa-plus-circle mr-2"></i>
-                    Add New Vehicle
-                </button>
-                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-cyan text-white shadow-md transition-all duration-200 hover:bg-custom-blue-light">
-                    <i class="fas fa-user-plus mr-2"></i>
-                    Add New Customer
-                </button>
-                <button class="flex items-center justify-center p-4 rounded-lg bg-custom-purple text-white shadow-md transition-all duration-200 hover:bg-custom-light-purple">
-                    <i class="fas fa-chart-line mr-2"></i>
-                    View Reports
-                </button>
+        <div>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Added specific classes for gradients -->
+                <div onclick="location.href='add-vehicle.html';" class="quick-action-card add-vehicle flex flex-col items-center justify-center text-center">
+                    <i class="fas fa-plus-circle text-4xl mb-3"></i>
+                    <h4 class="font-bold text-xl">Add New Vehicle</h4>
+                    <p class="text-sm opacity-80">Expand your fleet</p>
+                </div>
+                <div onclick="location.href='add-customer.html';" class="quick-action-card add-customer flex flex-col items-center justify-center text-center">
+                    <i class="fas fa-user-plus text-4xl mb-3"></i>
+                    <h4 class="font-bold text-xl">Add New Customer</h4>
+                    <p class="text-sm opacity-80">Grow your client base</p>
+                </div>
+                <div onclick="location.href='reports.html';" class="quick-action-card view-reports flex flex-col items-center justify-center text-center">
+                    <i class="fas fa-chart-line text-4xl mb-3"></i>
+                    <h4 class="font-bold text-xl">View Reports</h4>
+                    <p class="text-sm opacity-80">Analyze performance</p>
+                </div>
             </div>
-        </div>
-
-        <!-- Refresh Data Button -->
-        <div class="flex justify-end mt-auto">
-            <button class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
-                Refresh Data
-            </button>
         </div>
     </div>
 
-    <script type="module">
-        // Supabase Configuration
-        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">Close</button>
+        </div>
+    </div>
 
-        // Initialize Supabase client
-        const { createClient } = supabase;
+
+    <script type="module">
+        // --- Supabase Configuration ---
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Supabase Client Import
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Redirect to login if not authenticated
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = 'login.html'; // Redirect to login page
-            } else {
-                // Display user email if logged in
-                document.getElementById('user-email').textContent = session.user.email;
-            }
-        });
+        // --- DOM Elements ---
+        const ui = {
+            totalVehicles: document.getElementById('total-vehicles'),
+            availableVehicles: document.getElementById('available-vehicles'),
+            rentedVehicles: document.getElementById('rented-vehicles'),
+            maintenanceVehicles: document.getElementById('maintenance-vehicles'),
+            totalCustomers: document.getElementById('total-customers'),
+            pendingPayments: document.getElementById('pending-payments'),
+            lastUpdated: document.getElementById('last-updated'),
+            refreshButton: document.getElementById('refresh-data'),
+            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
+            desktopSidebar: document.getElementById('desktop-sidebar'),
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            pinBtn: document.getElementById('pin-sidebar-btn'),
+            unpinBtn: document.getElementById('unpin-sidebar-btn'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            recentActivityList: document.getElementById('recent-activity-list') // Added for recent activity
+        };
 
-        // DOM Elements
-        const mobileMenuButton = document.getElementById('mobile-menu-button');
-        const closeMobileMenuButton = document.getElementById('close-mobile-menu-button');
-        const mobileSidebar = document.getElementById('mobile-sidebar');
-        const mobileSidebarOverlay = document.getElementById('mobile-sidebar-overlay');
-        const logoutButton = document.getElementById('logout-button');
+        // --- Sidebar State ---
+        let isSidebarPinned = false;
+        // Supabase anonymous key does not provide a user ID in the same way Firebase does,
+        // so we'll just use a placeholder or remove the display if not relevant.
+        // For now, setting a default email and hiding the user ID display.
+        ui.userEmail.textContent = "admin@foxcarrental.com";
+        ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
 
-        // --- Mobile Sidebar Logic ---
-        mobileMenuButton.addEventListener('click', () => {
-            mobileSidebar.classList.remove('-translate-x-full');
-            mobileSidebarOverlay.classList.remove('hidden');
-        });
+        // --- Modal Logic ---
+        function showMessage(message, title = "Notification") {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
 
-        closeMobileMenuButton.addEventListener('click', () => {
-            mobileSidebar.classList.add('-translate-x-full');
-            mobileSidebarOverlay.classList.add('hidden');
-        });
+        function hideMessage() {
+            ui.notificationModal.classList.add('hidden');
+        }
 
-        mobileSidebarOverlay.addEventListener('click', () => {
-            mobileSidebar.classList.add('-translate-x-full');
-            mobileSidebarOverlay.classList.add('hidden');
-        });
+        ui.notificationCloseButton.addEventListener('click', hideMessage);
 
-        // --- Logout Functionality ---
-        logoutButton.addEventListener('click', async () => {
+        // Helper function to format time difference
+        function timeAgo(date) {
+            const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+            let interval = seconds / 31536000;
+            if (interval > 1) return Math.floor(interval) + " years ago";
+            interval = seconds / 2592000;
+            if (interval > 1) return Math.floor(interval) + " months ago";
+            interval = seconds / 86400;
+            if (interval > 1) return Math.floor(interval) + " days ago";
+            interval = seconds / 3600;
+            if (interval > 1) return Math.floor(interval) + " hours ago";
+            interval = seconds / 60;
+            if (interval > 1) return Math.floor(interval) + " minutes ago";
+            return Math.floor(seconds) + " seconds ago";
+        }
+
+        // --- Data Fetching and Real-time Listeners (Supabase) ---
+        async function fetchDashboardData() {
             try {
-                const { error } = await supabaseClient.auth.signOut();
-                if (error) {
-                    console.error("Error logging out:", error.message);
-                    alert("Error logging out: " + error.message);
-                } else {
-                    console.log("User logged out successfully.");
-                    window.location.href = 'login.html'; // Redirect to login page after logout
-                }
+                // Fetch Cars data
+                const { data: cars, error: carsError } = await supabaseClient
+                    .from('cars')
+                    .select('id, status, make_id, model_id'); // Select only necessary fields
+
+                if (carsError) throw carsError;
+
+                let totalVehicles = cars.length;
+                let availableVehicles = cars.filter(car => car.status === 'Available').length;
+                let rentedVehicles = cars.filter(car => car.status === 'Rented').length;
+                let maintenanceVehicles = cars.filter(car => car.status === 'Under Maintenance').length;
+
+                ui.totalVehicles.textContent = totalVehicles;
+                ui.availableVehicles.textContent = availableVehicles;
+                ui.rentedVehicles.textContent = rentedVehicles;
+                ui.maintenanceVehicles.textContent = maintenanceVehicles;
+
+                // Fetch Customers data
+                const { data: customers, error: customersError } = await supabaseClient
+                    .from('customers')
+                    .select('id, first_name, last_name'); // Select only necessary fields
+
+                if (customersError) throw customersError;
+                ui.totalCustomers.textContent = customers.length;
+
+                // Fetch Vehicle Makes and Models for display
+                const { data: vehMakes, error: makesError } = await supabaseClient
+                    .from('veh_make')
+                    .select('id, make');
+                if (makesError) throw makesError;
+                const makeMap = new Map(vehMakes.map(make => [make.id, make.make]));
+
+                const { data: vehModels, error: modelsError } = await supabaseClient
+                    .from('veh_model')
+                    .select('id, model');
+                if (modelsError) throw modelsError;
+                const modelMap = new Map(vehModels.map(model => [model.id, model.model]));
+
+                // Create maps for quick lookup
+                const carMap = new Map(cars.map(car => [car.id, car]));
+                const customerMap = new Map(customers.map(customer => [customer.id, customer]));
+
+                // Fetch Rent History data for revenue and pending payments and recent activity
+                const { data: rentHistory, error: rentHistoryError } = await supabaseClient
+                    .from('rent_history')
+                    .select('*');
+
+                if (rentHistoryError) throw rentHistoryError;
+
+                let pendingPayments = 0;
+                let recentActivities = [];
+
+                rentHistory.forEach(rental => {
+                    pendingPayments += (rental.balance || 0);
+
+                    const car = carMap.get(rental.car_id);
+                    const customer = customerMap.get(rental.customer_id);
+                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown Make'} ${modelMap.get(car.model_id) || 'Unknown Model'}` : 'Unknown Car';
+                    const customerName = customer ? `${customer.first_name} ${customer.last_name}` : 'Unknown Customer';
+
+                    // Activity for rental start
+                    recentActivities.push({
+                        type: 'rented',
+                        description: `${carName} rented by ${customerName}`,
+                        timestamp: rental.from_date,
+                        iconClass: 'blue'
+                    });
+
+                    // Activity for actual return (if available)
+                    if (rental.actual_return_date) {
+                        recentActivities.push({
+                            type: 'returned',
+                            description: `${carName} returned by ${customerName}`,
+                            timestamp: rental.actual_return_date,
+                            iconClass: 'green'
+                        });
+                    }
+                });
+
+                ui.pendingPayments.textContent = `AED ${pendingPayments.toFixed(2)}`;
+
+                // Fetch Vehicle Maintenance data for recent activity
+                const { data: maintenanceHistory, error: maintenanceError } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .select('*');
+
+                if (maintenanceError) throw maintenanceError;
+
+                maintenanceHistory.forEach(maintenance => {
+                    const car = carMap.get(maintenance.car_id);
+                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown Make'} ${modelMap.get(car.model_id) || 'Unknown Model'}` : 'Unknown Car';
+
+                    // Activity for maintenance
+                    recentActivities.push({
+                        type: 'maintenance',
+                        description: `${carName} sent for maintenance`,
+                        timestamp: maintenance.created_at, // Using created_at or scheduled_date
+                        iconClass: 'purple'
+                    });
+                });
+
+                // Sort activities by timestamp in descending order
+                recentActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                // Render recent activities
+                renderRecentActivity(recentActivities.slice(0, 5)); // Display top 5 recent activities
+                
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString();
+
             } catch (error) {
-                console.error("An unexpected error occurred during logout:", error);
-                alert("An unexpected error occurred during logout.");
+                console.error("Error fetching dashboard data:", error);
+                showMessage(`Error fetching dashboard data: ${error.message}`, "Data Error");
             }
+        }
+
+        // Function to render recent activity items
+        function renderRecentActivity(activities) {
+            ui.recentActivityList.innerHTML = ''; // Clear existing list
+            if (activities.length === 0) {
+                ui.recentActivityList.innerHTML = '<li class="text-gray-500">No recent activity to display.</li>';
+                return;
+            }
+
+            activities.forEach(activity => {
+                const listItem = document.createElement('li');
+                listItem.classList.add('activity-item');
+                listItem.innerHTML = `
+                    <div class="activity-icon ${activity.iconClass}"></div>
+                    <div class="activity-details">
+                        <p class="main-text">${activity.description}</p>
+                        <p class="sub-text">${timeAgo(activity.timestamp)}</p>
+                    </div>
+                `;
+                ui.recentActivityList.appendChild(listItem);
+            });
+        }
+
+        // --- Desktop Sidebar Logic ---
+        function setupDesktopSidebar() {
+            // Set initial state
+            ui.desktopSidebar.classList.add('collapsed');
+            ui.mainContent.style.marginLeft = '5rem';
+            ui.mainHeader.style.left = '5rem';
+
+            ui.desktopSidebar.addEventListener('mouseenter', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.remove('collapsed');
+                    ui.mainContent.style.marginLeft = '16rem'; // 64 in tailwind
+                    ui.mainHeader.style.left = '16rem';
+                }
+            });
+
+            ui.desktopSidebar.addEventListener('mouseleave', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.add('collapsed');
+                    ui.mainContent.style.marginLeft = '5rem'; // 20 in tailwind
+                    ui.mainHeader.style.left = '5rem';
+                }
+            });
+
+            ui.pinBtn.addEventListener('click', () => {
+                isSidebarPinned = true;
+                ui.desktopSidebar.classList.remove('collapsed');
+                ui.pinBtn.classList.add('hidden');
+                ui.unpinBtn.classList.remove('hidden');
+                // Ensure layout is correct
+                ui.mainContent.style.marginLeft = '16rem';
+                ui.mainHeader.style.left = '16rem';
+            });
+
+            ui.unpinBtn.addEventListener('click', () => {
+                isSidebarPinned = false;
+                ui.desktopSidebar.classList.add('collapsed');
+                ui.unpinBtn.classList.add('hidden');
+                ui.pinBtn.classList.remove('hidden');
+                ui.mainContent.style.marginLeft = '5rem';
+                ui.mainHeader.style.left = '5rem';
+            });
+        }
+
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', fetchDashboardData); // Re-run fetch on refresh
+
+        // For Supabase with an anonymous key, there isn't a direct "logout" like Firebase auth.
+        // We'll simulate a logout by clearing data and showing a message.
+        ui.logoutButtonDesktop.addEventListener('click', async (e) => {
+            e.preventDefault();
+            // In a real Supabase app with user authentication, you'd call supabaseClient.auth.signOut();
+            showMessage("You have been logged out (simulated).", "Logged Out");
+            // Optionally clear displayed data
+            ui.totalVehicles.textContent = '0';
+            ui.availableVehicles.textContent = '0';
+            ui.rentedVehicles.textContent = '0';
+            ui.maintenanceVehicles.textContent = '0';
+            ui.totalCustomers.textContent = '0';
+            ui.pendingPayments.textContent = 'AED 0.00';
+            ui.lastUpdated.textContent = '...';
+            ui.userEmail.textContent = "admin@foxcarrental.com"; // Reset to default
+            ui.userIdDisplay.classList.add('hidden'); // Hide user ID
+            ui.recentActivityList.innerHTML = ''; // Clear recent activity
+        });
+        
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDesktopSidebar(); // Always set up desktop sidebar as mobile view is removed
+            // Redirect if not logged in
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (!session) {
+                    window.location.href = 'login.html'; // Redirect to login page
+                } else {
+                    // If session exists, fetch and render dashboard data
+                    fetchDashboardData();
+                }
+            }).catch(error => {
+                console.error("Error checking session:", error);
+                // Even if session fails, try to load data, but log the error
+                fetchDashboardData();
+            });
         });
     </script>
 </body>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ongoing Rentals Report - Fox Car Rental Admin</title>
+    <title>Car Report - Fox Car Rental Admin</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
@@ -92,9 +92,6 @@
             height: 100vh;
             z-index: 50;
             transition: width 0.3s ease-in-out;
-            /* Ensure it's always displayed as a flex column for desktop */
-            display: flex; /* Ensure it's always flex */
-            flex-direction: column; /* Ensure it's always column */
         }
 
         #main-content {
@@ -130,9 +127,62 @@
             width: 2rem; /* Ensure icons align */
             text-align: center;
         }
+
+        /* Table specific styles */
+        .table-container {
+            overflow-x: auto; /* Enable horizontal scrolling on small screens */
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+        }
+
+        .car-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .car-table th, .car-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0; /* Light border for rows */
+            text-align: left;
+        }
+
+        .car-table th {
+            background-color: #f8fafc; /* Light header background */
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+
+        .car-table tbody tr:hover {
+            background-color: #f0f4f8; /* Subtle hover effect */
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.6rem;
+            border-radius: 9999px; /* Fully rounded */
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: white;
+            text-transform: capitalize;
+            display: inline-block; /* Allows padding and margin to work */
+        }
+
+        /* Specific status badge colors */
+        .status-available { background-color: #4CAF50; /* Green */ }
+        .status-rented { background-color: #2196F3; /* Blue */ }
+        .status-maintenance { background-color: #FFC107; /* Amber/Yellow */ }
+        .status-other { background-color: #9E9E9E; /* Grey for unknown status */ }
+
+        .total-row th, .total-row td {
+            font-weight: bold;
+            background-color: #e2e8f0;
+            border-top: 2px solid #a0aec0;
+        }
+
     </style>
 </head>
-<body class="flex flex-row min-h-screen text-gray-800">
+<body class="flex min-h-screen text-gray-800">
 
     <!-- Sidebar for Desktop -->
     <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
@@ -231,10 +281,13 @@
         <!-- Top Nav for Desktop -->
         <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
              <div class="flex items-center">
-                <h2 class="text-2xl font-bold text-gray-800">Ongoing Rentals Report</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Car Report - All Vehicles</h2>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
                  <div class="flex items-center space-x-2">
                      <i class="fas fa-user-circle text-2xl text-gray-500"></i>
                      <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
@@ -243,45 +296,43 @@
             </div>
         </header>
 
-        <!-- Report Header -->
-        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
-            <h2 class="text-2xl font-semibold text-gray-800">Reports</h2>
-            <button class="bg-green-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-600 transition-colors duration-200">
-                <i class="fas fa-file-excel mr-2"></i>Export Report
-            </button>
-        </div>
+        <!-- Car Report Content -->
+        <div class="bg-white shadow-md rounded-xl p-4 mb-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">All Vehicles Report</h3>
+            <div id="loading-message" class="text-center text-gray-600 py-8">
+                <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                <p>Loading car data...</p>
+            </div>
+            <div id="error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 hidden" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span id="error-text" class="block sm:inline">Failed to load car data.</span>
+            </div>
+            <div id="no-data-message" class="text-center text-gray-600 py-8 hidden">
+                <i class="fas fa-car-alt text-4xl text-gray-300 mb-2"></i><br>
+                <p>No car records found.</p>
+            </div>
 
-        <!-- Back to Reports Link -->
-        <div class="mb-4">
-            <a href="reports.html" class="text-custom-blue-dark hover:underline flex items-center">
-                <i class="fas fa-arrow-left mr-2 text-sm"></i> Back to Reports
-            </a>
-        </div>
-
-        <!-- Ongoing Rentals Report Content -->
-        <div class="bg-white shadow-md rounded-xl p-6 mb-6">
-            <h3 class="text-xl font-semibold text-gray-800 mb-2">Ongoing Rentals Report</h3>
-            <p class="text-sm text-gray-600 mb-4">Active rentals with calculated outstanding balances as of today</p>
-
-            <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+            <div class="table-container">
+                <table id="car-report-table" class="car-table w-full">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Start Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Days (to date)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Price/Day</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid Amount</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Outstanding Balance</th>
+                            <th>No.</th>
+                            <th>Plate Number</th>
+                            <th>Make</th>
+                            <th>Model</th>
+                            <th>Year</th>
+                            <th>Color</th>
+                            <th>Odometer (KM)</th>
+                            <th>Price (AED)</th>
+                            <th>Status</th>
                         </tr>
                     </thead>
-                    <tbody id="ongoing-rentals-table-body" class="divide-y divide-gray-200">
-                        <!-- Data will be loaded dynamically here -->
-                        <tr>
-                            <td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading ongoing rentals...</td>
-                        </tr>
+                    <tbody id="car-report-tbody">
+                        <!-- Data will be inserted here by JavaScript -->
                     </tbody>
+                    <tfoot id="car-report-tfoot">
+                        <!-- Total row will be inserted here -->
+                    </tfoot>
                 </table>
             </div>
         </div>
@@ -292,28 +343,30 @@
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
             <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
             <p id="notification-message" class="text-gray-700 mb-6"></p>
-            <button id="notification-close-button" class="bg-custom-blue-dark text-white px-6 py-2 rounded-lg hover:bg-custom-blue-light focus:outline-none focus:ring-2 focus:ring-custom-blue-light focus:ring-opacity-50">OK</button>
+            <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">Close</button>
         </div>
     </div>
 
     <script type="module">
-        // Supabase Configuration
+        // --- Supabase Configuration ---
         const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
 
-        // Initialize Supabase client
-        const { createClient } = supabase;
+        // Supabase Client Import
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-        // Redirect if not logged in
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = 'login.html'; // Redirect to login page
-            }
-        });
-
-        // DOM Elements
+        // --- DOM Elements ---
         const ui = {
+            carReportTbody: document.getElementById('car-report-tbody'),
+            carReportTfoot: document.getElementById('car-report-tfoot'),
+            loadingMessage: document.getElementById('loading-message'),
+            errorMessage: document.getElementById('error-message'),
+            errorText: document.getElementById('error-text'),
+            noDataMessage: document.getElementById('no-data-message'),
+            lastUpdated: document.getElementById('last-updated'),
+            refreshButton: document.getElementById('refresh-data'),
+            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
             desktopSidebar: document.getElementById('desktop-sidebar'),
             mainContent: document.getElementById('main-content'),
             mainHeader: document.getElementById('main-header'),
@@ -324,114 +377,111 @@
             notificationMessage: document.getElementById('notification-message'),
             notificationCloseButton: document.getElementById('notification-close-button'),
             userEmail: document.getElementById('user-email'),
-            userIdDisplay: document.getElementById('user-id-display'),
-            lastUpdated: document.getElementById('last-updated'),
-            ongoingRentalsTableBody: document.getElementById('ongoing-rentals-table-body')
+            userIdDisplay: document.getElementById('user-id-display')
         };
 
         // --- Sidebar State ---
         let isSidebarPinned = false;
         ui.userEmail.textContent = "admin@foxcarrental.com";
-        ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
+        ui.userIdDisplay.classList.add('hidden');
 
         // --- Modal Logic ---
-        function showCustomMessageBox(title, message) {
+        function showMessage(message, title = "Notification") {
             ui.notificationTitle.textContent = title;
             ui.notificationMessage.textContent = message;
             ui.notificationModal.classList.remove('hidden');
         }
 
-        function hideCustomMessageBox() {
+        function hideMessage() {
             ui.notificationModal.classList.add('hidden');
         }
 
-        ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+        ui.notificationCloseButton.addEventListener('click', hideMessage);
 
-        // --- Helper Functions ---
-
-        // Function to format date for display
-        function formatDate(dateString) {
-            if (!dateString) return 'N/A';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+        // --- Helper Function for Status Badge Color ---
+        function getStatusBadgeClass(status) {
+            switch (status) {
+                case 'Available': return 'status-available';
+                case 'Rented': return 'status-rented';
+                case 'Under Maintenance': return 'status-maintenance';
+                default: return 'status-other';
+            }
         }
 
-        // Function to calculate days between two dates
-        function getDaysBetween(startDateString, endDateString) {
-            const startDate = new Date(startDateString);
-            const endDate = endDateString ? new Date(endDateString) : new Date(); // Use today's date if end_date is null
-            // Normalize dates to start of day to avoid time component issues
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(0, 0, 0, 0);
+        // --- Data Fetching and Rendering ---
+        async function fetchCarData() {
+            ui.loadingMessage.classList.remove('hidden');
+            ui.errorMessage.classList.add('hidden');
+            ui.noDataMessage.classList.add('hidden');
+            ui.carReportTbody.innerHTML = '';
+            ui.carReportTfoot.innerHTML = '';
 
-            const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-            return diffDays;
-        }
+            let totalCarsPrice = 0;
 
-        // --- Fetch and Render Ongoing Rentals ---
-        async function fetchOngoingRentals() {
-            ui.ongoingRentalsTableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-500">Loading ongoing rentals...</td></tr>';
-
-            const { data, error } = await supabaseClient
-                .from('rent_history')
-                .select(`
-                    *,
-                    cars (
+            try {
+                const { data: cars, error } = await supabaseClient
+                    .from('cars')
+                    .select(`
+                        id,
                         plate_number,
+                        year,
+                        color,
+                        price,
+                        status,
+                        odometer_km,
                         veh_make (make),
                         veh_model (model)
-                    ),
-                    customers (first_name, last_name, phone_number)
-                `)
-                .eq('status', 'Active'); // Filter for active rentals
+                    `);
 
-            if (error) {
-                console.error("Error fetching ongoing rentals:", error);
-                ui.ongoingRentalsTableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-red-500">Error loading report data.</td></tr>';
-                return;
-            }
+                if (error) throw error;
 
-            ui.ongoingRentalsTableBody.innerHTML = ''; // Clear loading message
+                ui.loadingMessage.classList.add('hidden');
 
-            if (data.length === 0) {
-                ui.ongoingRentalsTableBody.innerHTML = '<tr><td colspan="7" class="px-6 py-4 text-center text-gray-600">No ongoing rentals found.</td></tr>';
-                return;
-            }
+                if (cars.length === 0) {
+                    ui.noDataMessage.classList.remove('hidden');
+                    return;
+                }
 
-            data.forEach(rental => {
-                const carInfo = rental.cars || {};
-                const customerInfo = rental.customers || {};
-                const makeInfo = carInfo.veh_make || {};
-                const modelInfo = carInfo.veh_model || {};
+                cars.forEach((car, index) => {
+                    const row = document.createElement('tr');
+                    const makeName = car.veh_make ? car.veh_make.make : 'N/A';
+                    const modelName = car.veh_model ? car.veh_model.model : 'N/A';
+                    const statusClass = getStatusBadgeClass(car.status);
+                    const carPrice = parseFloat(car.price || 0);
 
-                const vehicleDisplay = `${makeInfo.make || 'N/A'} ${modelInfo.model || 'N/A'} (${carInfo.plate_number || 'N/A'})`;
-                const customerDisplay = `${customerInfo.first_name || ''} ${customerInfo.last_name || ''}`.trim() || 'N/A';
-                const customerPhone = customerInfo.phone_number || 'N/A';
+                    totalCarsPrice += carPrice;
 
-                const startDate = formatDate(rental.from_date);
-                const daysToDate = getDaysBetween(rental.from_date, rental.actual_return_date); // actual_return_date will be null for active rentals, so it uses today's date
-                const pricePerDay = parseFloat(rental.rental_price_per_day || 0).toFixed(2);
-                const paidAmount = parseFloat(rental.paid_amount || 0).toFixed(2);
-                const outstandingBalance = parseFloat(rental.total_price || 0) - parseFloat(rental.paid_amount || 0); // Recalculate outstanding balance based on total_price and paid_amount
+                    row.innerHTML = `
+                        <td>${index + 1}</td>
+                        <td>${car.plate_number || 'N/A'}</td>
+                        <td>${makeName}</td>
+                        <td>${modelName}</td>
+                        <td>${car.year || 'N/A'}</td>
+                        <td>${car.color || 'N/A'}</td>
+                        <td>${car.odometer_km !== null ? car.odometer_km.toLocaleString() : 'N/A'}</td>
+                        <td>${carPrice !== null ? `AED ${carPrice.toFixed(2)}` : 'N/A'}</td>
+                        <td><span class="status-badge ${statusClass}">${car.status || 'N/A'}</span></td>
+                    `;
+                    ui.carReportTbody.appendChild(row);
+                });
 
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${vehicleDisplay}
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        ${customerDisplay} <br> <span class="text-xs text-gray-500">${customerPhone}</span>
-                    </td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${startDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${daysToDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">AED ${pricePerDay}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-green-600">AED ${paidAmount}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-red-600">AED ${outstandingBalance.toFixed(2)}</td>
+                const totalRow = document.createElement('tr');
+                totalRow.className = 'total-row';
+                totalRow.innerHTML = `
+                    <td colspan="7" class="text-right">Total Price for All Vehicles:</td>
+                    <td>AED ${totalCarsPrice.toFixed(2)}</td>
+                    <td></td>
                 `;
-                ui.ongoingRentalsTableBody.appendChild(row);
-            });
+                ui.carReportTfoot.appendChild(totalRow);
+
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Error fetching car data:", error);
+                ui.loadingMessage.classList.add('hidden');
+                ui.errorText.textContent = `Error fetching car data: ${error.message}`;
+                ui.errorMessage.classList.remove('hidden');
+            }
         }
 
         // --- Desktop Sidebar Logic ---
@@ -444,7 +494,7 @@
             ui.desktopSidebar.addEventListener('mouseenter', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.remove('collapsed');
-                    ui.mainContent.style.marginLeft = '16rem'; // 64 in tailwind
+                    ui.mainContent.style.marginLeft = '16rem';
                     ui.mainHeader.style.left = '16rem';
                 }
             });
@@ -452,7 +502,7 @@
             ui.desktopSidebar.addEventListener('mouseleave', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.add('collapsed');
-                    ui.mainContent.style.marginLeft = '5rem'; // 20 in tailwind
+                    ui.mainContent.style.marginLeft = '5rem';
                     ui.mainHeader.style.left = '5rem';
                 }
             });
@@ -462,7 +512,6 @@
                 ui.desktopSidebar.classList.remove('collapsed');
                 ui.pinBtn.classList.add('hidden');
                 ui.unpinBtn.classList.remove('hidden');
-                // Ensure layout is correct
                 ui.mainContent.style.marginLeft = '16rem';
                 ui.mainHeader.style.left = '16rem';
             });
@@ -477,12 +526,23 @@
             });
         }
 
-        // Initial fetch when the page loads
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', fetchCarData);
+
+        ui.logoutButtonDesktop.addEventListener('click', async (e) => {
+            e.preventDefault();
+            showMessage("You have been logged out (simulated).", "Logged Out");
+            ui.carReportTbody.innerHTML = '';
+            ui.carReportTfoot.innerHTML = '';
+            ui.lastUpdated.textContent = '...';
+            ui.userEmail.textContent = "admin@foxcarrental.com";
+            ui.userIdDisplay.classList.add('hidden');
+        });
+        
+        // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
             setupDesktopSidebar();
-            fetchOngoingRentals();
-            // Update last updated time
-            ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            fetchCarData();
         });
     </script>
 </body>
