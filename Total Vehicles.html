@@ -288,6 +288,10 @@
                 <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh Data
                 </button>
+                <!-- New Export to Excel Button -->
+                <button id="export-excel" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-file-excel mr-2"></i>Export to Excel
+                </button>
                  <div class="flex items-center space-x-2">
                      <i class="fas fa-user-circle text-2xl text-gray-500"></i>
                      <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
@@ -324,6 +328,7 @@
                             <th>Color</th>
                             <th>Odometer (KM)</th>
                             <th>Price (AED)</th>
+                            <th>Registration Expiry Date</th> <!-- Re-added Column Header -->
                             <th>Status</th>
                         </tr>
                     </thead>
@@ -350,7 +355,9 @@
     <script type="module">
         // --- Supabase Configuration ---
         const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+        // IMPORTANT: Replace 'YOUR_SUPABASE_ANON_KEY' with your actual Supabase Anon Key.
+        // You can find this in your Supabase project settings under API -> Project API keys.
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY'; // Reverted to the key provided in the initial working version
 
         // Supabase Client Import
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
@@ -366,6 +373,7 @@
             noDataMessage: document.getElementById('no-data-message'),
             lastUpdated: document.getElementById('last-updated'),
             refreshButton: document.getElementById('refresh-data'),
+            exportExcelButton: document.getElementById('export-excel'), // New export button
             logoutButtonDesktop: document.getElementById('logout-button-desktop'),
             desktopSidebar: document.getElementById('desktop-sidebar'),
             mainContent: document.getElementById('main-content'),
@@ -429,6 +437,7 @@
                         price,
                         status,
                         odometer_km,
+                        registration_expiry_date,
                         veh_make (make),
                         veh_model (model)
                     `);
@@ -448,6 +457,8 @@
                     const modelName = car.veh_model ? car.veh_model.model : 'N/A';
                     const statusClass = getStatusBadgeClass(car.status);
                     const carPrice = parseFloat(car.price || 0);
+                    // Format registration expiry date
+                    const expiryDate = car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A';
 
                     totalCarsPrice += carPrice;
 
@@ -460,6 +471,7 @@
                         <td>${car.color || 'N/A'}</td>
                         <td>${car.odometer_km !== null ? car.odometer_km.toLocaleString() : 'N/A'}</td>
                         <td>${carPrice !== null ? `AED ${carPrice.toFixed(2)}` : 'N/A'}</td>
+                        <td>${expiryDate}</td> <!-- Display new column -->
                         <td><span class="status-badge ${statusClass}">${car.status || 'N/A'}</span></td>
                     `;
                     ui.carReportTbody.appendChild(row);
@@ -470,7 +482,8 @@
                 totalRow.innerHTML = `
                     <td colspan="7" class="text-right">Total Price for All Vehicles:</td>
                     <td>AED ${totalCarsPrice.toFixed(2)}</td>
-                    <td></td>
+                    <td></td> <!-- Added empty cell for Registration Expiry Date column -->
+                    <td></td> <!-- Added empty cell for Status column -->
                 `;
                 ui.carReportTfoot.appendChild(totalRow);
 
@@ -482,6 +495,47 @@
                 ui.errorText.textContent = `Error fetching car data: ${error.message}`;
                 ui.errorMessage.classList.remove('hidden');
             }
+        }
+
+        // --- Export to Excel (HTML-based .xls) Function ---
+        function exportTableToExcel(filename) {
+            const table = document.getElementById('car-report-table');
+            let html = `
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <style>
+                        table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        th, td {
+                            padding: 8px;
+                            border: 1px solid #ddd;
+                            text-align: left;
+                        }
+                        th {
+                            background-color: #f2f2f2;
+                        }
+                        .status-available { background-color: #D4EDDA; color: #155724; }
+                        .status-rented { background-color: #D6ECF8; color: #0C5460; }
+                        .status-maintenance { background-color: #FFF3CD; color: #856404; }
+                        .status-other { background-color: #E2E3E5; color: #495057; }
+                        .total-row { font-weight: bold; background-color: #e2e8f0; }
+                    </style>
+                </head>
+                <body>
+            `;
+            html += table.outerHTML; // Get the entire table HTML
+            html += `</body></html>`;
+
+            // Create a Blob and download the file
+            const excelFile = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8;' });
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(excelFile);
+            downloadLink.download = filename;
+            downloadLink.click();
+            showMessage("Car report exported successfully to Excel (HTML-based .xls format).", "Export Complete");
         }
 
         // --- Desktop Sidebar Logic ---
@@ -528,6 +582,9 @@
 
         // --- Event Listeners ---
         ui.refreshButton.addEventListener('click', fetchCarData);
+        ui.exportExcelButton.addEventListener('click', () => {
+            exportTableToExcel('car_report.xls'); // Changed filename to .xls
+        });
 
         ui.logoutButtonDesktop.addEventListener('click', async (e) => {
             e.preventDefault();
