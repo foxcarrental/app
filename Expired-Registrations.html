@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Expired Registrations Report - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Custom scrollbar for the sidebar */
+        .sidebar-scroll {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #a8a8a8 #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 6px;
+        }
+
+        /* Custom styles for the background gradient */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors from the image */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+
+        /* Styles for fixed header and sidebar */
+        #main-header {
+            position: fixed;
+            top: 0;
+            left: 5rem; /* Corresponds to collapsed sidebar width */
+            right: 0;
+            z-index: 40;
+            background-color: transparent;
+            box-shadow: none;
+            transition: left 0.3s ease-in-out;
+        }
+        /* Adjust header left position when sidebar expands */
+        body.sidebar-expanded #main-header {
+            left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+
+        #desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+            padding-top: 100px; /* Adjust based on header height */
+            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
+        }
+        /* Adjust main content margin when sidebar expands */
+        body.sidebar-expanded #main-content {
+            margin-left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+        
+        /* Collapsed state for the sidebar */
+        #desktop-sidebar.collapsed {
+            width: 5rem;
+        }
+        
+        #desktop-sidebar.collapsed .nav-text,
+        #desktop-sidebar.collapsed .sidebar-title,
+        #desktop-sidebar.collapsed #logout-text {
+             display: none;
+        }
+
+        #desktop-sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+        }
+        
+        #desktop-sidebar.collapsed .sidebar-pin-controls {
+            justify-content: center;
+        }
+
+        #desktop-sidebar .nav-item i {
+            width: 2rem;
+            text-align: center;
+        }
+
+        /* Table specific styles */
+        .report-table th {
+            background-color: #f8faff;
+            color: #5680E9; /* Blue color for headers */
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            padding: 12px 16px;
+            border-bottom: 2px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .report-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #edf2f7;
+            color: #4a5568;
+            font-size: 0.875rem;
+        }
+
+        .report-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .report-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-align: center;
+        }
+
+        .status-available {
+            background-color: #d1fae5; /* green-100 */
+            color: #065f46; /* green-800 */
+        }
+        .status-rented {
+            background-color: #bfdbfe; /* blue-100 */
+            color: #1e40af; /* blue-800 */
+        }
+        .status-maintenance {
+            background-color: #ffeccf; /* orange-100 */
+            color: #9a3412; /* orange-800 */
+        }
+        .status-expired {
+            background-color: #fee2e2; /* red-100 */
+            color: #991b1b; /* red-800 */
+        }
+        .status-expiring-soon {
+            background-color: #fef3c7; /* yellow-100 */
+            color: #92400e; /* yellow-800 */
+        }
+
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8860D0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-gray-800">
+
+    <!-- Sidebar for Desktop -->
+    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
+        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
+            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
+            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-2">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
+                    </a>
+                </li>
+                <!-- Removed the "Expired Registrations" tab -->
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="pt-4 border-t">
+             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
+                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+             <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Expired Registrations Report</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="export-excel-btn" class="ml-4 bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-file-excel mr-2"></i>Export to Excel
+                </button>
+                 <div class="flex items-center space-x-2">
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                 </div>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
+        </header>
+
+        <!-- Report Content -->
+        <div class="w-full max-w-7xl bg-white p-8 rounded-xl shadow-lg mt-6">
+            <div class="text-center mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">Vehicles with Expired Registrations</h1>
+                <p class="text-gray-500 mt-2">Overview of vehicles whose registrations have expired.</p>
+            </div>
+
+            <!-- Loading Indicator -->
+            <div id="loading-indicator" class="flex justify-center items-center py-8">
+                <div class="loader"></div>
+                <p class="ml-4 text-gray-600">Loading expired registrations...</p>
+            </div>
+
+            <!-- Report Table -->
+            <div id="report-container" class="hidden">
+                <div class="max-h-96 overflow-y-auto border rounded-lg">
+                    <table class="min-w-full divide-y divide-gray-200 report-table">
+                        <thead>
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NO.</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PLATE NUMBER</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">MAKE & MODEL</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">YEAR</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">EXPIRY DATE</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">DAYS REMAINING</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">AVAILABILITY STATUS</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">CUSTOMER NAME</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">PHONE NUMBER</th>
+                            </tr>
+                        </thead>
+                        <tbody id="report-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows will be inserted here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p id="no-data-message" class="text-center text-gray-500 mt-4 hidden">No expired registrations found.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Supabase Configuration ---
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- DOM Elements ---
+        const ui = {
+            // Sidebar and Header elements
+            desktopSidebar: document.getElementById('desktop-sidebar'),
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            pinBtn: document.getElementById('pin-sidebar-btn'),
+            unpinBtn: document.getElementById('unpin-sidebar-btn'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            lastUpdated: document.getElementById('last-updated'),
+            
+            // Report specific elements
+            loadingIndicator: document.getElementById('loading-indicator'),
+            reportContainer: document.getElementById('report-container'),
+            reportTableBody: document.getElementById('report-table-body'),
+            noDataMessage: document.getElementById('no-data-message'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            exportExcelBtn: document.getElementById('export-excel-btn'), // New export button
+        };
+
+        let isSidebarPinned = false; // State for sidebar pinning
+
+        // --- Modal Logic ---
+        function showMessage(message, title = "Notification") {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+        ui.notificationCloseButton.addEventListener('click', () => ui.notificationModal.classList.add('hidden'));
+
+        // --- Data Fetching and Report Rendering ---
+        async function fetchExpiredRegistrations() {
+            ui.loadingIndicator.classList.remove('hidden');
+            ui.reportContainer.classList.add('hidden');
+            ui.noDataMessage.classList.add('hidden');
+            ui.reportTableBody.innerHTML = ''; // Clear previous data
+
+            try {
+                // Fetch all cars with necessary details
+                const { data: cars, error: carsError } = await supabaseClient
+                    .from('cars')
+                    .select('id, plate_number, make_id, model_id, year, registration_expiry_date, status');
+                if (carsError) throw carsError;
+
+                // Fetch vehicle makes and models
+                const { data: makes, error: makesError } = await supabaseClient
+                    .from('veh_make')
+                    .select('id, make');
+                if (makesError) throw makesError;
+                const makeMap = new Map(makes.map(m => [m.id, m.make]));
+
+                const { data: models, error: modelsError } = await supabaseClient
+                    .from('veh_model')
+                    .select('id, model');
+                if (modelsError) throw modelsError;
+                const modelMap = new Map(models.map(m => [m.id, m.model]));
+
+                // Fetch rent history to determine current rentals and customer info
+                const { data: rentHistory, error: rentHistoryError } = await supabaseClient
+                    .from('rent_history')
+                    .select('car_id, customer_id, actual_return_date, end_date'); 
+                if (rentHistoryError) throw rentHistoryError;
+
+                // Fetch customer details
+                const { data: customers, error: customersError } = await supabaseClient
+                    .from('customers')
+                    .select('id, first_name, last_name, phone_number');
+                if (customersError) throw customersError;
+                const customerMap = new Map(customers.map(c => [c.id, c]));
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
+
+                const expiredCars = [];
+
+                cars.forEach(car => {
+                    if (car.registration_expiry_date) {
+                        const expiryDate = new Date(car.registration_expiry_date);
+                        expiryDate.setHours(0, 0, 0, 0); // Normalize expiry date to start of day
+
+                        if (expiryDate < today) {
+                            // This car's registration has expired
+                            const timeDiff = today.getTime() - expiryDate.getTime();
+                            const daysOverdue = Math.ceil(timeDiff / (1000 * 60 * 60 * 24));
+
+                            const makeModel = `${makeMap.get(car.make_id) || 'N/A'} ${modelMap.get(car.model_id) || 'N/A'}`;
+                            
+                            let customerName = 'N/A';
+                            let customerPhone = 'N/A';
+
+                            // Find if the car is currently rented (not returned yet)
+                            const currentRental = rentHistory.find(rental => 
+                                rental.car_id === car.id && !rental.actual_return_date
+                            );
+
+                            if (currentRental) {
+                                const customer = customerMap.get(currentRental.customer_id);
+                                if (customer) {
+                                    customerName = `${customer.first_name} ${customer.last_name}`;
+                                    customerPhone = customer.phone_number;
+                                }
+                            }
+
+                            expiredCars.push({
+                                plate_number: car.plate_number,
+                                make_model: makeModel,
+                                year: car.year,
+                                expiry_date: expiryDate.toLocaleDateString('en-US', { year: 'numeric', month: 'numeric', day: 'numeric' }),
+                                days_remaining_display: `${daysOverdue} days ago`, // Matching image format
+                                availability_status: car.status,
+                                customer_name: customerName,
+                                phone_number: customerPhone
+                            });
+                        }
+                    }
+                });
+
+                renderReportTable(expiredCars);
+
+            } catch (error) {
+                console.error("Error fetching expired registrations:", error);
+                showMessage(`Error loading report: ${error.message}`, "Data Error");
+                ui.noDataMessage.textContent = "Failed to load data.";
+                ui.noDataMessage.classList.remove('hidden');
+            } finally {
+                ui.loadingIndicator.classList.add('hidden');
+                ui.reportContainer.classList.remove('hidden');
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+        }
+
+        function renderReportTable(data) {
+            ui.reportTableBody.innerHTML = ''; // Clear existing rows
+            if (data.length === 0) {
+                ui.noDataMessage.classList.remove('hidden');
+                return;
+            }
+            ui.noDataMessage.classList.add('hidden'); // Hide if data exists
+
+            data.forEach((item, index) => {
+                const row = document.createElement('tr');
+                const statusClass = {
+                    'Available': 'status-available',
+                    'Rented': 'status-rented',
+                    'Under Maintenance': 'status-maintenance'
+                }[item.availability_status] || ''; // Default empty if status not matched
+
+                row.innerHTML = `
+                    <td class="px-4 py-2">${index + 1}</td>
+                    <td class="px-4 py-2">${item.plate_number}</td>
+                    <td class="px-4 py-2">${item.make_model}</td>
+                    <td class="px-4 py-2">${item.year}</td>
+                    <td class="px-4 py-2">${item.expiry_date}</td>
+                    <td class="px-4 py-2 text-red-700 font-semibold">${item.days_remaining_display}</td>
+                    <td class="px-4 py-2">
+                        <span class="status-badge ${statusClass}">
+                            ${item.availability_status}
+                        </span>
+                    </td>
+                    <td class="px-4 py-2">${item.customer_name}</td>
+                    <td class="px-4 py-2">${item.phone_number}</td>
+                `;
+                ui.reportTableBody.appendChild(row);
+            });
+        }
+
+        // --- Export to Excel Function ---
+        function exportTableToExcel() {
+            const table = document.querySelector('.report-table');
+            if (!table) {
+                showMessage("No data table found to export.", "Export Error");
+                return;
+            }
+
+            let csv = [];
+            // Get headers
+            let headers = [];
+            table.querySelectorAll('thead th').forEach(th => {
+                headers.push(`"${th.textContent.trim().replace(/"/g, '""')}"`);
+            });
+            csv.push(headers.join(','));
+
+            // Get rows
+            table.querySelectorAll('tbody tr').forEach(row => {
+                let rowData = [];
+                row.querySelectorAll('td').forEach(td => {
+                    // Handle special cases like status badge text
+                    let cellText = td.textContent.trim();
+                    if (td.querySelector('.status-badge')) {
+                        cellText = td.querySelector('.status-badge').textContent.trim();
+                    }
+                    rowData.push(`"${cellText.replace(/"/g, '""')}"`);
+                });
+                csv.push(rowData.join(','));
+            });
+
+            const csvString = csv.join('\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = 'expired_registrations_report.csv';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            showMessage("Report exported to expired_registrations_report.csv", "Export Successful");
+        }
+
+        // --- Event Listener for Export Button ---
+        ui.exportExcelBtn.addEventListener('click', exportTableToExcel);
+
+
+        // --- Desktop Sidebar Logic (reused from dashboard.html) ---
+        function setupDesktopSidebar() {
+            // Set initial state
+            ui.desktopSidebar.classList.add('collapsed');
+            ui.mainContent.style.marginLeft = '5rem';
+            ui.mainHeader.style.left = '5rem';
+            ui.userEmail.textContent = "admin@foxcarrental.com"; // Placeholder user email
+            ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
+
+            ui.desktopSidebar.addEventListener('mouseenter', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.remove('collapsed');
+                    ui.mainContent.style.marginLeft = '16rem';
+                    ui.mainHeader.style.left = '16rem';
+                }
+            });
+
+            ui.desktopSidebar.addEventListener('mouseleave', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.add('collapsed');
+                    ui.mainContent.style.marginLeft = '5rem';
+                    ui.mainHeader.style.left = '5rem';
+                }
+            });
+
+            ui.pinBtn.addEventListener('click', () => {
+                isSidebarPinned = true;
+                ui.desktopSidebar.classList.remove('collapsed');
+                ui.pinBtn.classList.add('hidden');
+                ui.unpinBtn.classList.remove('hidden');
+                ui.mainContent.style.marginLeft = '16rem';
+                ui.mainHeader.style.left = '16rem';
+            });
+
+            ui.unpinBtn.addEventListener('click', () => {
+                isSidebarPinned = false;
+                ui.desktopSidebar.classList.add('collapsed');
+                ui.unpinBtn.classList.add('hidden');
+                ui.pinBtn.classList.remove('hidden');
+                ui.mainContent.style.marginLeft = '5rem';
+                ui.mainHeader.style.left = '5rem';
+            });
+        }
+        
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDesktopSidebar();
+            fetchExpiredRegistrations(); // Load data when the page loads
+        });
+    </script>
+</body>
+</html>
