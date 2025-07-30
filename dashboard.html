@@ -174,6 +174,8 @@
         .activity-icon.orange { background-color: #FFBF00; } /* A shade of orange for maintenance */
         .activity-icon.purple { background-color: #8860D0; }
         .activity-icon.green { background-color: #10B981; } /* Example for a return */
+        .activity-icon.red { background-color: #EF4444; } /* For fines */
+
 
         .activity-details {
             flex-grow: 1;
@@ -309,7 +311,7 @@
                 </button>
                  <div class="flex items-center space-x-2">
                      <i class="fas fa-user-circle text-2xl text-gray-500"></i>
-                     <span id="user-email" class="text-sm">admin@foxcarrental.com">admin@foxcarrental.com</span>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
                  </div>
                  <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
             </div>
@@ -379,6 +381,28 @@
                 </div>
                 <div class="text-3xl text-yellow-500"><i class="fas fa-exclamation-triangle"></i></div>
             </div>
+            <!-- NEW KPI Card: Unpaid Fines Summary - Updated to link to fines-report.html -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='fines-report.html';">
+                <div>
+                    <p class="text-gray-500">Total Unpaid Fines</p>
+                    <p id="total-unpaid-fines-count" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-red-700"><i class="fas fa-file-invoice-dollar"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='fines-report.html';">
+                <div>
+                    <p class="text-gray-500">Unpaid Fines Amount</p>
+                    <p id="total-unpaid-fines-amount" class="text-4xl font-extrabold text-gray-900">AED 0.00</p>
+                </div>
+                <div class="text-3xl text-red-500"><i class="fas fa-money-bill-wave"></i></div>
+            </div>
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='fines-report.html';">
+                <div>
+                    <p class="text-gray-500">Amount After Discount</p>
+                    <p id="total-unpaid-fines-after-discount" class="text-4xl font-extrabold text-gray-900">AED 0.00</p>
+                </div>
+                <div class="text-3xl text-red-400"><i class="fas fa-tags"></i></div>
+            </div>
         </div>
 
         <!-- New sections: Recent Activity -->
@@ -397,10 +421,10 @@
             <h3 class="text-2xl font-bold text-gray-800 mb-4">Quick Actions</h3>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Added specific classes for gradients -->
-                <div onclick="location.href='add-vehicle.html';" class="quick-action-card add-vehicle flex flex-col items-center justify-center text-center">
-                    <i class="fas fa-plus-circle text-4xl mb-3"></i>
-                    <h4 class="font-bold text-xl">Add New Vehicle</h4>
-                    <p class="text-sm opacity-80">Expand your fleet</p>
+                <div onclick="location.href='insert-update-fines.html';" class="quick-action-card add-vehicle flex flex-col items-center justify-center text-center">
+                    <i class="fas fa-upload text-4xl mb-3"></i>
+                    <h4 class="font-bold text-xl">Upload Fines</h4>
+                    <p class="text-sm opacity-80">Upload PDF for traffic fines</p>
                 </div>
                 <div onclick="location.href='add-customer.html';" class="quick-action-card add-customer flex flex-col items-center justify-center text-center">
                     <i class="fas fa-user-plus text-4xl mb-3"></i>
@@ -445,6 +469,9 @@
             pendingPayments: document.getElementById('pending-payments'),
             expiredRegistrationVehicles: document.getElementById('expired-registration-vehicles'), // New KPI element
             registrationExpiringSoonVehicles: document.getElementById('registration-expiring-soon-vehicles'), // New KPI element
+            totalUnpaidFinesCount: document.getElementById('total-unpaid-fines-count'), // New KPI element
+            totalUnpaidFinesAmount: document.getElementById('total-unpaid-fines-amount'), // New KPI element
+            totalUnpaidFinesAfterDiscount: document.getElementById('total-unpaid-fines-after-discount'), // New KPI element
             lastUpdated: document.getElementById('last-updated'),
             refreshButton: document.getElementById('refresh-data'),
             logoutButtonDesktop: document.getElementById('logout-button-desktop'),
@@ -627,6 +654,38 @@
                     });
                 });
 
+                // Fetch Traffic Fines data for new KPIs and recent activity
+                const { data: trafficFines, error: finesError } = await supabaseClient
+                    .from('traffic_fines')
+                    .select('*');
+
+                if (finesError) throw finesError;
+
+                let totalUnpaidFinesCount = 0;
+                let totalUnpaidFinesAmount = 0;
+                let totalUnpaidFinesAfterDiscount = 0;
+
+                trafficFines.forEach(fine => {
+                    if (fine.fine_status === false) { // Assuming false means unpaid
+                        totalUnpaidFinesCount++;
+                        totalUnpaidFinesAmount += (fine.total_amount || 0);
+                        totalUnpaidFinesAfterDiscount += (fine.amount_after_discount || 0);
+
+                        // Add activity for unpaid fine
+                        recentActivities.push({
+                            type: 'fine',
+                            description: `Unpaid fine ${fine.fine_number} for plate ${fine.plate_number}`,
+                            timestamp: fine.fine_date, // Using fine_date as timestamp
+                            iconClass: 'red'
+                        });
+                    }
+                });
+
+                ui.totalUnpaidFinesCount.textContent = totalUnpaidFinesCount;
+                ui.totalUnpaidFinesAmount.textContent = `AED ${totalUnpaidFinesAmount.toFixed(2)}`;
+                ui.totalUnpaidFinesAfterDiscount.textContent = `AED ${totalUnpaidFinesAfterDiscount.toFixed(2)}`;
+
+
                 // Sort activities by timestamp in descending order
                 recentActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
 
@@ -706,6 +765,22 @@
             });
         }
 
+        // --- Authentication Check ---
+        function checkAuthentication() {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (!session) {
+                    window.location.href = 'login.html'; // Redirect to login page
+                } else {
+                    // If session exists, fetch and render dashboard data
+                    fetchDashboardData();
+                }
+            }).catch(error => {
+                console.error("Error checking session:", error);
+                // Even if session fails, try to load data, but log the error
+                fetchDashboardData();
+            });
+        }
+
         // --- Event Listeners ---
         ui.refreshButton.addEventListener('click', fetchDashboardData); // Re-run fetch on refresh
 
@@ -720,8 +795,11 @@
             ui.availableVehicles.textContent = '0';
             ui.rentedVehicles.textContent = '0';
             ui.maintenanceVehicles.textContent = '0';
-            ui.expiredRegistrationVehicles.textContent = '0'; // Clear new KPI
-            ui.registrationExpiringSoonVehicles.textContent = '0'; // Clear new KPI
+            ui.expiredRegistrationVehicles.textContent = '0';
+            ui.registrationExpiringSoonVehicles.textContent = '0';
+            ui.totalUnpaidFinesCount.textContent = '0'; // Clear new KPI
+            ui.totalUnpaidFinesAmount.textContent = 'AED 0.00'; // Clear new KPI
+            ui.totalUnpaidFinesAfterDiscount.textContent = 'AED 0.00'; // Clear new KPI
             ui.totalCustomers.textContent = '0';
             ui.pendingPayments.textContent = 'AED 0.00';
             ui.lastUpdated.textContent = '...';
@@ -733,19 +811,7 @@
         // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
             setupDesktopSidebar(); // Always set up desktop sidebar as mobile view is removed
-            // Redirect if not logged in
-            supabaseClient.auth.getSession().then(({ data: { session } }) => {
-                if (!session) {
-                    window.location.href = 'login.html'; // Redirect to login page
-                } else {
-                    // If session exists, fetch and render dashboard data
-                    fetchDashboardData();
-                }
-            }).catch(error => {
-                console.error("Error checking session:", error);
-                // Even if session fails, try to load data, but log the error
-                fetchDashboardData();
-            });
+            checkAuthentication(); // Perform authentication check on load
         });
     </script>
 </body>
