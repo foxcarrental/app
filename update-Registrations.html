@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Registration Updater</title>
+    <!-- Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- SheetJS for Excel file parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6;
+            display: flex;
+            flex-direction: row;
+            min-height: 100vh;
+            color: #1f2937; /* Tailwind gray-800 */
+        }
+        
+        /* Custom styles for fixed header and sidebar */
+        #main-header {
+            position: fixed;
+            top: 0;
+            left: 5rem; /* Corresponds to collapsed sidebar width */
+            right: 0;
+            z-index: 40;
+            background-color: #ffffff;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            transition: left 0.3s ease-in-out;
+            padding: 1rem;
+        }
+
+        /* Adjust header left position when sidebar expands */
+        body.sidebar-expanded #main-header {
+            left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+
+        #desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+            padding-top: 100px; /* Adjust based on header height */
+            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
+        }
+
+        /* Adjust main content margin when sidebar expands */
+        body.sidebar-expanded #main-content {
+            margin-left: 16rem; /* Corresponds to expanded sidebar width */
+        }
+        
+        /* Collapsed state for the sidebar */
+        #desktop-sidebar.collapsed {
+            width: 5rem;
+        }
+        
+        #desktop-sidebar.collapsed .nav-text,
+        #desktop-sidebar.collapsed .sidebar-title,
+        #desktop-sidebar.collapsed #logout-text {
+             display: none;
+        }
+
+        #desktop-sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+        }
+        
+        #desktop-sidebar.collapsed .sidebar-pin-controls {
+            justify-content: center;
+        }
+
+        #desktop-sidebar .nav-item i {
+            width: 2rem; /* Ensure icons align */
+            text-align: center;
+        }
+        
+        /* Styles for scrollable sidebar */
+        .sidebar-scroll {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #a8a8a8 #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 6px;
+        }
+
+        /* Form styles */
+        .container {
+            max-width: 800px;
+        }
+        .drop-zone {
+            border: 2px dashed #d1d5db;
+            background-color: #f9fafb;
+            transition: all 0.2s ease-in-out;
+        }
+        .drop-zone.dragover {
+            background-color: #e5e7eb;
+            border-color: #9ca3af;
+        }
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4f46e5;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+
+    <!-- Sidebar for Desktop -->
+    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
+        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
+            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
+            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <!-- Navigation items with full list -->
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <!-- This is the active link for the current page -->
+                    <a href="vehicle-registration.html" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
+                        <i class="fas fa-id-card mr-3"></i> <span class="nav-text">Vehicle Registration</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="pt-4 border-t">
+             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
+                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Header to show layout changes -->
+    <header id="main-header" class="flex items-center justify-between">
+        <h2 class="text-2xl font-bold text-gray-800">Vehicle Registration Updater</h2>
+    </header>
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-8 overflow-y-auto">
+        <!-- Main Application Container -->
+        <div class="container bg-white p-8 rounded-xl shadow-lg w-full mx-auto">
+            <h1 class="text-3xl font-bold text-center text-gray-800 mb-2">Vehicle Registration Updater</h1>
+            <p class="text-center text-gray-500 mb-6">Upload an Excel file to sync vehicle registration expiry dates with your database.</p>
+            
+            <!-- File Upload Area -->
+            <form id="upload-form">
+                <div id="drop-zone" class="drop-zone rounded-lg p-6 text-center cursor-pointer mb-4">
+                    <i class="fas fa-file-upload text-4xl text-gray-400 mb-3"></i>
+                    <p class="text-gray-600 font-medium">Drag & drop your Excel file here, or click to select.</p>
+                    <input type="file" id="excel-file" class="hidden" accept=".xls,.xlsx">
+                </div>
+                <p id="file-name-display" class="text-sm text-gray-500 text-center mb-4"></p>
+                <button type="submit" id="process-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 disabled:bg-indigo-400" disabled>
+                    <i class="fas fa-sync-alt mr-2"></i>
+                    Process File and Update Database
+                </button>
+            </form>
+
+            <!-- Status & Results Container -->
+            <div id="status-container" class="mt-6 hidden">
+                <div id="processing-indicator" class="flex items-center justify-center space-x-2 p-4 bg-indigo-50 rounded-lg">
+                    <div class="loader"></div>
+                    <p id="processing-text" class="text-indigo-700 font-semibold">Processing file...</p>
+                </div>
+            </div>
+
+            <!-- Extracted Data Preview -->
+            <div id="data-preview" class="mt-6 hidden">
+                <h2 class="text-xl font-bold text-gray-800 mb-3">File Data Preview (starting from A1)</h2>
+                <div class="max-h-80 overflow-y-auto border border-gray-200 rounded-lg shadow-inner">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr id="preview-header-row"></tr>
+                        </thead>
+                        <tbody id="preview-table-body" class="bg-white divide-y divide-gray-200"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md">
+            <h3 id="notification-title" class="text-2xl font-bold text-gray-800 mb-4"></h3>
+            <div id="notification-content" class="text-gray-700 mb-6 max-h-96 overflow-y-auto"></div>
+            <button id="notification-close-button" class="w-full bg-indigo-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-700">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- CONFIGURATION: EDIT THESE VARIABLES TO MATCH YOUR EXCEL FILE ---
+        const PLATE_NUMBER_HEADER = 'PlateNo'.trim().toLowerCase();
+        const EXPIRY_DATE_HEADER = 'RegistrationExpiryDate'.trim().toLowerCase();
+
+        // --- Supabase Configuration ---
+        // NOTE: The URL and Key are placeholders.
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+        // Supabase Client Import
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- DOM Elements ---
+        const ui = {
+            dropZone: document.getElementById('drop-zone'),
+            fileInput: document.getElementById('excel-file'),
+            fileNameDisplay: document.getElementById('file-name-display'),
+            processButton: document.getElementById('process-button'),
+            statusContainer: document.getElementById('status-container'),
+            processingText: document.getElementById('processing-text'),
+            dataPreview: document.getElementById('data-preview'),
+            previewHeaderRow: document.getElementById('preview-header-row'),
+            previewTableBody: document.getElementById('preview-table-body'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationContent: document.getElementById('notification-content'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            desktopSidebar: document.getElementById('desktop-sidebar'),
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            pinBtn: document.getElementById('pin-sidebar-btn'),
+            unpinBtn: document.getElementById('unpin-sidebar-btn'),
+        };
+
+        let selectedFile = null;
+        let isSidebarPinned = false;
+
+        // --- Utility Functions ---
+        function showMessage(title, content) {
+            ui.notificationTitle.textContent = title;
+            ui.notificationContent.innerHTML = content;
+            ui.notificationModal.classList.remove('hidden');
+        }
+        ui.notificationCloseButton.addEventListener('click', () => ui.notificationModal.classList.add('hidden'));
+
+        // Helper to normalize strings for comparison, now handles non-string types robustly
+        function normalizeString(str) {
+            return (str === null || str === undefined) ? '' : String(str).trim().toUpperCase();
+        }
+
+        // Helper to normalize dates to YYYY-MM-DD format
+        function normalizeDate(date) {
+            if (typeof date === 'number') {
+                const excelEpoch = new Date(Date.UTC(1900, 0, 1));
+                const daysInMs = (date - 1) * 24 * 60 * 60 * 1000;
+                const newDate = new Date(excelEpoch.getTime() + daysInMs);
+                
+                if (date > 60) { 
+                    newDate.setTime(newDate.getTime() - (24 * 60 * 60 * 1000));
+                }
+                return newDate.toISOString().split('T')[0];
+            }
+            if (date instanceof Date) {
+                return date.toISOString().split('T')[0];
+            } else if (typeof date === 'string') {
+                try {
+                    const parts = date.split('-');
+                    if (parts.length === 3) {
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                    }
+                    const d = new Date(date);
+                    if (!isNaN(d.getTime())) {
+                        return d.toISOString().split('T')[0];
+                    }
+                } catch (e) {
+                    console.error("Could not parse date:", date, e);
+                    return date;
+                }
+            }
+            return date;
+        }
+
+        // --- Drag and Drop & File Select Logic ---
+        ui.dropZone.addEventListener('click', () => ui.fileInput.click());
+        ui.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); ui.dropZone.classList.add('dragover'); });
+        ui.dropZone.addEventListener('dragleave', () => ui.dropZone.classList.remove('dragover'));
+        ui.dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            ui.dropZone.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFileSelect(files[0]);
+            }
+        });
+        ui.fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFileSelect(e.target.files[0]);
+            }
+        });
+
+        function handleFileSelect(file) {
+            if (file.type === "application/vnd.ms-excel" || file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet") {
+                selectedFile = file;
+                ui.fileNameDisplay.textContent = `Selected file: ${file.name}`;
+                ui.processButton.disabled = false;
+                previewExcelData(file);
+            } else {
+                showMessage("Invalid File Type", "Please upload a valid Excel file (.xls or .xlsx).");
+                selectedFile = null;
+                ui.fileNameDisplay.textContent = "";
+                ui.processButton.disabled = true;
+            }
+        }
+
+        async function previewExcelData(file) {
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                ui.previewHeaderRow.innerHTML = '';
+                ui.previewTableBody.innerHTML = '';
+                ui.dataPreview.classList.add('hidden');
+
+                if (excelData.length > 0) {
+                    const headers = excelData[0]; 
+                    const rows = excelData.slice(1); 
+                    
+                    const trimmedHeaders = headers.map(h => normalizeString(h));
+                    
+                    const requiredHeadersPresent = trimmedHeaders.includes(normalizeString(PLATE_NUMBER_HEADER)) && trimmedHeaders.includes(normalizeString(EXPIRY_DATE_HEADER));
+                    
+                    if (!requiredHeadersPresent) {
+                         const foundHeadersString = headers.filter(h => h).join(', ');
+                         showMessage("Missing Headers", `The Excel file must contain '${PLATE_NUMBER_HEADER}' and '${EXPIRY_DATE_HEADER}' in the header row (cell A1). The headers we found are: ${foundHeadersString}`);
+                         ui.processButton.disabled = true;
+                         return;
+                    }
+
+                    headers.forEach(header => {
+                        const th = document.createElement('th');
+                        th.textContent = header;
+                        th.className = "px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider";
+                        ui.previewHeaderRow.appendChild(th);
+                    });
+
+                    rows.slice(0, 10).forEach(row => {
+                        const tr = document.createElement('tr');
+                        row.forEach(cell => {
+                            const td = document.createElement('td');
+                            td.textContent = cell;
+                            td.className = "px-4 py-2 whitespace-nowrap text-sm text-gray-700";
+                            tr.appendChild(td);
+                        });
+                        ui.previewTableBody.appendChild(tr);
+                    });
+
+                    ui.dataPreview.classList.remove('hidden');
+                } else {
+                     showMessage("Empty or Invalid File", "The Excel file is empty or does not contain data starting from row 1.");
+                     ui.processButton.disabled = true;
+                }
+            } catch (error) {
+                console.error("Error previewing file:", error);
+                showMessage("Error Previewing File", "Could not read the Excel file. Please ensure it is not corrupt.");
+                ui.processButton.disabled = true;
+            }
+        }
+
+        // --- Main Form Submission Logic ---
+        ui.processButton.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (!selectedFile) {
+                showMessage("No File Selected", "Please select an Excel file to begin.");
+                return;
+            }
+
+            ui.processButton.disabled = true;
+            ui.statusContainer.classList.remove('hidden');
+            ui.processingText.textContent = 'Reading and parsing Excel file...';
+
+            try {
+                const data = await selectedFile.arrayBuffer();
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                if (excelData.length < 2) {
+                    throw new Error("File is too short. Expected headers in row 1 and data from row 2.");
+                }
+
+                const headers = excelData[0];
+                const trimmedHeaders = headers.map(h => normalizeString(h));
+                const rows = excelData.slice(1);
+
+                const plateNoHeaderIndex = trimmedHeaders.indexOf(normalizeString(PLATE_NUMBER_HEADER));
+                const expiryDateHeaderIndex = trimmedHeaders.indexOf(normalizeString(EXPIRY_DATE_HEADER));
+
+                if (plateNoHeaderIndex === -1 || expiryDateHeaderIndex === -1) {
+                    const foundHeadersString = headers.filter(h => h).join(', ');
+                    throw new Error(`Missing expected headers. Please ensure your file has '${PLATE_NUMBER_HEADER}' and '${EXPIRY_DATE_HEADER}' in cell A1. Headers found: ${foundHeadersString}`);
+                }
+
+                ui.processingText.textContent = 'Fetching existing vehicle data...';
+                const { data: dbCars, error: dbError } = await supabaseClient
+                    .from('cars')
+                    .select('plate_number, registration_expiry_date');
+
+                if (dbError) throw dbError;
+
+                const dbCarsMap = new Map(dbCars.map(car => [normalizeString(car.plate_number), car]));
+                const dbPlateNumbers = new Set(dbCarsMap.keys());
+                
+                const vehiclesToUpdate = [];
+                const vehiclesToInsert = [];
+                const vehiclesWithSameDate = [];
+                const excelPlateNumbers = new Set();
+                
+                ui.processingText.textContent = 'Comparing and preparing updates...';
+                for (const row of rows) {
+                    const excelPlate = row[plateNoHeaderIndex];
+                    const excelExpiry = row[expiryDateHeaderIndex];
+                    
+                    if (!excelPlate || !excelExpiry) continue;
+                    
+                    const normalizedExcelPlate = normalizeString(excelPlate);
+                    const normalizedExcelExpiry = normalizeDate(excelExpiry);
+
+                    excelPlateNumbers.add(normalizedExcelPlate);
+
+                    if (dbCarsMap.has(normalizedExcelPlate)) {
+                        const dbCar = dbCarsMap.get(normalizedExcelPlate);
+                        const normalizedDbExpiry = normalizeDate(dbCar.registration_expiry_date);
+
+                        if (normalizedExcelExpiry !== normalizedDbExpiry) {
+                            vehiclesToUpdate.push({
+                                plate_number: excelPlate,
+                                registration_expiry_date: normalizedExcelExpiry
+                            });
+                        } else {
+                            vehiclesWithSameDate.push(excelPlate);
+                        }
+                    } else {
+                        vehiclesToInsert.push(excelPlate);
+                    }
+                }
+                
+                const vehiclesToCancel = dbCars.filter(dbCar => !excelPlateNumbers.has(normalizeString(dbCar.plate_number))).map(car => car.plate_number);
+
+                ui.processingText.textContent = 'Updating database records...';
+                const updatePromises = vehiclesToUpdate.map(async car => {
+                    const { error } = await supabaseClient
+                        .from('cars')
+                        .update({ registration_expiry_date: car.registration_expiry_date })
+                        .eq('plate_number', car.plate_number);
+                    if (error) {
+                        console.error(`Failed to update car ${car.plate_number}:`, error);
+                    }
+                });
+
+                await Promise.all(updatePromises);
+                
+                let messageContent = `<p class="mb-4">The process is complete. Here is a summary of the results:</p>`;
+                
+                messageContent += `<h4 class="font-bold text-lg text-green-700 mb-2">Updates Completed:</h4>`;
+                if (vehiclesToUpdate.length > 0) {
+                    messageContent += `<p>${vehiclesToUpdate.length} record(s) were successfully updated with new registration expiry dates.</p>`;
+                } else {
+                    messageContent += `<p class="text-gray-500">No records required an update because the dates were already a match.</p>`;
+                }
+                 
+                messageContent += `<h4 class="font-bold text-lg text-yellow-500 mt-4 mb-2">Matching Records with Same Date:</h4>`;
+                if (vehiclesWithSameDate.length > 0) {
+                    messageContent += `<p>${vehiclesWithSameDate.length} record(s) were found in both the Excel file and the database, but their expiry dates were identical.</p>`;
+                } else {
+                    messageContent += `<p class="text-gray-500">No matching records had the same expiry date.</p>`;
+                }
+
+                messageContent += `<h4 class="font-bold text-lg text-blue-700 mt-4 mb-2">Plates to Insert:</h4>`;
+                if (vehiclesToInsert.length > 0) {
+                    messageContent += `<p>${vehiclesToInsert.length} new car(s) were found in the Excel file but not in the database. You may need to insert them manually:</p>`;
+                    messageContent += `<ul class="list-disc list-inside mt-2 space-y-1">`;
+                    vehiclesToInsert.forEach(plate => {
+                        messageContent += `<li>${plate}</li>`;
+                    });
+                    messageContent += `</ul>`;
+                } else {
+                    messageContent += `<p class="text-gray-500">All cars in the Excel file were found in the database.</p>`;
+                }
+
+                messageContent += `<h4 class="font-bold text-lg text-red-700 mt-4 mb-2">Plates to Cancel:</h4>`;
+                if (vehiclesToCancel.length > 0) {
+                    messageContent += `<p>${vehiclesToCancel.length} car(s) were found in the database but not in the Excel file. They may need to be canceled:</p>`;
+                    messageContent += `<ul class="list-disc list-inside mt-2 space-y-1">`;
+                    vehiclesToCancel.forEach(plate => {
+                        messageContent += `<li>${plate}</li>`;
+                    });
+                    messageContent += `</ul>`;
+                } else {
+                    messageContent += `<p class="text-gray-500">All cars in the database were found in the Excel file.</p>`;
+                }
+                
+                showMessage("Update Complete", messageContent);
+
+            } catch (error) {
+                console.error("An error occurred:", error);
+                showMessage("Processing Error", `<p>An error occurred during processing: ${error.message}</p>`);
+            } finally {
+                ui.processButton.disabled = false;
+                ui.statusContainer.classList.add('hidden');
+                selectedFile = null;
+                ui.fileInput.value = '';
+                ui.fileNameDisplay.textContent = '';
+                ui.dataPreview.classList.add('hidden');
+            }
+        });
+
+
+        // --- Desktop Sidebar Logic ---
+        function setupDesktopSidebar() {
+            // Set initial state
+            ui.desktopSidebar.classList.add('collapsed');
+            document.body.classList.remove('sidebar-expanded');
+
+            // Handle hover to expand
+            ui.desktopSidebar.addEventListener('mouseenter', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.remove('collapsed');
+                    document.body.classList.add('sidebar-expanded');
+                }
+            });
+
+            // Handle hover to collapse
+            ui.desktopSidebar.addEventListener('mouseleave', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.add('collapsed');
+                    document.body.classList.remove('sidebar-expanded');
+                }
+            });
+
+            // Handle pin button click
+            ui.pinBtn.addEventListener('click', () => {
+                isSidebarPinned = true;
+                ui.desktopSidebar.classList.remove('collapsed');
+                ui.pinBtn.classList.add('hidden');
+                ui.unpinBtn.classList.remove('hidden');
+                document.body.classList.add('sidebar-expanded');
+            });
+
+            // Handle unpin button click
+            ui.unpinBtn.addEventListener('click', () => {
+                isSidebarPinned = false;
+                ui.desktopSidebar.classList.add('collapsed');
+                ui.unpinBtn.classList.add('hidden');
+                ui.pinBtn.classList.remove('hidden');
+                document.body.classList.remove('sidebar-expanded');
+            });
+        }
+
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDesktopSidebar();
+        });
+    </script>
+</body>
+</html>

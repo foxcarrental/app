@@ -1181,10 +1181,14 @@
             let rentedDays = 0;
 
             if (fromDate && endDate) {
-                const start = new Date(fromDate);
-                const end = new Date(endDate);
-                const diffTime = Math.abs(end - start);
-                rentedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                if (fromDate === endDate) {
+                    rentedDays = 1;
+                } else {
+                    const start = new Date(fromDate);
+                    const end = new Date(endDate);
+                    const diffTime = Math.abs(end - start);
+                    rentedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                }
             }
             rentRentedDaysInput.value = rentedDays;
 
