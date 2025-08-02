@@ -34,13 +34,15 @@
             border-radius: 6px;
         }
 
-        /* Set a neutral background for the body */
+        /* Custom styles for the background gradient */
         body {
             font-family: 'Inter', sans-serif;
-            background-color: #f0f2f5; /* A light gray background */
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
         }
 
-        /* Keyframes for the gradient animation */
         @keyframes gradientAnimation {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -66,23 +68,23 @@
         .border-custom-light-purple { border-color: #C1C8E4; }
         .border-custom-purple { border-color: #8860D0; }
 
-        /* Styles for fixed header */
+        /* New styles for fixed header and sidebar */
         #main-header {
             position: fixed;
             top: 0;
+            /* Set initial left to match collapsed sidebar margin */
             left: 5rem; /* Corresponds to collapsed sidebar width */
             right: 0;
-            z-index: 40;
-            background-color: transparent;
-            box-shadow: none;
-            transition: left 0.3s ease-in-out;
+            z-index: 40; /* Below sidebar overlay */
+            background-color: transparent; /* Made transparent */
+            box-shadow: none; /* Removed shadow */
+            transition: left 0.3s ease-in-out; /* Add transition for smooth movement */
         }
-        
+        /* Adjust header left position when sidebar expands */
         body.sidebar-expanded #main-header {
             left: 16rem; /* Corresponds to expanded sidebar width */
         }
 
-        /* Styles for fixed sidebar */
         #desktop-sidebar {
             position: fixed;
             top: 0;
@@ -90,40 +92,24 @@
             height: 100vh;
             z-index: 50;
             transition: width 0.3s ease-in-out;
+            /* Ensure it's always displayed as a flex column for desktop */
             display: flex;
             flex-direction: column;
         }
-        
-        /* Main content area styling */
+
         #main-content {
             transition: margin-left 0.3s ease-in-out;
-            padding-top: 100px; 
-            margin-left: 5rem; 
-            position: relative; /* Crucial for positioning the background pseudo-element */
-            z-index: 1; /* Establish a stacking context */
+            padding-top: 100px; /* Adjust based on header height */
+            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
         }
-
-        /* Animated gradient background applied to the main content area via a pseudo-element */
-        #main-content::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -1; /* Places the gradient behind the content */
-            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
-            background-size: 400% 400%;
-            animation: gradientAnimation 15s ease infinite;
-        }
-
+        /* Adjust main content margin when sidebar expands */
         body.sidebar-expanded #main-content {
-            margin-left: 16rem; 
+            margin-left: 16rem; /* Corresponds to expanded sidebar width */
         }
         
         /* Collapsed state for the sidebar */
         #desktop-sidebar.collapsed {
-            width: 5rem; 
+            width: 5rem; /* Width when collapsed */
         }
         
         #desktop-sidebar.collapsed .nav-text,
@@ -141,7 +127,7 @@
         }
 
         #desktop-sidebar .nav-item i {
-            width: 2rem; 
+            width: 2rem; /* Ensure icons align */
             text-align: center;
         }
     </style>
@@ -251,15 +237,15 @@
         <!-- Top Nav for Desktop -->
         <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
              <div class="flex items-center">
-                <h2 class="text-2xl font-bold text-white">Rent History</h2>
+                <h2 class="text-2xl font-bold text-gray-800">Rent History</h2>
             </div>
             <div class="flex items-center space-x-4">
-                <span class="text-sm text-gray-200">Last updated: <span id="last-updated">...</span></span>
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
                  <div class="flex items-center space-x-2">
-                     <i class="fas fa-user-circle text-2xl text-gray-200"></i>
-                     <span id="user-email" class="text-sm text-white">admin@foxcarrental.com</span>
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
                  </div>
-                 <span id="user-id-display" class="text-sm text-gray-200 hidden"></span>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
             </div>
         </header>
 
@@ -373,7 +359,7 @@
                 </div>
                 <div>
                     <label for="rented_days" class="block text-sm font-medium text-gray-700">Rented Days</label>
-                    <input type="number" id="rented_days" name="rented_days" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                    <input type="number" id="rented_days" name="rented_days" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" readonly>
                 </div>
                 <div>
                     <label for="initial_odometer_km" class="block text-sm font-medium text-gray-700">Initial Odometer (KM)</label>
@@ -389,7 +375,7 @@
                 </div>
                 <div>
                     <label for="total_price" class="block text-sm font-medium text-gray-700">Total Price (AED)</label>
-                    <input type="number" id="total_price" name="total_price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                    <input type="number" id="total_price" name="total_price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" readonly>
                 </div>
                 <div>
                     <label for="paid_amount" class="block text-sm font-medium text-gray-700">Paid Amount (AED)</label>
@@ -397,7 +383,7 @@
                 </div>
                 <div>
                     <label for="balance" class="block text-sm font-medium text-gray-700">Balance (AED)</label>
-                    <input type="number" id="balance" name="balance" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                    <input type="number" id="balance" name="balance" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" readonly>
                 </div>
                 <div>
                     <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
@@ -415,14 +401,9 @@
                         <option value="Cancelled">Cancelled</option>
                     </select>
                 </div>
-                <div class="flex items-end space-x-2">
-                    <div class="flex-grow">
-                        <label for="traffic_fines" class="block text-sm font-medium text-gray-700">Traffic Fines (AED)</label>
-                        <input type="number" id="traffic_fines" name="traffic_fines" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
-                    </div>
-                    <button type="button" id="show-fines-btn" class="px-3 py-2 rounded-lg bg-custom-cyan text-white hover:bg-custom-cyan/80 transition-colors duration-200">
-                        <i class="fas fa-list-alt mr-1"></i> Show Fines
-                    </button>
+                <div>
+                    <label for="traffic_fines" class="block text-sm font-medium text-gray-700">Traffic Fines (AED)</label>
+                    <input type="number" id="traffic_fines" name="traffic_fines" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
                 </div>
                 <div>
                     <label for="car_repair" class="block text-sm font-medium text-gray-700">Car Repair Cost (AED)</label>
@@ -437,19 +418,6 @@
                     <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Save Record</button>
                 </div>
             </form>
-        </div>
-    </div>
-
-    <!-- New: Fines Details Modal -->
-    <div id="fines-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-2xl">
-            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Traffic Fines Details</h3>
-            <div id="fines-list-container" class="max-h-96 overflow-y-auto">
-                <!-- Fines table will be inserted here -->
-            </div>
-            <div class="flex justify-end mt-6">
-                <button type="button" id="close-fines-modal-btn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Close</button>
-            </div>
         </div>
     </div>
 
@@ -539,7 +507,6 @@
                 trafficFinesLabel: 'Traffic Fines',
                 carRepairLabel: 'Car Repair',
                 daysNotInAgreementLabel: 'Days Not in Agreement', // Added new translation
-                totalFinesLabel: 'Total Fines', // New translation
 
                 // Disclaimer Section
                 disclaimerTitle: 'DISCLAIMER',
@@ -670,12 +637,7 @@
             confirmationModal: document.getElementById('confirmation-modal'),
             confirmationMessage: document.getElementById('confirmation-message'),
             cancelConfirmButton: document.getElementById('cancel-confirm-button'),
-            confirmActionButton: document.getElementById('confirm-action-button'),
-            // New UI elements for fines modal
-            showFinesBtn: document.getElementById('show-fines-btn'),
-            finesDetailsModal: document.getElementById('fines-details-modal'),
-            finesListContainer: document.getElementById('fines-list-container'),
-            closeFinesModalBtn: document.getElementById('close-fines-modal-btn')
+            confirmActionButton: document.getElementById('confirm-action-button')
         };
 
 
@@ -691,7 +653,6 @@
         // Global variables
         let allRentHistoryData = [];
         let activeRentHistoryViewData = []; // To store data from active_rent_history_view
-        let allTrafficFines = []; // New: To store all traffic fines
         let allCarsData = []; // To store all vehicles for dropdown
         let allCustomersData = []; // To store all customers for dropdown
         let currentEditRecordId = null; // To store the ID of the record being edited
@@ -842,24 +803,6 @@
 
 
         // --- Calculation Logic for Rented Days, Total Price, Balance ---
-        // New function to manage rental status based on return date
-        function updateRentalStatusBasedOnReturnDate() {
-            const rentalStatusOptions = ui.rentalStatusSelect.options;
-            const hasReturnDate = !!ui.actualReturnDateInput.value;
-
-            if (hasReturnDate) {
-                ui.rentalStatusSelect.value = 'Completed';
-                for (let i = 0; i < rentalStatusOptions.length; i++) {
-                    rentalStatusOptions[i].disabled = rentalStatusOptions[i].value !== 'Completed';
-                }
-            } else {
-                // If no return date, re-enable all options
-                for (let i = 0; i < rentalStatusOptions.length; i++) {
-                    rentalStatusOptions[i].disabled = false;
-                }
-            }
-        }
-        
         function calculateRentedDays() {
             const fromDateStr = ui.fromDateInput.value;
             const endDateStr = ui.endDateInput.value;
@@ -907,21 +850,12 @@
             const calculatedBalance = calculatedTotalPrice - paidAmount;
             ui.balanceInput.value = calculatedBalance.toFixed(2);
 
-            const paidOption = ui.paymentStatusSelect.querySelector('option[value="Paid"]');
-
-            // 1. Manage the disabled state of the 'Paid' option
-            if (calculatedBalance > 0) {
-                paidOption.disabled = true;
-            } else {
-                paidOption.disabled = false;
-            }
-
-            // 2. Set the select value based on the new balance, respecting the disabled state
+            // Update payment status based on balance
             if (calculatedBalance <= 0) {
                 ui.paymentStatusSelect.value = 'Paid';
-            } else if (paidAmount > 0) { // balance > 0 and some payment was made
+            } else if (paidAmount > 0 && calculatedBalance > 0) {
                 ui.paymentStatusSelect.value = 'Partially Paid';
-            } else { // balance > 0 and no payment was made
+            } else {
                 ui.paymentStatusSelect.value = 'Unpaid';
             }
         }
@@ -929,16 +863,10 @@
         // Add event listeners for calculations
         ui.fromDateInput.addEventListener('change', calculateRentedDays);
         ui.endDateInput.addEventListener('change', calculateRentedDays);
-        
-        // New listener for actual return date to update status and rented days
-        ui.actualReturnDateInput.addEventListener('change', () => {
-            calculateRentedDays();
-            updateRentalStatusBasedOnReturnDate();
-        });
-
+        ui.actualReturnDateInput.addEventListener('change', calculateRentedDays); // New listener
         ui.rentalPricePerDayInput.addEventListener('input', calculateTotalPriceAndBalance);
         ui.paidAmountInput.addEventListener('input', calculateTotalPriceAndBalance);
-        // trafficFinesInput is now readonly, so no need for an input listener
+        ui.trafficFinesInput.addEventListener('input', calculateTotalPriceAndBalance);
         ui.carRepairInput.addEventListener('input', calculateTotalPriceAndBalance);
 
 
@@ -1015,41 +943,6 @@
                     }
                 }
 
-                // **CORRECTED: Calculate Total Fines for the rental period**
-                const carPlateNumber = carInfo.plate_number;
-                let totalFinesForPeriod = 0;
-
-                if (carPlateNumber && allTrafficFines.length > 0) {
-                    // Get the start date of the rental. It's a timestamp with timezone.
-                    const rentalStart = new Date(rental.from_date);
-                    // Set to the beginning of that day in UTC.
-                    rentalStart.setUTCHours(0, 0, 0, 0);
-
-                    // Determine the end date. Use actual return date if available, otherwise today.
-                    const rentalEnd = rental.actual_return_date ? new Date(rental.actual_return_date) : new Date();
-                    // Set to the end of that day in UTC.
-                    rentalEnd.setUTCHours(23, 59, 59, 999);
-
-                    const relevantFines = allTrafficFines.filter(fine => {
-                        // Ensure the fine has the necessary data
-                        if (fine.plate_number !== carPlateNumber || !fine.fine_date) {
-                            return false;
-                        }
-
-                        // The fine_date is a 'date' type, so it comes as 'YYYY-MM-DD'.
-                        // new Date('YYYY-MM-DD') creates a date at midnight UTC. This is what we want.
-                        const fineDate = new Date(fine.fine_date);
-
-                        // Compare the timestamps.
-                        return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
-                    });
-
-                    if (relevantFines.length > 0) {
-                        totalFinesForPeriod = relevantFines.reduce((sum, fine) => sum + (parseFloat(fine.total_amount) || 0), 0);
-                    }
-                }
-                // **END CORRECTION**
-
 
                 const item = document.createElement('div');
                 item.className = `bg-white rounded-xl shadow-md p-5 flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 md:space-x-4 border-l-4 ${getStatusBadgeColor(rental.status).replace('bg', 'border')}`;
@@ -1073,7 +966,7 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-2 text-sm w-full md:w-auto">
+                    <div class="flex-1 grid grid-cols-2 gap-2 text-sm w-full md:w-auto">
                         <div>
                             <p class="text-gray-600">Days</p>
                             <p class="font-semibold text-gray-900">${displayRentedDays}</p>
@@ -1094,13 +987,9 @@
                             <p class="text-gray-600">Balance</p>
                             <p class="font-semibold text-red-600">AED ${displayBalance}</p>
                         </div>
-                        <div>
-                            <p class="text-gray-600">${getTranslation('totalFinesLabel')}</p>
-                            <p class="font-semibold text-red-700">AED ${totalFinesForPeriod.toFixed(2)}</p>
-                        </div>
                         ${trafficFines > 0 || carRepair > 0 ? `
-                            <div class="col-span-2 lg:col-span-3 text-xs text-gray-500 mt-2">
-                                ${trafficFines > 0 ? `<p>Agreement Fines: AED ${trafficFines.toFixed(2)}</p>` : ''}
+                            <div class="col-span-2 text-xs text-gray-500 mt-2">
+                                ${trafficFines > 0 ? `<p>Traffic Fines: AED ${trafficFines.toFixed(2)}</p>` : ''}
                                 ${carRepair > 0 ? `<p>Car Repair: AED ${carRepair.toFixed(2)}</p>` : ''}
                             </div>
                         ` : ''}
@@ -1144,13 +1033,10 @@
 
             console.log("Attempting to fetch rent history...");
             try {
-                // Fetch all data in parallel for efficiency
-                const [
-                    { data: rentHistoryData, error: rentHistoryError },
-                    { data: activeViewData, error: activeViewError },
-                    { data: finesData, error: finesError }
-                ] = await Promise.all([
-                    supabaseClient.from('rent_history').select(`
+                // Fetch main rent_history data
+                const { data: rentHistoryData, error: rentHistoryError } = await supabaseClient
+                    .from('rent_history')
+                    .select(`
                         *,
                         cars (
                             plate_number, year, color, odometer_km,
@@ -1158,24 +1044,28 @@
                             veh_model (model)
                         ),
                         customers (id, first_name, last_name, email, phone_number, address, city, driver_license_number, driver_license_expiry_date, date_of_birth, id_number, nationality, license_issued_by, signature)
-                    `),
-                    supabaseClient.from('active_rent_history_view').select('id, total_price_calculated, balance_due, total_days_so_far'),
-                    supabaseClient.from('traffic_fines').select('fine_number, plate_number, fine_date, total_amount') // New: Fetch fine_number and all fines
-                ]);
+                    `);
 
                 if (rentHistoryError) throw rentHistoryError;
-                if (activeViewError) console.warn("Warning: Could not fetch from active_rent_history_view:", activeViewError.message);
-                if (finesError) console.error("Error fetching traffic fines:", finesError.message);
-                
                 allRentHistoryData = rentHistoryData;
-                activeRentHistoryViewData = activeViewData || [];
-                allTrafficFines = finesData || []; // New: Store traffic fines data
+
+                // Separately fetch data from active_rent_history_view
+                const { data: activeViewData, error: activeViewError } = await supabaseClient
+                    .from('active_rent_history_view')
+                    .select('id, total_price_calculated, balance_due, total_days_so_far'); // Select the specific columns needed, including total_days_so_far
+
+                if (activeViewError) {
+                    console.warn("Warning: Could not fetch from active_rent_history_view:", activeViewError.message);
+                    // Continue without this data if the view is inaccessible or has issues
+                    activeRentHistoryViewData = [];
+                } else {
+                    activeRentHistoryViewData = activeViewData;
+                }
 
                 ui.loadingMessage.classList.add('hidden'); // Always hide loading message when fetch is done
 
                 console.log("Rent history fetched successfully:", allRentHistoryData);
                 console.log("Active rent history view fetched:", activeRentHistoryViewData);
-                console.log("Traffic fines fetched successfully:", allTrafficFines); // New: Log fines data
 
                 applyFilters(allRentHistoryData); // Apply filters after fetching
             }
@@ -1251,15 +1141,16 @@
             ui.rentForm.reset(); // Clear form
             ui.actualReturnDateError.classList.add('hidden'); // Hide error on modal open
 
-            // Fetch the specific record with its relations
+            // Fetch the specific record
             const { data: record, error } = await supabaseClient
                 .from('rent_history')
-                .select('*, cars(plate_number)') // Also fetch the car's plate number directly
+                .select('*')
                 .eq('id', id)
                 .single();
 
             if (error) {
                 console.error("Error fetching rent record for edit:", error);
+                // Using a custom message box instead of alert
                 showCustomMessageBox("Error", "Error fetching rent record details: " + error.message);
                 return;
             }
@@ -1269,50 +1160,27 @@
                 await Promise.all([fetchAllCarsForDropdown(), fetchAllCustomersForDropdown()]);
 
                 // Populate form fields
-                ui.agreementNumberInput.value = record.agreement_number || '';
+                ui.agreementNumberInput.value = record.agreement_number || ''; // Populate agreement number
                 ui.carIdSelect.value = record.car_id || '';
                 ui.customerIdSelect.value = record.customer_id || '';
                 ui.fromDateInput.value = record.from_date ? record.from_date.split('T')[0] : '';
                 ui.endDateInput.value = record.end_date ? record.end_date.split('T')[0] : '';
                 ui.actualReturnDateInput.value = record.actual_return_date ? record.actual_return_date.split('T')[0] : '';
+                ui.rentedDaysInput.value = record.rented_days || '';
                 ui.initialOdometerInput.value = record.initial_odometer_km || '';
                 ui.finalOdometerInput.value = record.final_odometer_km || '';
                 ui.rentalPricePerDayInput.value = record.rental_price_per_day || '';
                 ui.paidAmountInput.value = record.paid_amount || '';
                 ui.paymentStatusSelect.value = record.payment_status || 'Unpaid';
                 ui.rentalStatusSelect.value = record.status || 'Active';
+                ui.trafficFinesInput.value = record.traffic_fines || 0;
                 ui.carRepairInput.value = record.car_repair || 0;
                 ui.notesInput.value = record.notes || '';
 
-                // Calculate and populate total fines
-                const carPlateNumber = record.cars?.plate_number;
-                let totalFinesForPeriod = 0;
-                if (carPlateNumber) {
-                    const rentalStart = new Date(record.from_date);
-                    rentalStart.setUTCHours(0, 0, 0, 0);
-                    const rentalEnd = record.actual_return_date ? new Date(record.actual_return_date) : new Date();
-                    rentalEnd.setUTCHours(23, 59, 59, 999);
-
-                    const relevantFines = allTrafficFines.filter(fine => {
-                        if (fine.plate_number !== carPlateNumber || !fine.fine_date) return false;
-                        const fineDate = new Date(fine.fine_date);
-                        return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
-                    });
-                    if (relevantFines.length > 0) {
-                        totalFinesForPeriod = relevantFines.reduce((sum, fine) => sum + (parseFloat(fine.total_amount) || 0), 0);
-                    }
-                }
-                // Set the readonly traffic fines input
-                ui.trafficFinesInput.value = totalFinesForPeriod.toFixed(2);
-
-
-                // Update rental status dropdown based on whether a return date exists
-                updateRentalStatusBasedOnReturnDate();
-
                 // Set required status for actual_return_date based on initial rental status
-                const isCompletedOnLoad = ui.rentalStatusSelect.value === 'Completed';
+                const isCompletedOnLoad = record.status === 'Completed';
                 ui.actualReturnDateInput.required = isCompletedOnLoad;
-                if (isCompletedOnLoad && !ui.actualReturnDateInput.value) {
+                if (isCompletedOnLoad && !record.actual_return_date) {
                     ui.actualReturnDateError.classList.remove('hidden');
                 } else {
                     ui.actualReturnDateError.classList.add('hidden');
@@ -1386,7 +1254,7 @@
                 balance: parseFloat(formData.get('balance')) || 0,
                 payment_status: formData.get('payment_status'),
                 status: newStatus, // Use validated newStatus
-                traffic_fines: parseFloat(formData.get('traffic_fines')) || 0, // This is now read-only but still needs to be in the object
+                traffic_fines: parseFloat(formData.get('traffic_fines')) || 0,
                 car_repair: parseFloat(formData.get('car_repair')) || 0,
                 updated_at: new Date().toISOString()
             };
@@ -1452,70 +1320,6 @@
             }
         });
 
-        // --- New Fines Modal Logic ---
-        function displayFinesDetails(fines) {
-            ui.finesListContainer.innerHTML = ''; // Clear previous content
-
-            if (!fines || fines.length === 0) {
-                ui.finesListContainer.innerHTML = `<p class="text-gray-600 text-center">No traffic fines found for this rental period.</p>`;
-            } else {
-                const table = document.createElement('table');
-                table.className = 'w-full text-left border-collapse';
-                table.innerHTML = `
-                    <thead class="bg-gray-100">
-                        <tr>
-                            <th class="p-3 border-b">Fine Number</th>
-                            <th class="p-3 border-b">Fine Date</th>
-                            <th class="p-3 border-b text-right">Amount (AED)</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${fines.map(fine => `
-                            <tr class="hover:bg-gray-50">
-                                <td class="p-3 border-b">${fine.fine_number || 'N/A'}</td>
-                                <td class="p-3 border-b">${formatDate(fine.fine_date)}</td>
-                                <td class="p-3 border-b text-right">${(parseFloat(fine.total_amount) || 0).toFixed(2)}</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                `;
-                ui.finesListContainer.appendChild(table);
-            }
-
-            ui.finesDetailsModal.classList.remove('hidden');
-        }
-
-        ui.showFinesBtn.addEventListener('click', () => {
-            if (!currentEditRecordId) return;
-
-            const rental = allRentHistoryData.find(r => r.id === currentEditRecordId);
-            if (!rental || !rental.cars) return;
-
-            const carPlateNumber = rental.cars.plate_number;
-            const rentalStart = new Date(rental.from_date);
-            rentalStart.setUTCHours(0, 0, 0, 0);
-            const rentalEnd = rental.actual_return_date ? new Date(rental.actual_return_date) : new Date();
-            rentalEnd.setUTCHours(23, 59, 59, 999);
-
-            const relevantFines = allTrafficFines.filter(fine => {
-                if (fine.plate_number !== carPlateNumber || !fine.fine_date) return false;
-                const fineDate = new Date(fine.fine_date);
-                return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
-            });
-
-            displayFinesDetails(relevantFines);
-        });
-
-        ui.closeFinesModalBtn.addEventListener('click', () => {
-            ui.finesDetailsModal.classList.add('hidden');
-        });
-
-        ui.finesDetailsModal.addEventListener('click', (e) => {
-            if (e.target === ui.finesDetailsModal) {
-                ui.finesDetailsModal.classList.add('hidden');
-            }
-        });
-
         // --- Confirmation Modal Logic (Generic) ---
         ui.cancelConfirmButton.addEventListener('click', () => {
             ui.confirmationModal.classList.add('hidden');
@@ -1530,31 +1334,19 @@
         // Function to fetch office incharge details
         async function fetchOfficeInchargeDetails() {
             try {
-                // Use .limit(1).maybeSingle() to avoid an error if no record is found.
-                // This will return null instead of throwing an error.
                 const { data, error } = await supabaseClient
                     .from('customers')
                     .select('first_name, last_name, signature')
                     .eq('id', OFFICE_INCHARGE_ID)
-                    .limit(1)
-                    .maybeSingle();
+                    .single();
 
                 if (error) {
-                    // This will now only catch actual database/network errors, not "no rows"
                     console.error("Error fetching office incharge details:", error.message);
-                    officeInchargeDetails = null;
+                    officeInchargeDetails = null; // Ensure it's null on error
                     return;
                 }
-                
-                // data will be null if no record was found, which is a valid state.
-                officeInchargeDetails = data; 
-                
-                if(officeInchargeDetails) {
-                    console.log("Office Incharge Details fetched:", officeInchargeDetails);
-                } else {
-                    console.warn("Office Incharge record not found for ID:", OFFICE_INCHARGE_ID);
-                }
-
+                officeInchargeDetails = data;
+                console.log("Office Incharge Details fetched:", officeInchargeDetails);
             } catch (error) {
                 console.error("An unexpected error occurred while fetching office incharge details:", error);
                 officeInchargeDetails = null;

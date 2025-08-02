@@ -359,7 +359,10 @@
                         <tr class="bg-gray-50">
                             <th></th> <!-- Empty for No. column -->
                             <th><input type="text" id="filter-fine-number" placeholder="Filter Fine #" class="w-full"></th>
-                            <th><input type="text" id="filter-date" placeholder="Filter Date" class="w-full"></th>
+                            <th colspan="2">
+                                <input type="date" id="filter-from-date" class="w-full mb-1" title="From Date">
+                                <input type="date" id="filter-to-date" class="w-full" title="To Date">
+                            </th>
                             <th><input type="text" id="filter-plate-number" placeholder="Filter Plate #" class="w-full"></th>
                             <th><input type="text" id="filter-location" placeholder="Filter Location" class="w-full"></th>
                             <th><input type="text" id="filter-total-amount" placeholder="Filter Amount" class="w-full"></th>
@@ -433,7 +436,8 @@
 
             // Filter elements
             filterFineNumber: document.getElementById('filter-fine-number'),
-            filterDate: document.getElementById('filter-date'),
+            filterFromDate: document.getElementById('filter-from-date'),
+            filterToDate: document.getElementById('filter-to-date'),
             filterPlateNumber: document.getElementById('filter-plate-number'),
             filterLocation: document.getElementById('filter-location'),
             filterTotalAmount: document.getElementById('filter-total-amount'),
@@ -559,7 +563,6 @@
             let filteredFines = [...allFinesData]; // Start with a copy of all data
 
             const filterFineNumber = ui.filterFineNumber.value.toLowerCase();
-            const filterDate = ui.filterDate.value.toLowerCase();
             const filterPlateNumber = ui.filterPlateNumber.value.toLowerCase();
             const filterLocation = ui.filterLocation.value.toLowerCase();
             const filterTotalAmount = ui.filterTotalAmount.value.toLowerCase();
@@ -567,10 +570,16 @@
             const filterAmountAfterDiscount = ui.filterAmountAfterDiscount.value.toLowerCase();
             const filterLateFees = ui.filterLateFees.value.toLowerCase();
             const filterStatus = ui.filterStatus.value; // 'All', 'Paid', 'Unpaid'
+            
+            // Get date filter values
+            const fromDateValue = ui.filterFromDate.value;
+            const toDateValue = ui.filterToDate.value;
+            const fromDate = fromDateValue ? new Date(fromDateValue) : null;
+            const toDate = toDateValue ? new Date(toDateValue) : null;
 
             filteredFines = filteredFines.filter(fine => {
                 const fineNumber = (fine.fine_number || '').toString().toLowerCase();
-                const fineDate = fine.fine_date ? new Date(fine.fine_date).toLocaleDateString().toLowerCase() : '';
+                const fineDate = fine.fine_date ? new Date(fine.fine_date) : null;
                 const plateNumber = (fine.plate_number || '').toLowerCase();
                 const location = (fine.location || '').toLowerCase();
                 const totalAmount = (fine.total_amount || 0).toString().toLowerCase();
@@ -578,10 +587,15 @@
                 const amountAfterDiscount = (fine.amount_after_discount || 0).toString().toLowerCase();
                 const lateFees = (fine.late_fees || 0).toString().toLowerCase();
                 const statusText = fine.fine_status ? 'Paid' : 'Unpaid';
+                
+                // Date filter logic
+                const isDateInRange = (!fromDate || (fineDate && fineDate >= fromDate)) &&
+                                       (!toDate || (fineDate && fineDate <= toDate));
+
 
                 return (
                     fineNumber.includes(filterFineNumber) &&
-                    fineDate.includes(filterDate) &&
+                    isDateInRange &&
                     plateNumber.includes(filterPlateNumber) &&
                     location.includes(filterLocation) &&
                     totalAmount.includes(filterTotalAmount) &&
@@ -700,7 +714,8 @@
 
         // Add event listeners for filter inputs
         ui.filterFineNumber.addEventListener('input', applyFilters);
-        ui.filterDate.addEventListener('input', applyFilters);
+        ui.filterFromDate.addEventListener('change', applyFilters);
+        ui.filterToDate.addEventListener('change', applyFilters);
         ui.filterPlateNumber.addEventListener('input', applyFilters);
         ui.filterLocation.addEventListener('input', applyFilters);
         ui.filterTotalAmount.addEventListener('input', applyFilters);

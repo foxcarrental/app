@@ -1,0 +1,554 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monthly Car Fines Report - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .kpi-card, .report-card {
+            background-color: white;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        
+        .sidebar-scroll {
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #a8a8a8 #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .sidebar-scroll::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .sidebar-scroll::-webkit-scrollbar-thumb {
+            background-color: #a8a8a8;
+            border-radius: 6px;
+        }
+        
+        #main-header {
+            position: fixed;
+            top: 0;
+            left: 5rem;
+            right: 0;
+            z-index: 40;
+            background-color: transparent;
+            box-shadow: none;
+            transition: left 0.3s ease-in-out;
+        }
+        body.sidebar-expanded #main-header {
+            left: 16rem;
+        }
+
+        #desktop-sidebar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            height: 100vh;
+            z-index: 50;
+            transition: width 0.3s ease-in-out;
+        }
+
+        #main-content {
+            transition: margin-left 0.3s ease-in-out;
+            padding-top: 100px;
+            margin-left: 5rem;
+        }
+        body.sidebar-expanded #main-content {
+            margin-left: 16rem;
+        }
+        
+        #desktop-sidebar.collapsed {
+            width: 5rem;
+        }
+        
+        #desktop-sidebar.collapsed .nav-text,
+        #desktop-sidebar.collapsed .sidebar-title,
+        #desktop-sidebar.collapsed #logout-text {
+             display: none;
+        }
+
+        #desktop-sidebar.collapsed .sidebar-logo {
+            justify-content: center;
+        }
+        
+        #desktop-sidebar.collapsed .sidebar-pin-controls {
+            justify-content: center;
+        }
+
+        #desktop-sidebar .nav-item i {
+            width: 2rem;
+            text-align: center;
+        }
+
+        /* Table specific styles */
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+        }
+        .report-table th, .report-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .report-table th {
+            background-color: #f8faff;
+            font-weight: 600;
+            color: #4a5568;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+        }
+        .report-table tbody tr:last-child td {
+            border-bottom: none;
+        }
+        .report-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+
+        .total-row td {
+            font-weight: bold;
+            background-color: #f0f4f8;
+            border-top: 2px solid #cbd5e0;
+        }
+    </style>
+</head>
+<body class="flex flex-row min-h-screen text-gray-800">
+
+    <!-- Sidebar for Desktop -->
+    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
+        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
+            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
+            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
+        </div>
+        <nav class="flex-grow">
+            <ul>
+                <li class="mb-2">
+                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="vehicle-registration.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-id-card mr-3"></i> <span class="nav-text">Vehicle Registration</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="reports.html" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
+                    </a>
+                </li>
+                 <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
+                    </a>
+                </li>
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
+                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        <div class="pt-4 border-t">
+             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                    <i class="fas fa-chevron-right"></i>
+                </button>
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                    <i class="fas fa-chevron-left"></i>
+                </button>
+            </div>
+             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
+                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 overflow-y-auto">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+             <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Monthly Car Fines Report</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                 <div class="flex items-center space-x-2">
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                 </div>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
+        </header>
+
+        <!-- Report Content -->
+        <div class="report-card mt-8">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Unpaid Fines by Date and Car</h3>
+            
+            <!-- Filter Section -->
+            <div class="flex flex-wrap items-center gap-4 mb-6">
+                <div>
+                    <label for="start-date-filter" class="text-gray-700 font-medium block mb-1">Start Date:</label>
+                    <input type="date" id="start-date-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label for="end-date-filter" class="text-gray-700 font-medium block mb-1">End Date:</label>
+                    <input type="date" id="end-date-filter" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div>
+                    <label for="plate-number-filter" class="text-gray-700 font-medium block mb-1">Plate Number:</label>
+                    <input type="text" id="plate-number-filter" placeholder="e.g., ABC-1234" class="px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                </div>
+                <div class="flex space-x-2 self-end">
+                    <button id="apply-filter-btn" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200">
+                        <i class="fas fa-filter mr-2"></i>Apply Filter
+                    </button>
+                    <button id="reset-filter-btn" class="bg-gray-300 text-gray-800 px-4 py-2 rounded-lg shadow-md hover:bg-gray-400 transition-colors duration-200">
+                        <i class="fas fa-times mr-2"></i>Reset Filter
+                    </button>
+                </div>
+            </div>
+
+            <div id="fines-report-container">
+                <p id="loading-message" class="text-gray-600">Loading fines data...</p>
+                <table id="fines-report-table" class="report-table hidden">
+                    <thead>
+                        <tr>
+                            <th>Fine Date</th>
+                            <th>Plate Number</th>
+                            <th>Fine Amount (AED)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be inserted here by JavaScript -->
+                    </tbody>
+                    <tfoot>
+                        <!-- Total will be inserted here by JavaScript -->
+                    </tfoot>
+                </table>
+                <p id="no-data-message" class="text-gray-600 hidden">No unpaid fines data available.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">Close</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Supabase Configuration ---
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Supabase Client Import
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- DOM Elements ---
+        const ui = {
+            lastUpdated: document.getElementById('last-updated'),
+            refreshButton: document.getElementById('refresh-data'),
+            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
+            desktopSidebar: document.getElementById('desktop-sidebar'),
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            pinBtn: document.getElementById('pin-sidebar-btn'),
+            unpinBtn: document.getElementById('unpin-sidebar-btn'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            finesReportTableBody: document.querySelector('#fines-report-table tbody'),
+            finesReportTableFoot: document.querySelector('#fines-report-table tfoot'),
+            loadingMessage: document.getElementById('loading-message'),
+            finesReportTable: document.getElementById('fines-report-table'),
+            noDataMessage: document.getElementById('no-data-message'),
+            startDateFilterInput: document.getElementById('start-date-filter'),
+            endDateFilterInput: document.getElementById('end-date-filter'),
+            plateNumberFilterInput: document.getElementById('plate-number-filter'),
+            applyFilterBtn: document.getElementById('apply-filter-btn'),
+            resetFilterBtn: document.getElementById('reset-filter-btn')
+        };
+
+        // --- Sidebar State ---
+        let isSidebarPinned = false;
+        ui.userEmail.textContent = "admin@foxcarrental.com";
+        ui.userIdDisplay.classList.add('hidden');
+
+        // --- Modal Logic ---
+        function showMessage(message, title = "Notification") {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            ui.notificationModal.classList.add('hidden');
+        }
+
+        ui.notificationCloseButton.addEventListener('click', hideMessage);
+
+        // --- Data Fetching and Report Generation ---
+        /**
+         * Fetches and displays car fines report based on provided filters.
+         * @param {string} [startDate=null] - The start date for the filter (YYYY-MM-DD).
+         * @param {string} [endDate=null] - The end date for the filter (YYYY-MM-DD).
+         * @param {string} [plateNumberFilter=null] - The plate number to filter by.
+         */
+        async function fetchCarFinesReport(startDate = null, endDate = null, plateNumberFilter = null) {
+            ui.loadingMessage.classList.remove('hidden');
+            ui.finesReportTable.classList.add('hidden');
+            ui.noDataMessage.classList.add('hidden');
+            ui.finesReportTableBody.innerHTML = ''; // Clear previous data
+            ui.finesReportTableFoot.innerHTML = ''; // Clear previous total
+
+            try {
+                // Build the Supabase query for traffic fines
+                let finesQuery = supabaseClient
+                    .from('traffic_fines')
+                    .select('fine_date, plate_number, amount_after_discount, fine_status')
+                    .eq('fine_status', false); // Only get unpaid fines
+
+                // Apply filters if provided
+                if (startDate) {
+                    finesQuery = finesQuery.gte('fine_date', startDate);
+                }
+                if (endDate) {
+                    finesQuery = finesQuery.lte('fine_date', endDate);
+                }
+                if (plateNumberFilter) {
+                    finesQuery = finesQuery.eq('plate_number', plateNumberFilter);
+                }
+                
+                const { data: trafficFines, error: finesError } = await finesQuery;
+
+                if (finesError) throw finesError;
+                
+                // Sort fines by date, from newest to oldest
+                const sortedFines = trafficFines.sort((a, b) => new Date(b.fine_date) - new Date(a.fine_date));
+
+                if (sortedFines.length === 0) {
+                    let message = "No unpaid fines found";
+                    if (plateNumberFilter) {
+                        message += ` for plate number "${plateNumberFilter}"`;
+                    }
+                    if (startDate || endDate) {
+                        message += ` in the specified date range.`;
+                    }
+                    ui.noDataMessage.textContent = message;
+                    ui.noDataMessage.classList.remove('hidden');
+                } else {
+                    let totalFinesAmount = 0;
+                    sortedFines.forEach(fine => {
+                        const row = ui.finesReportTableBody.insertRow();
+                        const fineDate = new Date(fine.fine_date).toLocaleDateString('en-US'); // Format date nicely
+                        row.insertCell(0).textContent = fineDate;
+                        row.insertCell(1).textContent = fine.plate_number;
+                        row.insertCell(2).textContent = `AED ${fine.amount_after_discount.toFixed(2)}`;
+                        totalFinesAmount += fine.amount_after_discount;
+                    });
+                    
+                    // Add total row to the table footer
+                    const totalRow = ui.finesReportTableFoot.insertRow();
+                    totalRow.classList.add('total-row');
+                    
+                    const totalLabelCell = totalRow.insertCell(0);
+                    totalLabelCell.textContent = 'Total Fines:';
+                    totalLabelCell.colSpan = 2;
+
+                    const totalAmountCell = totalRow.insertCell(1);
+                    totalAmountCell.textContent = `AED ${totalFinesAmount.toFixed(2)}`;
+
+                    ui.finesReportTable.classList.remove('hidden');
+                }
+                
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Error fetching car fines data:", error);
+                showMessage(`Error fetching report data: ${error.message}`, "Data Error");
+                ui.noDataMessage.textContent = `Error loading data: ${error.message}`;
+                ui.noDataMessage.classList.remove('hidden');
+            } finally {
+                ui.loadingMessage.classList.add('hidden');
+            }
+        }
+
+        // --- Desktop Sidebar Logic ---
+        function setupDesktopSidebar() {
+            ui.desktopSidebar.classList.add('collapsed');
+            ui.mainContent.style.marginLeft = '5rem';
+            ui.mainHeader.style.left = '5rem';
+
+            ui.desktopSidebar.addEventListener('mouseenter', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.remove('collapsed');
+                    ui.mainContent.style.marginLeft = '16rem';
+                    ui.mainHeader.style.left = '16rem';
+                }
+            });
+
+            ui.desktopSidebar.addEventListener('mouseleave', () => {
+                if (!isSidebarPinned) {
+                    ui.desktopSidebar.classList.add('collapsed');
+                    ui.mainContent.style.marginLeft = '5rem';
+                    ui.mainHeader.style.left = '5rem';
+                }
+            });
+
+            ui.pinBtn.addEventListener('click', () => {
+                isSidebarPinned = true;
+                ui.desktopSidebar.classList.remove('collapsed');
+                ui.pinBtn.classList.add('hidden');
+                ui.unpinBtn.classList.remove('hidden');
+                ui.mainContent.style.marginLeft = '16rem';
+                ui.mainHeader.style.left = '16rem';
+            });
+
+            ui.unpinBtn.addEventListener('click', () => {
+                isSidebarPinned = false;
+                ui.desktopSidebar.classList.add('collapsed');
+                ui.unpinBtn.classList.add('hidden');
+                ui.pinBtn.classList.remove('hidden');
+                ui.mainContent.style.marginLeft = '5rem';
+                ui.mainHeader.style.left = '5rem';
+            });
+        }
+
+        // --- Authentication Check ---
+        function checkAuthentication() {
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (!session) {
+                    window.location.href = 'login.html'; // Redirect to login page
+                } else {
+                    fetchCarFinesReport();
+                }
+            }).catch(error => {
+                console.error("Error checking session:", error);
+                fetchCarFinesReport();
+            });
+        }
+
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', () => {
+            const startDate = ui.startDateFilterInput.value;
+            const endDate = ui.endDateFilterInput.value;
+            const plateNumber = ui.plateNumberFilterInput.value.trim();
+            fetchCarFinesReport(startDate, endDate, plateNumber);
+        });
+
+        ui.applyFilterBtn.addEventListener('click', () => {
+            const startDate = ui.startDateFilterInput.value;
+            const endDate = ui.endDateFilterInput.value;
+            const plateNumber = ui.plateNumberFilterInput.value.trim();
+            fetchCarFinesReport(startDate, endDate, plateNumber);
+        });
+
+        ui.resetFilterBtn.addEventListener('click', () => {
+            ui.startDateFilterInput.value = '';
+            ui.endDateFilterInput.value = '';
+            ui.plateNumberFilterInput.value = '';
+            fetchCarFinesReport();
+        });
+
+        ui.logoutButtonDesktop.addEventListener('click', async (e) => {
+            e.preventDefault();
+            showMessage("You have been logged out (simulated).", "Logged Out");
+            ui.userEmail.textContent = "admin@foxcarrental.com";
+            ui.userIdDisplay.classList.add('hidden');
+            ui.finesReportTableBody.innerHTML = '';
+            ui.finesReportTable.classList.add('hidden');
+            ui.noDataMessage.classList.remove('hidden');
+            ui.noDataMessage.textContent = 'No data available.';
+        });
+        
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            setupDesktopSidebar();
+            checkAuthentication();
+        });
+    </script>
+</body>
+</html>
