@@ -11,6 +11,8 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
@@ -32,27 +34,33 @@
         .bg-custom-blue-dark { background-color: #5680E9; }
         .bg-custom-blue-light { background-color: #84CEEB; }
         .text-custom-blue-dark { color: #5680E9; }
+
+        /* Custom styles from the provided image */
+        .card-shadow {
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
     </style>
 </head>
 <body>
-    <div class="bg-white p-8 rounded-xl shadow-lg w-11/12 max-w-md">
+    <div class="bg-white p-8 rounded-2xl card-shadow w-11/12 max-w-sm">
         <div class="flex flex-col items-center mb-6">
-            <img src="https://placehold.co/60x60/5680E9/ffffff?text=F" alt="Fox Car Rental Logo" class="w-16 h-16 rounded-full mb-4">
-            <h1 class="text-3xl font-bold text-gray-800 mb-2">Fox Car Rental Admin</h1>
-            <p class="text-gray-600">Sign in to your account</p>
+            <!-- New logo from the provided URL -->
+            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-32 mb-4">
+            <h1 class="text-3xl font-bold text-gray-800 mt-4">Welcome Back</h1>
+            <p class="text-gray-600 mt-2">Sign in to your account</p>
         </div>
 
         <form id="login-form" class="space-y-4">
             <div>
-                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
-                <input type="email" id="email" name="email" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                <input type="email" id="email" name="email" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#6b58ff] focus:border-[#6b58ff]" required>
             </div>
             <div>
                 <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
-                <input type="password" id="password" name="password" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                <input type="password" id="password" name="password" class="mt-1 block w-full px-4 py-3 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-1 focus:ring-[#6b58ff] focus:border-[#6b58ff]" required>
             </div>
-            <button type="submit" class="w-full bg-custom-blue-dark text-white py-2 px-4 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-custom-blue-dark focus:ring-offset-2">
-                Login
+            <button type="submit" class="w-full bg-[#6b58ff] text-white py-3 px-4 rounded-lg shadow-md hover:bg-[#5b48e0] transition-colors duration-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#6b58ff] focus:ring-offset-2">
+                Log In
             </button>
             <p id="error-message" class="text-red-600 text-center text-sm mt-3 hidden"></p>
         </form>
