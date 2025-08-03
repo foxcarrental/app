@@ -646,9 +646,9 @@
             cancelRentButton: document.getElementById('cancel-rent-button'),
             agreementNumberInput: document.getElementById('agreement_number'), // Added agreement number input
             carSearchInput: document.getElementById('car_search_input'),
+            customerSearchInput: document.getElementById('customer_search_input'),
             carIdSelect: document.getElementById('car_id'),
             carSelectError: document.getElementById('car-select-error'),
-            customerSearchInput: document.getElementById('customer_search_input'),
             customerIdSelect: document.getElementById('customer_id'),
             customerSelectError: document.getElementById('customer-select-error'),
             fromDateInput: document.getElementById('from_date'),
@@ -1050,6 +1050,12 @@
                 }
                 // **END CORRECTION**
 
+                // --- NEW: Calculate Total KM Driven ---
+                let totalKMDriven = 'N/A';
+                if (rental.initial_odometer_km != null && rental.final_odometer_km != null && rental.final_odometer_km > rental.initial_odometer_km) {
+                    totalKMDriven = (rental.final_odometer_km - rental.initial_odometer_km).toLocaleString();
+                }
+                // --- END NEW ---
 
                 const item = document.createElement('div');
                 item.className = `bg-white rounded-xl shadow-md p-5 flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 md:space-x-4 border-l-4 ${getStatusBadgeColor(rental.status).replace('bg', 'border')}`;
@@ -1073,7 +1079,7 @@
                         </div>
                     </div>
 
-                    <div class="flex-1 grid grid-cols-2 lg:grid-cols-3 gap-2 text-sm w-full md:w-auto">
+                    <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 text-sm w-full md:w-auto">
                         <div>
                             <p class="text-gray-600">Days</p>
                             <p class="font-semibold text-gray-900">${displayRentedDays}</p>
@@ -1087,19 +1093,23 @@
                             <p class="font-semibold text-green-600">AED ${parseFloat(rental.paid_amount || 0).toFixed(2)}</p>
                         </div>
                         <div>
+                            <p class="text-gray-600">Balance</p>
+                            <p class="font-semibold text-red-600">AED ${displayBalance}</p>
+                        </div>
+                        <div>
                             <p class="text-gray-600">${getTranslation('daysNotInAgreementLabel')}</p>
                             <p class="font-semibold text-orange-600">${daysNotInAgreement > 0 ? daysNotInAgreement : '0'} ${getTranslation('daysPrint')}</p>
                         </div>
                         <div>
-                            <p class="text-gray-600">Balance</p>
-                            <p class="font-semibold text-red-600">AED ${displayBalance}</p>
+                            <p class="text-gray-600">Total KM Driven</p>
+                            <p class="font-semibold text-gray-900">${totalKMDriven === 'N/A' ? 'N/A' : `${totalKMDriven} km`}</p>
                         </div>
                         <div>
                             <p class="text-gray-600">${getTranslation('totalFinesLabel')}</p>
                             <p class="font-semibold text-red-700">AED ${totalFinesForPeriod.toFixed(2)}</p>
                         </div>
                         ${trafficFines > 0 || carRepair > 0 ? `
-                            <div class="col-span-2 lg:col-span-3 text-xs text-gray-500 mt-2">
+                            <div class="col-span-2 lg:col-span-4 text-xs text-gray-500 mt-2">
                                 ${trafficFines > 0 ? `<p>Agreement Fines: AED ${trafficFines.toFixed(2)}</p>` : ''}
                                 ${carRepair > 0 ? `<p>Car Repair: AED ${carRepair.toFixed(2)}</p>` : ''}
                             </div>
@@ -1245,11 +1255,46 @@
 
         // --- Edit Rent Modal Logic ---
 
+        // Function to reset the edit modal fields to their default (editable) state
+        function resetEditModalFields() {
+            // Re-enable fields and make them writable
+            ui.agreementNumberInput.readOnly = false;
+            ui.carSearchInput.disabled = false;
+            ui.carIdSelect.disabled = false;
+            ui.customerSearchInput.disabled = false;
+            ui.customerIdSelect.disabled = false;
+            ui.initialOdometerInput.readOnly = false;
+            ui.rentalPricePerDayInput.readOnly = false;
+
+            // Remove visual styling for disabled/readonly fields
+            const fieldsToReset = [
+                ui.agreementNumberInput, ui.carSearchInput, ui.carIdSelect, 
+                ui.customerSearchInput, ui.customerIdSelect, ui.initialOdometerInput, 
+                ui.rentalPricePerDayInput
+            ];
+            fieldsToReset.forEach(field => field.classList.remove('bg-gray-100'));
+
+            // Show search input fields again
+            document.querySelector('label[for="car_search_input"]').parentElement.classList.remove('hidden');
+            document.querySelector('label[for="customer_search_input"]').parentElement.classList.remove('hidden');
+
+            // Remove validation error styling
+            ui.finalOdometerInput.classList.remove('border-red-500');
+        }
+
         // Open modal for editing rent record
         async function openEditRentModal(id) {
             currentEditRecordId = id;
             ui.rentForm.reset(); // Clear form
+            resetEditModalFields(); // Reset fields to editable state first
             ui.actualReturnDateError.classList.add('hidden'); // Hide error on modal open
+
+            // --- HIDE SEARCH FIELDS AND MAKE AGREEMENT # READONLY ---
+            document.querySelector('label[for="car_search_input"]').parentElement.classList.add('hidden');
+            document.querySelector('label[for="customer_search_input"]').parentElement.classList.add('hidden');
+            ui.agreementNumberInput.readOnly = true;
+            ui.agreementNumberInput.classList.add('bg-gray-100');
+            // --- END HIDE/READONLY ---
 
             // Fetch the specific record with its relations
             const { data: record, error } = await supabaseClient
@@ -1283,6 +1328,19 @@
                 ui.rentalStatusSelect.value = record.status || 'Active';
                 ui.carRepairInput.value = record.car_repair || 0;
                 ui.notesInput.value = record.notes || '';
+
+                // --- Make key fields read-only for editing ---
+                ui.carIdSelect.disabled = true;
+                ui.customerIdSelect.disabled = true;
+                ui.initialOdometerInput.readOnly = true;
+                ui.rentalPricePerDayInput.readOnly = true;
+
+                // Add visual indication for disabled/readonly fields
+                const fieldsToStyle = [
+                    ui.carIdSelect, ui.customerIdSelect, ui.initialOdometerInput, ui.rentalPricePerDayInput
+                ];
+                fieldsToStyle.forEach(field => field.classList.add('bg-gray-100'));
+                // --- END ---
 
                 // Calculate and populate total fines
                 const carPlateNumber = record.cars?.plate_number;
@@ -1329,11 +1387,13 @@
         }
 
         ui.cancelRentButton.addEventListener('click', () => {
+            resetEditModalFields(); // Also reset fields on cancel
             ui.rentModal.classList.add('hidden');
         });
 
         ui.rentModal.addEventListener('click', (e) => {
             if (e.target === ui.rentModal) { // Close when clicking outside the modal content
+                resetEditModalFields(); // Also reset fields on click outside
                 ui.rentModal.classList.add('hidden');
             }
         });
@@ -1353,41 +1413,71 @@
         ui.rentForm.addEventListener('submit', async (e) => {
             e.preventDefault();
 
-            const formData = new FormData(ui.rentForm);
-            const oldRentRecord = allRentHistoryData.find(r => r.id === currentEditRecordId); // Get old record for comparison
-            const oldCarId = oldRentRecord?.car_id;
-            const oldStatus = oldRentRecord?.status;
+            // --- ODOMETER AND STATUS VALIDATION ---
+            const initialOdometer = parseFloat(ui.initialOdometerInput.value) || 0;
+            const finalOdometerStr = ui.finalOdometerInput.value;
+            const finalOdometer = parseFloat(finalOdometerStr) || 0;
+            const newStatus = ui.rentalStatusSelect.value;
+            const actualReturnDate = ui.actualReturnDateInput.value;
 
-            const newStatus = formData.get('status');
-            const actualReturnDate = formData.get('actual_return_date');
+            // 1. Validate Final Odometer is required if status is 'Completed'
+            if (newStatus === 'Completed' && !finalOdometerStr) {
+                showCustomMessageBox("Validation Error", "Final Odometer (KM) is required when rental status is 'Completed'.");
+                ui.finalOdometerInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                return;
+            }
 
-            // Client-side validation for Actual Return Date when status is 'Completed'
+            // 2. Validate Final Odometer is greater than Initial Odometer
+            if (finalOdometerStr && finalOdometer <= initialOdometer) {
+                showCustomMessageBox("Validation Error", "Final Odometer must be greater than the Initial Odometer.");
+                ui.finalOdometerInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                return;
+            }
+            
+            ui.finalOdometerInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+
+            // 3. Validate Actual Return Date is required if status is 'Completed'
             if (newStatus === 'Completed' && !actualReturnDate) {
                 ui.actualReturnDateError.classList.remove('hidden');
                 showCustomMessageBox("Validation Error", "Actual Return Date is required when the rental status is 'Completed'.");
-                return; // Prevent form submission
+                return;
             } else {
                 ui.actualReturnDateError.classList.add('hidden');
             }
+            // --- END VALIDATION ---
+
+            const formData = new FormData(ui.rentForm);
+            const oldRentRecord = allRentHistoryData.find(r => r.id === currentEditRecordId);
+            const oldCarId = oldRentRecord?.car_id;
+            const oldStatus = oldRentRecord?.status;
+
+            const carId = ui.carIdSelect.value;
+            const customerId = ui.customerIdSelect.value;
+            
+            if (!carId || !customerId) {
+                showCustomMessageBox("Validation Error", "A Vehicle and Customer must be selected. Please refresh and try again.");
+                return;
+            }
 
             const rentData = {
-                agreement_number: formData.get('agreement_number'), // Get agreement number
-                car_id: parseInt(formData.get('car_id')),
-                customer_id: formData.get('customer_id'),
+                agreement_number: formData.get('agreement_number'),
+                car_id: parseInt(carId),
+                customer_id: customerId,
                 from_date: formData.get('from_date') || null,
                 end_date: formData.get('end_date') || null,
-                actual_return_date: actualReturnDate || null, // Use validated actualReturnDate
+                actual_return_date: actualReturnDate || null,
                 rented_days: parseInt(formData.get('rented_days')) || 0,
-                initial_odometer_km: parseFloat(formData.get('initial_odometer_km')) || null,
-                final_odometer_km: parseFloat(formData.get('final_odometer_km')) || null,
-                rental_price_per_day: parseFloat(formData.get('rental_price_per_day')) || 0,
-                total_price: parseFloat(formData.get('total_price')) || 0, // This value is calculated client-side
+                initial_odometer_km: parseFloat(ui.initialOdometerInput.value) || null,
+                final_odometer_km: finalOdometerStr ? parseFloat(finalOdometerStr) : null,
+                rental_price_per_day: parseFloat(ui.rentalPricePerDayInput.value) || 0,
+                total_price: parseFloat(formData.get('total_price')) || 0,
                 paid_amount: parseFloat(formData.get('paid_amount')) || 0,
                 balance: parseFloat(formData.get('balance')) || 0,
                 payment_status: formData.get('payment_status'),
-                status: newStatus, // Use validated newStatus
-                traffic_fines: parseFloat(formData.get('traffic_fines')) || 0, // This is now read-only but still needs to be in the object
+                status: newStatus,
+                traffic_fines: parseFloat(formData.get('traffic_fines')) || 0,
                 car_repair: parseFloat(formData.get('car_repair')) || 0,
+                notes: formData.get('notes'),
                 updated_at: new Date().toISOString()
             };
 
@@ -1401,48 +1491,42 @@
 
                 if (error) throw error;
                 console.log("Rent record updated:", data);
-                showCustomMessageBox("Success", "Rent record updated successfully!");
-
-                // --- Logic to update car status in 'cars' table ---
-                const carId = rentData.car_id;
-
-                let carStatusToUpdate = null;
-
-                if (newStatus === 'Active') {
-                    carStatusToUpdate = 'Rented';
-                } else if (newStatus === 'Completed' || newStatus === 'Cancelled') {
-                    carStatusToUpdate = 'Available';
-                }
-
-                // If the car ID changed, or the status changed, update the car table
-                if (carStatusToUpdate && (carId !== oldCarId || newStatus !== oldStatus)) {
-                    console.log(`Updating car status for car_id: ${carId} to '${carStatusToUpdate}'`);
-                    const { error: carUpdateError } = await supabaseClient
+                
+                // --- UPDATE CAR ODOMETER AND STATUS ---
+                // Update Odometer in 'cars' table if a final value was provided
+                if (rentData.final_odometer_km) {
+                    console.log(`Updating odometer for car_id: ${rentData.car_id} to ${rentData.final_odometer_km}`);
+                    const { error: carOdometerError } = await supabaseClient
                         .from('cars')
-                        .update({ status: carStatusToUpdate })
-                        .eq('id', carId);
+                        .update({ odometer_km: rentData.final_odometer_km })
+                        .eq('id', rentData.car_id);
 
-                    if (carUpdateError) {
-                        console.error("Error updating car status in 'cars' table:", carUpdateError.message, carUpdateError);
-                        showCustomMessageBox("Warning", "Could not update car's status in inventory. Please check RLS for 'cars' table.");
-                    } else {
-                        console.log(`Car status for ${carId} updated to '${carStatusToUpdate}' in 'cars' table.`);
+                    if (carOdometerError) {
+                        console.error("Error updating car odometer:", carOdometerError.message);
+                        showCustomMessageBox("Warning", "Rent record saved, but failed to update car's odometer.");
                     }
                 }
 
-                // If the car ID changed, and the old car was 'Active', set its status back to 'Available'
-                if (oldCarId && oldCarId !== carId && oldStatus === 'Active') {
-                     console.log(`Reverting old car status for car_id: ${oldCarId} to 'Available'`);
-                     const { error: oldCarRevertError } = await supabaseClient
-                         .from('cars')
-                         .update({ status: 'Available' })
-                         .eq('id', oldCarId);
+                // Update car status in 'cars' table based on rental status change
+                let carStatusToUpdate = null;
+                if (newStatus === 'Active') carStatusToUpdate = 'Rented';
+                else if (newStatus === 'Completed' || newStatus === 'Cancelled') carStatusToUpdate = 'Available';
 
-                     if (oldCarRevertError) {
-                         console.error("Error reverting old car status in 'cars' table:", oldCarRevertError.message, oldCarRevertError);
-                     }
+                if (carStatusToUpdate && newStatus !== oldStatus) {
+                    console.log(`Updating car status for car_id: ${rentData.car_id} to '${carStatusToUpdate}'`);
+                    const { error: carStatusError } = await supabaseClient
+                        .from('cars')
+                        .update({ status: carStatusToUpdate })
+                        .eq('id', rentData.car_id);
+
+                    if (carStatusError) {
+                        console.error("Error updating car status:", carStatusError.message);
+                        showCustomMessageBox("Warning", "Rent record saved, but failed to update car's status.");
+                    }
                 }
+                // --- END CAR UPDATE ---
 
+                showCustomMessageBox("Success", "Rent record updated successfully!");
                 ui.rentModal.classList.add('hidden');
                 fetchRentHistory(); // Re-fetch all records to update the list
             }
@@ -2227,4 +2311,4 @@
         });
     </script>
 </body>
-</html>
+</ht

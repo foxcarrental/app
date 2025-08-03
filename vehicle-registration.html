@@ -59,6 +59,7 @@
             justify-content: space-between;
             align-items: flex-start;
             border-left: 8px solid; /* For status indication */
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
         }
 
         .expiry-card:hover {
@@ -292,8 +293,6 @@
             background-color: #a8a8a8;
             border-radius: 6px;
         }
-
-        /* Removed responsive adjustments for mobile view */
     </style>
 </head>
 <body class="text-gray-800">
@@ -483,6 +482,7 @@
                             <th>EXPIRY DATE</th>
                             <th>DAYS REMAINING</th>
                             <th>AVAILABILITY STATUS</th>
+                            <th>TOTAL FINES (AED)</th>
                             <th>CUSTOMER NAME</th>
                             <th>PHONE NUMBER</th>
                         </tr>
@@ -497,12 +497,26 @@
         </div>
     </div>
 
-    <!-- Modal for notifications -->
+    <!-- Modal for general notifications -->
     <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
             <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
             <p id="notification-message" class="text-gray-700 mb-6"></p>
             <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">Close</button>
+        </div>
+    </div>
+
+    <!-- Modal for displaying car fines -->
+    <div id="fines-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg relative animate-in zoom-in-50">
+            <button id="fines-modal-close-button" class="absolute top-4 right-4 p-2 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 transition-colors" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Fines for Plate No. <span id="fines-car-plate"></span></h3>
+            <div id="fines-list-container" class="space-y-4 max-h-80 overflow-y-auto pr-2">
+                <!-- Fines list will be dynamically inserted here -->
+            </div>
+            <p id="no-fines-message" class="text-gray-500 text-center hidden mt-4">No fines recorded for this car.</p>
         </div>
     </div>
 
@@ -523,8 +537,8 @@
             filterDaysRemaining: document.getElementById('filter-days-remaining'),
             filterYear: document.getElementById('filter-year'),
             filterAvailabilityStatus: document.getElementById('filter-availability-status'),
-            refreshButtonHeader: document.getElementById('refresh-data-header'), // Renamed
-            refreshButtonBody: document.getElementById('refresh-data-body'), // New
+            refreshButtonHeader: document.getElementById('refresh-data-header'),
+            refreshButtonBody: document.getElementById('refresh-data-body'),
             exportXlsButton: document.getElementById('export-xls-button'),
             loadingMessage: document.getElementById('loading-message'),
             notificationModal: document.getElementById('notification-modal'),
@@ -534,21 +548,28 @@
             registrationStatusTableBody: document.getElementById('registration-status-table-body'),
             tableLoadingMessage: document.getElementById('table-loading-message'),
             noTableDataMessage: document.getElementById('no-table-data-message'),
-            desktopSidebar: document.getElementById('desktop-sidebar'), // Added for sidebar
-            mainContent: document.getElementById('main-content'), // Added for sidebar
-            mainHeader: document.getElementById('main-header'), // Added for header
-            pinBtn: document.getElementById('pin-sidebar-btn'), // Added for sidebar
-            unpinBtn: document.getElementById('unpin-sidebar-btn'), // Added for sidebar
-            logoutButtonDesktop: document.getElementById('logout-button-desktop'), // Added for logout
-            userEmail: document.getElementById('user-email'), // Added for user info
-            userIdDisplay: document.getElementById('user-id-display'), // Added for user info
-            lastUpdated: document.getElementById('last-updated') // Added for last updated timestamp
+            desktopSidebar: document.getElementById('desktop-sidebar'),
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            pinBtn: document.getElementById('pin-sidebar-btn'),
+            unpinBtn: document.getElementById('unpin-sidebar-btn'),
+            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            lastUpdated: document.getElementById('last-updated'),
+            // New Fines Modal Elements
+            finesModal: document.getElementById('fines-modal'),
+            finesModalCloseButton: document.getElementById('fines-modal-close-button'),
+            finesCarPlate: document.getElementById('fines-car-plate'),
+            finesListContainer: document.getElementById('fines-list-container'),
+            noFinesMessage: document.getElementById('no-fines-message')
         };
 
-        let allCarsData = []; // Store all fetched car data
-        let currentlyFilteredCars = []; // Store cars currently displayed after filters
+        let allCarsData = [];
+        let allFinesData = []; // Store raw fines data
+        let currentlyFilteredCars = [];
 
-        // --- Modal Logic ---
+        // --- Modal Logic (general) ---
         function showMessage(message, title = "Notification") {
             ui.notificationTitle.textContent = title;
             ui.notificationMessage.textContent = message;
@@ -561,13 +582,44 @@
 
         ui.notificationCloseButton.addEventListener('click', hideMessage);
 
+        // --- Fines Modal Logic ---
+        function showFinesModal(plateNumber) {
+            const finesForCar = allFinesData.filter(fine => fine.plate_number === plateNumber);
+            ui.finesCarPlate.textContent = plateNumber;
+            ui.finesListContainer.innerHTML = '';
+
+            if (finesForCar.length > 0) {
+                ui.noFinesMessage.classList.add('hidden');
+                finesForCar.forEach(fine => {
+                    const fineItem = document.createElement('div');
+                    fineItem.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'border', 'border-gray-200');
+                    fineItem.innerHTML = `
+                        <p class="font-semibold text-gray-700">Fine Location: <span class="font-normal">${fine.location || 'N/A'}</span></p>
+                        <p class="font-semibold text-gray-700">Amount: <span class="font-normal text-red-600">AED ${fine.total_amount !== undefined ? fine.total_amount.toFixed(2) : '0.00'}</span></p>
+                        <p class="text-sm text-gray-500 mt-1">Date: <span class="font-normal">${fine.fine_date ? new Date(fine.fine_date).toLocaleDateString() : 'N/A'}</span></p>
+                    `;
+                    ui.finesListContainer.appendChild(fineItem);
+                });
+            } else {
+                ui.noFinesMessage.classList.remove('hidden');
+            }
+
+            ui.finesModal.classList.remove('hidden');
+        }
+
+        function hideFinesModal() {
+            ui.finesModal.classList.add('hidden');
+        }
+        
+        ui.finesModalCloseButton.addEventListener('click', hideFinesModal);
+
         // --- Helper Function: Calculate Days Left/Overdue (for display) ---
         function calculateDaysDifference(expiryDateString) {
             if (!expiryDateString) return null;
 
             const expiryDate = new Date(expiryDateString);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize to start of day
+            today.setHours(0, 0, 0, 0);
 
             const diffTime = expiryDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -587,7 +639,7 @@
 
             const expiryDate = new Date(expiryDateString);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize to start of day
+            today.setHours(0, 0, 0, 0);
 
             const diffTime = expiryDate.getTime() - today.getTime();
             const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
@@ -602,7 +654,7 @@
 
             const expiryDate = new Date(expiryDateString);
             const today = new Date();
-            today.setHours(0, 0, 0, 0); // Normalize to start of day
+            today.setHours(0, 0, 0, 0);
 
             const oneMonthFromNow = new Date(today);
             oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
@@ -625,11 +677,11 @@
         function getCarAvailabilityStatus(carStatus) {
             const lowerCaseStatus = (carStatus || '').toLowerCase();
             switch (lowerCaseStatus) {
-                case 'available': // Changed from 'active' to 'available'
+                case 'available':
                     return { text: 'Available', badgeClass: 'active' };
                 case 'inactive':
                     return { text: 'Inactive', badgeClass: 'inactive' };
-                case 'under maintenance': // Changed from 'maintenance'
+                case 'under maintenance':
                     return { text: 'Maintenance', badgeClass: 'maintenance' };
                 case 'rented':
                     return { text: 'Rented', badgeClass: 'rented' };
@@ -646,7 +698,7 @@
                     years.add(car.year);
                 }
             });
-            const sortedYears = Array.from(years).sort((a, b) => b - a); // Sort descending
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
 
             ui.filterYear.innerHTML = '<option value="all">All Years</option>';
             sortedYears.forEach(year => {
@@ -665,22 +717,21 @@
                     statuses.add(car.status);
                 }
             });
-            const sortedStatuses = Array.from(statuses).sort(); // Alphabetical sort
+            const sortedStatuses = Array.from(statuses).sort();
 
             ui.filterAvailabilityStatus.innerHTML = '<option value="all">All Availability Statuses</option>';
             sortedStatuses.forEach(status => {
                 const option = document.createElement('option');
                 option.value = status;
-                option.textContent = status.charAt(0).toUpperCase() + status.slice(1); // Capitalize
+                option.textContent = status.charAt(0).toUpperCase() + status.slice(1);
                 ui.filterAvailabilityStatus.appendChild(option);
             });
         }
 
-
         // --- Render Car Cards ---
         function renderCarCards(carsToRender) {
-            ui.carExpiryGrid.innerHTML = ''; // Clear existing cards
-            ui.loadingMessage.classList.add('hidden'); // Hide loading message once data is processed
+            ui.carExpiryGrid.innerHTML = '';
+            ui.loadingMessage.classList.add('hidden');
 
             if (carsToRender.length === 0) {
                 ui.carExpiryGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No cars found matching your criteria.</p>';
@@ -691,6 +742,8 @@
                 const expiry = getExpiryStatusForCard(car.registration_expiry_date);
                 const card = document.createElement('div');
                 card.classList.add('expiry-card', `status-${expiry.status}`);
+                // Add data attribute for click handler to get the plate number
+                card.setAttribute('data-plate-number', car.plate_number);
                 card.innerHTML = `
                     <div class="flex items-center mb-2">
                         <i class="${expiry.icon} ${expiry.colorClass} icon mr-3"></i>
@@ -704,16 +757,30 @@
                         <p class="date text-lg font-bold ${expiry.colorClass}">
                             ${car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A'}
                         </p>
-                        <p class="details text-sm mt-1">${expiry.text}</p>
+                        <p class="details text-sm mt-1 mb-2">${expiry.text}</p>
+                        <p class="details flex items-center text-sm font-semibold">
+                            <i class="fas fa-money-bill-wave text-red-500 mr-2"></i>
+                            Total Fines: ${car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A'}
+                        </p>
                     </div>
                 `;
                 ui.carExpiryGrid.appendChild(card);
+            });
+
+            // Add click event listeners to all newly rendered cards
+            document.querySelectorAll('.expiry-card').forEach(card => {
+                card.addEventListener('click', (event) => {
+                    const plateNumber = event.currentTarget.getAttribute('data-plate-number');
+                    if (plateNumber) {
+                        showFinesModal(plateNumber);
+                    }
+                });
             });
         }
 
         // --- Render Registration Status Table ---
         function renderRegistrationTable(carsToRender) {
-            ui.registrationStatusTableBody.innerHTML = ''; // Clear existing rows
+            ui.registrationStatusTableBody.innerHTML = '';
             ui.tableLoadingMessage.classList.add('hidden');
             ui.noTableDataMessage.classList.add('hidden');
 
@@ -737,6 +804,7 @@
                     <td>
                         <span class="table-status-badge ${availabilityStatus.badgeClass}">${availabilityStatus.text}</span>
                     </td>
+                    <td>${car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A'}</td>
                     <td>${car.customer_name || 'N/A'}</td>
                     <td>${car.phone_number || 'N/A'}</td>
                 `;
@@ -748,8 +816,8 @@
         async function fetchCarExpiryData() {
             ui.loadingMessage.classList.remove('hidden');
             ui.tableLoadingMessage.classList.remove('hidden');
-            ui.carExpiryGrid.innerHTML = ''; // Clear previous card data
-            ui.registrationStatusTableBody.innerHTML = ''; // Clear previous table data
+            ui.carExpiryGrid.innerHTML = '';
+            ui.registrationStatusTableBody.innerHTML = '';
             ui.noTableDataMessage.classList.add('hidden');
 
             try {
@@ -771,7 +839,7 @@
                 if (modelsError) throw modelsError;
                 const modelMap = new Map(vehModels.map(model => [model.id, model.model]));
 
-                // Fetch active rent history data, now selecting phone_number
+                // Fetch active rent history data, now selecting customer info
                 const { data: activeRentHistory, error: rentHistoryError } = await supabaseClient
                     .from('active_rent_history_view')
                     .select('car_id, customer_name, phone_number');
@@ -786,20 +854,35 @@
                     });
                 });
 
-                // Enrich car data with make, model names, and customer info
+                // --- Fetch raw traffic_fines data, now selecting 'location' instead of 'fine_reason' ---
+                const { data: trafficFines, error: finesError } = await supabaseClient
+                    .from('traffic_fines')
+                    .select('plate_number, total_amount, location, fine_date');
+
+                if (finesError) throw finesError;
+                allFinesData = trafficFines;
+
+                // Aggregate fines for the card/table display
+                const finesMap = new Map();
+                trafficFines.forEach(fine => {
+                    const currentTotal = finesMap.get(fine.plate_number) || 0;
+                    finesMap.set(fine.plate_number, currentTotal + (fine.total_amount || 0));
+                });
+
+                // Enrich car data with make, model names, customer info, and total fines
                 allCarsData = cars.map(car => ({
                     ...car,
                     make_name: makeMap.get(car.make_id),
                     model_name: modelMap.get(car.model_id),
                     customer_name: customerMap.has(car.id) ? customerMap.get(car.id).customer_name : null,
-                    phone_number: customerMap.has(car.id) ? customerMap.get(car.id).phone_number : null
+                    phone_number: customerMap.has(car.id) ? customerMap.get(car.id).phone_number : null,
+                    total_fines: finesMap.get(car.plate_number) || 0
                 }));
 
                 populateYearFilter(allCarsData);
                 populateAvailabilityStatusFilter(allCarsData);
                 filterAndRenderCars();
                 ui.lastUpdated.textContent = new Date().toLocaleTimeString();
-
 
             } catch (error) {
                 console.error("Error fetching car expiry data:", error);
@@ -881,6 +964,7 @@
                 "EXPIRY DATE",
                 "DAYS REMAINING",
                 "AVAILABILITY STATUS",
+                "TOTAL FINES (AED)",
                 "CUSTOMER NAME",
                 "PHONE NUMBER"
             ];
@@ -895,6 +979,7 @@
                 const expiryDateFormatted = car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A';
                 const daysRemainingDisplay = calculateDaysDifference(car.registration_expiry_date) || 'N/A';
                 const availabilityStatusText = getCarAvailabilityStatus(car.status).text;
+                const totalFinesFormatted = car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A';
 
                 tableHtml += `<tr>
                     <td>${index + 1}</td>
@@ -904,6 +989,7 @@
                     <td>${expiryDateFormatted}</td>
                     <td>${daysRemainingDisplay}</td>
                     <td>${availabilityStatusText}</td>
+                    <td>${totalFinesFormatted}</td>
                     <td>${car.customer_name || 'N/A'}</td>
                     <td>${car.phone_number || 'N/A'}</td>
                 </tr>`;
@@ -928,10 +1014,9 @@
         }
 
         // --- Desktop Sidebar Logic ---
-        let isSidebarPinned = false; // Initialize sidebar state
+        let isSidebarPinned = false;
 
         function setupDesktopSidebar() {
-            // Set initial state
             ui.desktopSidebar.classList.add('collapsed');
             ui.mainContent.style.marginLeft = '5rem';
             ui.mainHeader.style.left = '5rem';
@@ -939,7 +1024,7 @@
             ui.desktopSidebar.addEventListener('mouseenter', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.remove('collapsed');
-                    ui.mainContent.style.marginLeft = '16rem'; // 64 in tailwind
+                    ui.mainContent.style.marginLeft = '16rem';
                     ui.mainHeader.style.left = '16rem';
                 }
             });
@@ -947,7 +1032,7 @@
             ui.desktopSidebar.addEventListener('mouseleave', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.add('collapsed');
-                    ui.mainContent.style.marginLeft = '5rem'; // 20 in tailwind
+                    ui.mainContent.style.marginLeft = '5rem';
                     ui.mainHeader.style.left = '5rem';
                 }
             });
@@ -957,7 +1042,6 @@
                 ui.desktopSidebar.classList.remove('collapsed');
                 ui.pinBtn.classList.add('hidden');
                 ui.unpinBtn.classList.remove('hidden');
-                // Ensure layout is correct
                 ui.mainContent.style.marginLeft = '16rem';
                 ui.mainHeader.style.left = '16rem';
             });
@@ -978,26 +1062,22 @@
         ui.filterDaysRemaining.addEventListener('input', filterAndRenderCars);
         ui.filterYear.addEventListener('change', filterAndRenderCars);
         ui.filterAvailabilityStatus.addEventListener('change', filterAndRenderCars);
-        ui.refreshButtonHeader.addEventListener('click', fetchCarExpiryData); // Linked to header refresh
-        ui.refreshButtonBody.addEventListener('click', fetchCarExpiryData); // Linked to body refresh
+        ui.refreshButtonHeader.addEventListener('click', fetchCarExpiryData);
+        ui.refreshButtonBody.addEventListener('click', fetchCarExpiryData);
         ui.exportXlsButton.addEventListener('click', () => {
             const date = new Date();
             const filename = `car_registrations_${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.xls`;
             exportToXls(currentlyFilteredCars, filename);
         });
 
-        // For Supabase with an anonymous key, there isn't a direct "logout" like Firebase auth.
-        // We'll simulate a logout by clearing data and showing a message.
         ui.logoutButtonDesktop.addEventListener('click', async (e) => {
             e.preventDefault();
-            // In a real Supabase app with user authentication, you'd call supabaseClient.auth.signOut();
             showMessage("You have been logged out (simulated).", "Logged Out");
-            // Optionally clear displayed data
             ui.carExpiryGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">Logged out. No data displayed.</p>';
             ui.registrationStatusTableBody.innerHTML = '';
             ui.lastUpdated.textContent = '...';
-            ui.userEmail.textContent = "admin@foxcarrental.com"; // Reset to default
-            ui.userIdDisplay.classList.add('hidden'); // Hide user ID
+            ui.userEmail.textContent = "admin@foxcarrental.com";
+            ui.userIdDisplay.classList.add('hidden');
             allCarsData = [];
             currentlyFilteredCars = [];
         });
@@ -1005,20 +1085,14 @@
         // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
             setupDesktopSidebar();
-            // Redirect if not logged in (simulated check for anonymous key)
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (!session) {
-                    // For anonymous key, session might always be null.
-                    // If you have actual user authentication, this would be where you redirect.
-                    // For now, we'll proceed with data fetch even if no session,
-                    // but you might want to redirect to a login page in a real app.
-                    // window.location.href = 'login.html'; // Uncomment for actual login redirect
                     console.log("No active Supabase session. Proceeding with public data access.");
                 }
-                fetchCarExpiryData(); // Fetch data regardless of session for anonymous key
+                fetchCarExpiryData();
             }).catch(error => {
                 console.error("Error checking session:", error);
-                fetchCarExpiryData(); // Attempt to fetch data even if session check fails
+                fetchCarExpiryData();
             });
         });
     </script>

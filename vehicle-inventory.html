@@ -432,7 +432,7 @@
                 </div>
                 <div>
                     <label for="rent_initial_odometer_km" class="block text-sm font-medium text-gray-700">Initial Odometer (KM)</label>
-                    <input type="number" id="rent_initial_odometer_km" name="initial_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                    <input type="number" id="rent_initial_odometer_km" name="initial_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 focus:ring-purple-500 focus:border-purple-500" readonly>
                 </div>
                 <div>
                     <label for="rent_rental_price_per_day" class="block text-sm font-medium text-gray-700">Rental Price Per Day (AED)</label>
@@ -442,11 +442,11 @@
                     <label for="rent_paid_amount" class="block text-sm font-medium text-gray-700">Paid Amount (AED)</label>
                     <input type="number" id="rent_paid_amount" name="paid_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
-                <div>
+                <div class="hidden">
                     <label for="rent_traffic_fines" class="block text-sm font-medium text-gray-700">Traffic Fines (AED)</label>
                     <input type="number" id="rent_traffic_fines" name="traffic_fines" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
-                <div>
+                <div class="hidden">
                     <label for="rent_car_repair" class="block text-sm font-medium text-gray-700">Car Repair Cost (AED)</label>
                     <input type="number" id="rent_car_repair" name="car_repair" step="0.01" value="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
@@ -725,7 +725,7 @@
                             <button data-id="${car.id}" class="delete-btn text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
-                            ${car.status === 'Available' ? `<button data-id="${car.id}" data-make="${makeName}" data-model="${modelName}" data-plate="${car.plate_number}" data-price="${car.price}" class="rent-btn bg-green-500 text-white px-3 py-1 rounded-lg shadow-md hover:bg-green-600 transition-colors duration-200">
+                            ${car.status === 'Available' ? `<button data-id="${car.id}" data-make="${makeName}" data-model="${modelName}" data-plate="${car.plate_number}" data-price="${car.price}" data-odometer="${car.odometer_km || 0}" class="rent-btn bg-green-500 text-white px-3 py-1 rounded-lg shadow-md hover:bg-green-600 transition-colors duration-200">
                                 <i class="fas fa-key mr-1"></i>Rent
                             </button>` : ''}
                         </div>
@@ -759,7 +759,8 @@
                         const model = e.currentTarget.dataset.model;
                         const plate = e.currentTarget.dataset.plate;
                         const price = e.currentTarget.dataset.price;
-                        openRentCarModal(carId, make, model, plate, price);
+                        const odometer = e.currentTarget.dataset.odometer;
+                        openRentCarModal(carId, make, model, plate, price, odometer);
                     });
                 });
                 console.log("[Listeners] All rent buttons should now have click listeners attached."); // Confirm listeners attached
@@ -1127,11 +1128,14 @@
         // --- Rent Car Modal Logic ---
 
         // Open Rent Car Modal
-        async function openRentCarModal(carId, make, model, plate, price) {
-            console.log("[Modal Open] openRentCarModal called with:", { carId, make, model, plate, price }); // Log entry
+        async function openRentCarModal(carId, make, model, plate, price, odometer) {
+            console.log("[Modal Open] openRentCarModal called with:", { carId, make, model, plate, price, odometer }); // Log entry
             rentCarForm.reset(); // Clear form
             rentCarIdInput.value = carId;
             selectedCarDisplay.textContent = `${make} ${model} (${plate}) - AED ${parseFloat(price).toFixed(2)}/day`;
+            
+            // Set initial odometer from passed data
+            rentInitialOdometerInput.value = odometer || '';
 
             // Set default dates
             const today = new Date();
