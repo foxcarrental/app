@@ -1057,6 +1057,18 @@
                 }
                 // --- END NEW ---
 
+                // --- NEW: Add Payment Button Logic ---
+                let addPaymentButtonHtml = '';
+                if (rental.payment_status === 'Unpaid' || rental.payment_status === 'Partially Paid') {
+                    addPaymentButtonHtml = `
+                        <a href="customer-payment.html?id=${rental.id}" class="add-payment-btn mt-2 bg-green-500 text-white hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-lg text-center">
+                            <i class="fas fa-money-bill-wave mr-1"></i> Add Payment
+                        </a>
+                    `;
+                }
+                // --- END NEW ---
+
+
                 const item = document.createElement('div');
                 item.className = `bg-white rounded-xl shadow-md p-5 flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 md:space-x-4 border-l-4 ${getStatusBadgeColor(rental.status).replace('bg', 'border')}`;
                 item.innerHTML = `
@@ -1129,6 +1141,7 @@
                         <button data-id="${rental.id}" class="print-agreement-btn bg-custom-purple text-white hover:bg-custom-purple/80 transition-colors duration-200 px-3 py-1 rounded-lg">
                             <i class="fas fa-print mr-1"></i> Print Agreement
                         </button>
+                        ${addPaymentButtonHtml}
                     </div>
                 `;
                 ui.rentHistoryList.appendChild(item);
@@ -1265,12 +1278,13 @@
             ui.customerIdSelect.disabled = false;
             ui.initialOdometerInput.readOnly = false;
             ui.rentalPricePerDayInput.readOnly = false;
+            ui.paidAmountInput.readOnly = false;
 
             // Remove visual styling for disabled/readonly fields
             const fieldsToReset = [
                 ui.agreementNumberInput, ui.carSearchInput, ui.carIdSelect, 
                 ui.customerSearchInput, ui.customerIdSelect, ui.initialOdometerInput, 
-                ui.rentalPricePerDayInput
+                ui.rentalPricePerDayInput, ui.paidAmountInput
             ];
             fieldsToReset.forEach(field => field.classList.remove('bg-gray-100'));
 
@@ -1334,10 +1348,12 @@
                 ui.customerIdSelect.disabled = true;
                 ui.initialOdometerInput.readOnly = true;
                 ui.rentalPricePerDayInput.readOnly = true;
+                ui.paidAmountInput.readOnly = true; // Make Paid Amount read-only
 
                 // Add visual indication for disabled/readonly fields
                 const fieldsToStyle = [
-                    ui.carIdSelect, ui.customerIdSelect, ui.initialOdometerInput, ui.rentalPricePerDayInput
+                    ui.carIdSelect, ui.customerIdSelect, ui.initialOdometerInput, 
+                    ui.rentalPricePerDayInput, ui.paidAmountInput
                 ];
                 fieldsToStyle.forEach(field => field.classList.add('bg-gray-100'));
                 // --- END ---
@@ -2311,4 +2327,4 @@
         });
     </script>
 </body>
-</ht
+</html>
