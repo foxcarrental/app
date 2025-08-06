@@ -1057,16 +1057,14 @@
                 }
                 // --- END NEW ---
 
-                // --- NEW: Add Payment Button Logic ---
-                let addPaymentButtonHtml = '';
-                if (rental.payment_status === 'Unpaid' || rental.payment_status === 'Partially Paid') {
-                    addPaymentButtonHtml = `
-                        <a href="customer-payment.html?id=${rental.id}" class="add-payment-btn mt-2 bg-green-500 text-white hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-lg text-center">
-                            <i class="fas fa-money-bill-wave mr-1"></i> Add Payment
-                        </a>
-                    `;
-                }
-                // --- END NEW ---
+                // --- EDIT: Add Payment Button Logic ---
+                // The button is now always shown.
+                const addPaymentButtonHtml = `
+                    <a href="customer-payment.html?id=${rental.id}" class="add-payment-btn mt-2 bg-green-500 text-white hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-lg text-center">
+                        <i class="fas fa-money-bill-wave mr-1"></i> Add Payment
+                    </a>
+                `;
+                // --- END EDIT ---
 
 
                 const item = document.createElement('div');
