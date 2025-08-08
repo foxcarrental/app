@@ -438,7 +438,7 @@
                     <label for="rent_rental_price_per_day" class="block text-sm font-medium text-gray-700">Rental Price Per Day (AED)</label>
                     <input type="number" id="rent_rental_price_per_day" name="rental_price_per_day" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
-                <div>
+                <div id="rent-paid-amount-field"> <!-- Added ID here -->
                     <label for="rent_paid_amount" class="block text-sm font-medium text-gray-700">Paid Amount (AED)</label>
                     <input type="number" id="rent_paid_amount" name="paid_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
@@ -546,6 +546,7 @@
         const rentInitialOdometerInput = document.getElementById('rent_initial_odometer_km');
         const rentRentalPricePerDayInput = document.getElementById('rent_rental_price_per_day');
         const rentPaidAmountInput = document.getElementById('rent_paid_amount');
+        const rentPaidAmountField = document.getElementById('rent-paid-amount-field'); // NEW: Get reference to the paid amount field's container
         const rentTrafficFinesInput = document.getElementById('rent_traffic_fines');
         const rentCarRepairInput = document.getElementById('rent_car_repair');
         const rentNotesInput = document.getElementById('rent_notes');
@@ -562,6 +563,7 @@
         console.log("[DEBUG] rentTotalPriceInput element:", rentTotalPriceInput);
         console.log("[DEBUG] rentBalanceInput element:", rentBalanceInput);
         console.log("[DEBUG] rentPaymentStatusSelect element:", rentPaymentStatusSelect);
+        console.log("[DEBUG] rentPaidAmountField element:", rentPaidAmountField); // Log the new element
 
 
         // Confirmation Modal Elements
@@ -1156,6 +1158,11 @@
             // Recalculate derived fields initially
             calculateRentFormDerivedFields();
 
+            // NEW: Hide the Paid Amount field when opening the modal for renting
+            if (rentPaidAmountField) {
+                rentPaidAmountField.classList.add('hidden');
+            }
+
             rentCarModal.classList.remove('hidden');
             console.log("[Modal Open] Rent car modal should now be visible (removed 'hidden' class)."); // Log visibility
         }
@@ -1163,12 +1170,20 @@
         cancelRentCarButton.addEventListener('click', () => {
             console.log("[Modal Close] Cancel button clicked for rent modal.");
             rentCarModal.classList.add('hidden');
+            // NEW: Show the Paid Amount field when closing the modal
+            if (rentPaidAmountField) {
+                rentPaidAmountField.classList.remove('hidden');
+            }
         });
 
         rentCarModal.addEventListener('click', (e) => {
             if (e.target === rentCarModal) {
                 console.log("[Modal Close] Clicked outside rent modal.");
                 rentCarModal.classList.add('hidden');
+                // NEW: Show the Paid Amount field when closing the modal
+                if (rentPaidAmountField) {
+                    rentPaidAmountField.classList.remove('hidden');
+                }
             }
         });
 
@@ -1288,7 +1303,7 @@
                 final_odometer_km: null, // New records don't have this initially
                 rental_price_per_day: parseFloat(formData.get('rental_price_per_day')) || 0,
                 total_price: parseFloat(formData.get('total_price')) || 0,
-                paid_amount: parseFloat(formData.get('paid_amount')) || 0,
+                paid_amount: parseFloat(formData.get('paid_amount')) || 0, // Keep this if you want to explicitly save 0
                 balance: parseFloat(formData.get('balance')) || 0,
                 payment_status: formData.get('payment_status'),
                 status: 'Active', // New rent records are always 'Active'
@@ -1327,6 +1342,10 @@
                 rentCarModal.classList.add('hidden'); // Close modal
                 rentCarForm.reset(); // Clear form
                 fetchCars(); // Re-fetch cars to update the inventory view (status change)
+                // NEW: Show the Paid Amount field when the form is successfully submitted
+                if (rentPaidAmountField) {
+                    rentPaidAmountField.classList.remove('hidden');
+                }
             } catch (error) {
                 console.error("Error creating rent record:", error.message);
                 alert("Error creating rent record: " + error.message);

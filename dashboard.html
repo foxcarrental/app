@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Fox Car Rental Admin</title>
+    <title>Fox Car Rental - Dashboard</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
@@ -404,6 +404,30 @@
                 </div>
                 <div class="text-3xl text-red-400"><i class="fas fa-tags"></i></div>
             </div>
+            <!-- NEW KPI Card: Total Revenue -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='financial-dashboard.html';">
+                <div>
+                    <p class="text-gray-500">Total Revenue</p>
+                    <p id="total-revenue" class="text-4xl font-extrabold text-gray-900">AED 0.00</p>
+                </div>
+                <div class="text-3xl text-teal-500"><i class="fas fa-cash-register"></i></div>
+            </div>
+            <!-- NEW KPI Card: Profit -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='financial-dashboard.html';">
+                <div>
+                    <p class="text-gray-500">Profit</p>
+                    <p id="total-profit" class="text-4xl font-extrabold text-gray-900">AED 0.00</p>
+                </div>
+                <div class="text-3xl text-emerald-500"><i class="fas fa-piggy-bank"></i></div>
+            </div>
+            <!-- NEW KPI Card: Total Maintenance Cost -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='vehicle-maintenance.html';">
+                <div>
+                    <p class="text-gray-500">Total Maintenance Cost</p>
+                    <p id="total-maintenance-cost" class="text-4xl font-extrabold text-gray-900">AED 0.00</p>
+                </div>
+                <div class="text-3xl text-amber-500"><i class="fas fa-hammer"></i></div>
+            </div>
         </div>
 
         <!-- New sections: Recent Activity -->
@@ -468,11 +492,14 @@
             maintenanceVehicles: document.getElementById('maintenance-vehicles'),
             totalCustomers: document.getElementById('total-customers'),
             pendingPayments: document.getElementById('pending-payments'),
-            expiredRegistrationVehicles: document.getElementById('expired-registration-vehicles'), // New KPI element
-            registrationExpiringSoonVehicles: document.getElementById('registration-expiring-soon-vehicles'), // New KPI element
-            totalUnpaidFinesCount: document.getElementById('total-unpaid-fines-count'), // New KPI element
-            totalUnpaidFinesAmount: document.getElementById('total-unpaid-fines-amount'), // New KPI element
-            totalUnpaidFinesAfterDiscount: document.getElementById('total-unpaid-fines-after-discount'), // New KPI element
+            expiredRegistrationVehicles: document.getElementById('expired-registration-vehicles'),
+            registrationExpiringSoonVehicles: document.getElementById('registration-expiring-soon-vehicles'),
+            totalUnpaidFinesCount: document.getElementById('total-unpaid-fines-count'),
+            totalUnpaidFinesAmount: document.getElementById('total-unpaid-fines-amount'),
+            totalUnpaidFinesAfterDiscount: document.getElementById('total-unpaid-fines-after-discount'),
+            totalRevenue: document.getElementById('total-revenue'), 
+            totalProfit: document.getElementById('total-profit'), 
+            totalMaintenanceCost: document.getElementById('total-maintenance-cost'), // New KPI element
             lastUpdated: document.getElementById('last-updated'),
             refreshButton: document.getElementById('refresh-data'),
             logoutButtonDesktop: document.getElementById('logout-button-desktop'),
@@ -487,16 +514,13 @@
             notificationCloseButton: document.getElementById('notification-close-button'),
             userEmail: document.getElementById('user-email'),
             userIdDisplay: document.getElementById('user-id-display'),
-            recentActivityList: document.getElementById('recent-activity-list') // Added for recent activity
+            recentActivityList: document.getElementById('recent-activity-list')
         };
 
         // --- Sidebar State ---
         let isSidebarPinned = false;
-        // Supabase anonymous key does not provide a user ID in the same way Firebase does,
-        // so we'll just use a placeholder or remove the display if not relevant.
-        // For now, setting a default email and hiding the user ID display.
         ui.userEmail.textContent = "admin@foxcarrental.com";
-        ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
+        ui.userIdDisplay.classList.add('hidden');
 
         // --- Modal Logic ---
         function showMessage(message, title = "Notification") {
@@ -533,7 +557,7 @@
                 // Fetch Cars data
                 const { data: cars, error: carsError } = await supabaseClient
                     .from('cars')
-                    .select('id, status, make_id, model_id, registration_expiry_date'); // Added registration_expiry_date
+                    .select('id, status, make_id, model_id, registration_expiry_date');
 
                 if (carsError) throw carsError;
 
@@ -542,23 +566,20 @@
                 let rentedVehicles = cars.filter(car => car.status === 'Rented').length;
                 let maintenanceVehicles = cars.filter(car => car.status === 'Under Maintenance').length;
 
-                // Calculate expired registrations
                 const today = new Date();
                 let expiredRegistrationVehicles = cars.filter(car => {
                     if (car.registration_expiry_date) {
                         const expiryDate = new Date(car.registration_expiry_date);
                         return expiryDate < today;
                     }
-                    return false; // If no expiry date, not considered expired
+                    return false;
                 }).length;
 
-                // Calculate registrations expiring within 1 month
                 const oneMonthFromNow = new Date();
                 oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
                 let registrationExpiringSoonVehicles = cars.filter(car => {
                     if (car.registration_expiry_date) {
                         const expiryDate = new Date(car.registration_expiry_date);
-                        // Check if expiryDate is in the future AND within one month from now
                         return expiryDate > today && expiryDate <= oneMonthFromNow;
                     }
                     return false;
@@ -568,39 +589,31 @@
                 ui.availableVehicles.textContent = availableVehicles;
                 ui.rentedVehicles.textContent = rentedVehicles;
                 ui.maintenanceVehicles.textContent = maintenanceVehicles;
-                ui.expiredRegistrationVehicles.textContent = expiredRegistrationVehicles; // Update new KPI
-                ui.registrationExpiringSoonVehicles.textContent = registrationExpiringSoonVehicles; // Update new KPI
+                ui.expiredRegistrationVehicles.textContent = expiredRegistrationVehicles;
+                ui.registrationExpiringSoonVehicles.textContent = registrationExpiringSoonVehicles;
 
                 // Fetch Customers data
                 const { data: customers, error: customersError } = await supabaseClient
                     .from('customers')
-                    .select('id, first_name, last_name'); // Select only necessary fields
+                    .select('id, first_name, last_name');
 
                 if (customersError) throw customersError;
                 ui.totalCustomers.textContent = customers.length;
 
                 // Fetch Vehicle Makes and Models for display
-                const { data: vehMakes, error: makesError } = await supabaseClient
-                    .from('veh_make')
-                    .select('id, make');
+                const { data: vehMakes, error: makesError } = await supabaseClient.from('veh_make').select('id, make');
                 if (makesError) throw makesError;
                 const makeMap = new Map(vehMakes.map(make => [make.id, make.make]));
 
-                const { data: vehModels, error: modelsError } = await supabaseClient
-                    .from('veh_model')
-                    .select('id, model');
+                const { data: vehModels, error: modelsError } = await supabaseClient.from('veh_model').select('id, model');
                 if (modelsError) throw modelsError;
                 const modelMap = new Map(vehModels.map(model => [model.id, model.model]));
 
-                // Create maps for quick lookup
                 const carMap = new Map(cars.map(car => [car.id, car]));
                 const customerMap = new Map(customers.map(customer => [customer.id, customer]));
 
-                // Fetch Rent History data for revenue and pending payments and recent activity
-                const { data: rentHistory, error: rentHistoryError } = await supabaseClient
-                    .from('rent_history')
-                    .select('*');
-
+                // Fetch Rent History data
+                const { data: rentHistory, error: rentHistoryError } = await supabaseClient.from('rent_history').select('*');
                 if (rentHistoryError) throw rentHistoryError;
 
                 let pendingPayments = 0;
@@ -608,77 +621,53 @@
 
                 rentHistory.forEach(rental => {
                     pendingPayments += (rental.balance || 0);
-
                     const car = carMap.get(rental.car_id);
                     const customer = customerMap.get(rental.customer_id);
-                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown Make'} ${modelMap.get(car.model_id) || 'Unknown Model'}` : 'Unknown Car';
+                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown'} ${modelMap.get(car.model_id) || 'Model'}` : 'Unknown Car';
                     const customerName = customer ? `${customer.first_name} ${customer.last_name}` : 'Unknown Customer';
 
-                    // Activity for rental start
-                    recentActivities.push({
-                        type: 'rented',
-                        description: `${carName} rented by ${customerName}`,
-                        timestamp: rental.from_date,
-                        iconClass: 'blue'
-                    });
-
-                    // Activity for actual return (if available)
+                    recentActivities.push({ type: 'rented', description: `${carName} rented by ${customerName}`, timestamp: rental.from_date, iconClass: 'blue' });
                     if (rental.actual_return_date) {
-                        recentActivities.push({
-                            type: 'returned',
-                            description: `${carName} returned by ${customerName}`,
-                            timestamp: rental.actual_return_date,
-                            iconClass: 'green'
-                        });
+                        recentActivities.push({ type: 'returned', description: `${carName} returned by ${customerName}`, timestamp: rental.actual_return_date, iconClass: 'green' });
                     }
                 });
 
                 ui.pendingPayments.textContent = `AED ${pendingPayments.toFixed(2)}`;
 
-                // Fetch Vehicle Maintenance data for recent activity
-                const { data: maintenanceHistory, error: maintenanceError } = await supabaseClient
-                    .from('vehicle_maintenance')
-                    .select('*');
+                // Fetch Payments for Total Revenue
+                const { data: payments, error: paymentsError } = await supabaseClient.from('payments').select('amount');
+                if (paymentsError) throw paymentsError;
+                const totalRevenue = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
+                ui.totalRevenue.textContent = `AED ${totalRevenue.toFixed(2)}`;
 
+                // Fetch Vehicle Maintenance data for costs and recent activity
+                const { data: maintenanceHistory, error: maintenanceError } = await supabaseClient.from('vehicle_maintenance').select('*');
                 if (maintenanceError) throw maintenanceError;
+                const totalMaintenanceCost = maintenanceHistory.reduce((sum, item) => sum + (item.cost || 0), 0);
+                ui.totalMaintenanceCost.textContent = `AED ${totalMaintenanceCost.toFixed(2)}`; // Update new KPI
 
                 maintenanceHistory.forEach(maintenance => {
                     const car = carMap.get(maintenance.car_id);
-                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown Make'} ${modelMap.get(car.model_id) || 'Unknown Model'}` : 'Unknown Car';
-
-                    // Activity for maintenance
-                    recentActivities.push({
-                        type: 'maintenance',
-                        description: `${carName} sent for maintenance`,
-                        timestamp: maintenance.created_at, // Using created_at or scheduled_date
-                        iconClass: 'purple'
-                    });
+                    const carName = car ? `${makeMap.get(car.make_id) || 'Unknown'} ${modelMap.get(car.model_id) || 'Model'}` : 'Unknown Car';
+                    recentActivities.push({ type: 'maintenance', description: `${carName} sent for maintenance`, timestamp: maintenance.created_at, iconClass: 'purple' });
                 });
 
-                // Fetch Traffic Fines data for new KPIs and recent activity
-                const { data: trafficFines, error: finesError } = await supabaseClient
-                    .from('traffic_fines')
-                    .select('*');
-
+                // Fetch Traffic Fines data for KPIs and recent activity
+                const { data: trafficFines, error: finesError } = await supabaseClient.from('traffic_fines').select('*');
                 if (finesError) throw finesError;
 
                 let totalUnpaidFinesCount = 0;
                 let totalUnpaidFinesAmount = 0;
                 let totalUnpaidFinesAfterDiscount = 0;
+                let totalFinesCost = 0;
 
                 trafficFines.forEach(fine => {
-                    if (fine.fine_status === false) { // Assuming false means unpaid
+                    totalFinesCost += (fine.total_amount || 0); // Sum all fines for profit calculation
+                    if (fine.fine_status === false) { // Unpaid fines logic
                         totalUnpaidFinesCount++;
                         totalUnpaidFinesAmount += (fine.total_amount || 0);
                         totalUnpaidFinesAfterDiscount += (fine.amount_after_discount || 0);
-
-                        // Add activity for unpaid fine
-                        recentActivities.push({
-                            type: 'fine',
-                            description: `Unpaid fine ${fine.fine_number} for plate ${fine.plate_number}`,
-                            timestamp: fine.fine_date, // Using fine_date as timestamp
-                            iconClass: 'red'
-                        });
+                        recentActivities.push({ type: 'fine', description: `Unpaid fine ${fine.fine_number} for plate ${fine.plate_number}`, timestamp: fine.fine_date, iconClass: 'red' });
                     }
                 });
 
@@ -686,12 +675,13 @@
                 ui.totalUnpaidFinesAmount.textContent = `AED ${totalUnpaidFinesAmount.toFixed(2)}`;
                 ui.totalUnpaidFinesAfterDiscount.textContent = `AED ${totalUnpaidFinesAfterDiscount.toFixed(2)}`;
 
+                // Calculate and display Profit
+                const totalProfit = totalRevenue - totalMaintenanceCost - totalFinesCost;
+                ui.totalProfit.textContent = `AED ${totalProfit.toFixed(2)}`;
 
-                // Sort activities by timestamp in descending order
+                // Sort and render activities
                 recentActivities.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-
-                // Render recent activities
-                renderRecentActivity(recentActivities.slice(0, 5)); // Display top 5 recent activities
+                renderRecentActivity(recentActivities.slice(0, 5));
                 
                 ui.lastUpdated.textContent = new Date().toLocaleTimeString();
 
@@ -701,14 +691,12 @@
             }
         }
 
-        // Function to render recent activity items
         function renderRecentActivity(activities) {
-            ui.recentActivityList.innerHTML = ''; // Clear existing list
+            ui.recentActivityList.innerHTML = '';
             if (activities.length === 0) {
                 ui.recentActivityList.innerHTML = '<li class="text-gray-500">No recent activity to display.</li>';
                 return;
             }
-
             activities.forEach(activity => {
                 const listItem = document.createElement('li');
                 listItem.classList.add('activity-item');
@@ -723,96 +711,79 @@
             });
         }
 
-        // --- Desktop Sidebar Logic ---
         function setupDesktopSidebar() {
-            // Set initial state
             ui.desktopSidebar.classList.add('collapsed');
             ui.mainContent.style.marginLeft = '5rem';
             ui.mainHeader.style.left = '5rem';
 
             ui.desktopSidebar.addEventListener('mouseenter', () => {
                 if (!isSidebarPinned) {
+                    document.body.classList.add('sidebar-expanded');
                     ui.desktopSidebar.classList.remove('collapsed');
-                    ui.mainContent.style.marginLeft = '16rem'; // 64 in tailwind
-                    ui.mainHeader.style.left = '16rem';
                 }
             });
 
             ui.desktopSidebar.addEventListener('mouseleave', () => {
                 if (!isSidebarPinned) {
+                    document.body.classList.remove('sidebar-expanded');
                     ui.desktopSidebar.classList.add('collapsed');
-                    ui.mainContent.style.marginLeft = '5rem'; // 20 in tailwind
-                    ui.mainHeader.style.left = '5rem';
                 }
             });
 
             ui.pinBtn.addEventListener('click', () => {
                 isSidebarPinned = true;
+                document.body.classList.add('sidebar-expanded');
                 ui.desktopSidebar.classList.remove('collapsed');
                 ui.pinBtn.classList.add('hidden');
                 ui.unpinBtn.classList.remove('hidden');
-                // Ensure layout is correct
-                ui.mainContent.style.marginLeft = '16rem';
-                ui.mainHeader.style.left = '16rem';
             });
 
             ui.unpinBtn.addEventListener('click', () => {
                 isSidebarPinned = false;
+                document.body.classList.remove('sidebar-expanded');
                 ui.desktopSidebar.classList.add('collapsed');
                 ui.unpinBtn.classList.add('hidden');
                 ui.pinBtn.classList.remove('hidden');
-                ui.mainContent.style.marginLeft = '5rem';
-                ui.mainHeader.style.left = '5rem';
             });
         }
 
-        // --- Authentication Check ---
         function checkAuthentication() {
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (!session) {
-                    window.location.href = 'login.html'; // Redirect to login page
+                    window.location.href = 'login.html';
                 } else {
-                    // If session exists, fetch and render dashboard data
                     fetchDashboardData();
                 }
             }).catch(error => {
                 console.error("Error checking session:", error);
-                // Even if session fails, try to load data, but log the error
                 fetchDashboardData();
             });
         }
 
-        // --- Event Listeners ---
-        ui.refreshButton.addEventListener('click', fetchDashboardData); // Re-run fetch on refresh
+        ui.refreshButton.addEventListener('click', fetchDashboardData);
 
-        // For Supabase with an anonymous key, there isn't a direct "logout" like Firebase auth.
-        // We'll simulate a logout by clearing data and showing a message.
         ui.logoutButtonDesktop.addEventListener('click', async (e) => {
             e.preventDefault();
-            // In a real Supabase app with user authentication, you'd call supabaseClient.auth.signOut();
             showMessage("You have been logged out (simulated).", "Logged Out");
-            // Optionally clear displayed data
-            ui.totalVehicles.textContent = '0';
-            ui.availableVehicles.textContent = '0';
-            ui.rentedVehicles.textContent = '0';
-            ui.maintenanceVehicles.textContent = '0';
-            ui.expiredRegistrationVehicles.textContent = '0';
-            ui.registrationExpiringSoonVehicles.textContent = '0';
-            ui.totalUnpaidFinesCount.textContent = '0'; // Clear new KPI
-            ui.totalUnpaidFinesAmount.textContent = 'AED 0.00'; // Clear new KPI
-            ui.totalUnpaidFinesAfterDiscount.textContent = 'AED 0.00'; // Clear new KPI
-            ui.totalCustomers.textContent = '0';
-            ui.pendingPayments.textContent = 'AED 0.00';
+            // Clear all KPI data
+            Object.keys(ui).forEach(key => {
+                if (ui[key].id && ui[key].id.includes('-')) { // Heuristic to find KPI elements
+                    if (ui[key].id.includes('amount') || ui[key].id.includes('revenue') || ui[key].id.includes('profit') || ui[key].id.includes('payments') || ui[key].id.includes('cost')) {
+                        ui[key].textContent = 'AED 0.00';
+                    } else {
+                        ui[key].textContent = '0';
+                    }
+                }
+            });
             ui.lastUpdated.textContent = '...';
-            ui.userEmail.textContent = "admin@foxcarrental.com"; // Reset to default
-            ui.userIdDisplay.classList.add('hidden'); // Hide user ID
-            ui.recentActivityList.innerHTML = ''; // Clear recent activity
+            ui.userEmail.textContent = "admin@foxcarrental.com";
+            ui.userIdDisplay.classList.add('hidden');
+            ui.recentActivityList.innerHTML = '';
         });
         
-        // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
-            setupDesktopSidebar(); // Always set up desktop sidebar as mobile view is removed
-            checkAuthentication(); // Perform authentication check on load
+            setupDesktopSidebar();
+            checkAuthentication();
         });
     </script>
 </body>
