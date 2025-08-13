@@ -342,6 +342,11 @@
                     <label for="price" class="block text-sm font-medium text-gray-700">Price (AED)</label>
                     <input type="number" id="price" name="price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
                 </div>
+                <!-- NEW: Added Registration Expiry Date field -->
+                <div>
+                    <label for="registration_expiry_date" class="block text-sm font-medium text-gray-700">Registration Expiry Date</label>
+                    <input type="date" id="registration_expiry_date" name="registration_expiry_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
                 <!-- Status field is now hidden -->
                 <!-- <div>
                     <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
@@ -521,6 +526,8 @@
         const statusFilter = document.getElementById('status-filter');
         const makeSelect = document.getElementById('make_id');
         const modelSelect = document.getElementById('model_id');
+        // NEW: Added DOM element for registration_expiry_date
+        const registrationExpiryDateInput = document.getElementById('registration_expiry_date');
         // Removed: const statusSelect = document.getElementById('status'); // Status select element is now hidden
 
         // DOM Elements - Add New Model Modal
@@ -718,6 +725,7 @@
                             <p><strong>Color:</strong> ${car.color || 'N/A'}</p>
                             <p><strong>Fuel:</strong> ${car.fuel ? car.fuel + '%' : 'N/A'}</p>
                             <p><strong>Odometer:</strong> ${car.odometer_km ? car.odometer_km + ' KM' : 'N/A'}</p>
+                            <p><strong>Expiry:</strong> ${formatDate(car.registration_expiry_date)}</p> <!-- NEW: Display Registration Expiry Date -->
                             <p><strong>Features:</strong> ${car.features || 'N/A'}</p>
                         </div>
                         <div class="mt-4 flex justify-end space-x-2">
@@ -900,6 +908,7 @@
             makeSelect.value = ""; // Reset make dropdown
             modelSelect.innerHTML = '<option value="">Select Model</option>'; // Clear models
             populateSelect(makeSelect, makesData, 'make', 'id'); // Re-populate makes
+            registrationExpiryDateInput.value = ''; // NEW: Clear expiry date for new vehicle
 
             // No need to set statusSelect.value or disable it as the element is removed from HTML
             vehicleModal.classList.remove('hidden');
@@ -940,7 +949,8 @@
                 document.getElementById('year').value = data.year || '';
                 document.getElementById('color').value = data.color || '';
                 document.getElementById('price').value = data.price || '';
-                // Status field is now hidden, so no need to set its value or disable it
+                // NEW: Populate registration_expiry_date
+                document.getElementById('registration_expiry_date').value = data.registration_expiry_date || '';
                 
                 document.getElementById('fuel').value = data.fuel || '';
                 document.getElementById('odometer_km').value = data.odometer_km || '';
@@ -983,6 +993,7 @@
                 make_id: parseInt(formData.get('make_id')) || null,
                 model_id: parseInt(formData.get('model_id')) || null,
                 pic_url: formData.get('pic_url') || null,
+                registration_expiry_date: formData.get('registration_expiry_date') || null, // NEW: Get registration_expiry_date
                 from_date: null, // Not in form, default to null
                 end_date: null   // Not in form, default to null
             };

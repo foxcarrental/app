@@ -23,14 +23,13 @@
             display: flex;
             flex-direction: row;
             min-height: 100vh;
-            color: #1f2937; /* Tailwind gray-800 */
+            color: #1f2937;
         }
         
-        /* Custom styles for fixed header and sidebar */
         #main-header {
             position: fixed;
             top: 0;
-            left: 5rem; /* Corresponds to collapsed sidebar width */
+            left: 5rem;
             right: 0;
             z-index: 40;
             background-color: #ffffff;
@@ -39,9 +38,8 @@
             padding: 1rem;
         }
 
-        /* Adjust header left position when sidebar expands */
         body.sidebar-expanded #main-header {
-            left: 16rem; /* Corresponds to expanded sidebar width */
+            left: 16rem;
         }
 
         #desktop-sidebar {
@@ -55,16 +53,14 @@
 
         #main-content {
             transition: margin-left 0.3s ease-in-out;
-            padding-top: 100px; /* Adjust based on header height */
-            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
+            padding-top: 100px;
+            margin-left: 5rem;
         }
 
-        /* Adjust main content margin when sidebar expands */
         body.sidebar-expanded #main-content {
-            margin-left: 16rem; /* Corresponds to expanded sidebar width */
+            margin-left: 16rem;
         }
         
-        /* Collapsed state for the sidebar */
         #desktop-sidebar.collapsed {
             width: 5rem;
         }
@@ -84,11 +80,10 @@
         }
 
         #desktop-sidebar .nav-item i {
-            width: 2rem; /* Ensure icons align */
+            width: 2rem;
             text-align: center;
         }
         
-        /* Styles for scrollable sidebar */
         .sidebar-scroll {
             overflow-y: auto;
             scrollbar-width: thin;
@@ -105,7 +100,6 @@
             border-radius: 6px;
         }
 
-        /* Form styles */
         .container {
             max-width: 800px;
         }
@@ -142,9 +136,7 @@
         </div>
         <nav class="flex-grow">
             <ul>
-                <!-- Navigation items with full list -->
                 <li class="mb-2">
-                    <!-- This is the active link for the current page -->
                     <a href="dashboard.html" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
                         <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
                     </a>
@@ -194,26 +186,6 @@
                         <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
                     </a>
                 </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
-                    </a>
-                </li>
             </ul>
         </nav>
         <div class="pt-4 border-t">
@@ -225,11 +197,10 @@
                     <i class="fas fa-chevron-left"></i>
                 </button>
             </div>
-             <!-- The logout functionality is removed as there is no login functionality to support it yet. -->
         </div>
     </aside>
 
-    <!-- Main Header to show layout changes -->
+    <!-- Main Header -->
     <header id="main-header" class="flex items-center justify-between">
         <h2 class="text-2xl font-bold text-gray-800">Vehicle Registration Updater</h2>
     </header>
@@ -251,7 +222,7 @@
                 <p id="file-name-display" class="text-sm text-gray-500 text-center mb-4"></p>
                 <button type="submit" id="process-button" class="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-indigo-700 transition-colors duration-300 disabled:bg-indigo-400" disabled>
                     <i class="fas fa-sync-alt mr-2"></i>
-                    Process File and Update Database
+                    Process File and Prepare Updates
                 </button>
             </form>
 
@@ -275,6 +246,38 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Review Updates Container -->
+            <div id="review-updates-container" class="mt-6 hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-3">Review & Confirm Updates</h2>
+                <p class="text-gray-600 mb-4">The following vehicles have different registration expiry dates in your Excel file compared to the database. You can review and edit the new expiry date before saving.</p>
+                
+                <div class="max-h-96 overflow-y-auto border border-gray-200 rounded-lg shadow-inner mb-4">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50 sticky top-0">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Plate Number</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Database Expiry</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Excel Expiry</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">New Expiry (Edit)</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="review-table-body" class="bg-white divide-y divide-gray-200">
+                            <!-- Rows will be populated here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button id="cancel-review-button" class="px-6 py-3 border border-gray-300 rounded-lg text-gray-700 font-semibold hover:bg-gray-100 transition-colors duration-300">
+                        Cancel & Upload New File
+                    </button>
+                    <button id="confirm-all-updates-button" class="px-6 py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition-colors duration-300">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        Confirm All Pending Updates
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -288,36 +291,18 @@
     </div>
 
     <script type="module">
-        // --- CONFIGURATION: EDIT THESE VARIABLES TO MATCH YOUR EXCEL FILE ---
+        // Configuration
         const PLATE_NUMBER_HEADER = 'PlateNo'.trim().toLowerCase();
         const EXPIRY_DATE_HEADER = 'RegistrationExpiryDate'.trim().toLowerCase();
 
-        // --- Supabase Configuration ---
-        // NOTE: The URL and Key are placeholders.
+        // Supabase Configuration
         const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
-        // Supabase Client Import
+        
         import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
         
-        // --- AUTHENTICATION CHECK ---
-        async function checkAuthAndRedirect() {
-            try {
-                const { data: { session } } = await supabaseClient.auth.getSession();
-                if (!session) {
-                    console.log("No active session found. Redirecting to login page.");
-                    window.location.href = 'login.html';
-                } else {
-                    console.log("User is authenticated. Proceeding with application.");
-                }
-            } catch (error) {
-                console.error("Authentication check failed:", error);
-                // Optionally redirect even on error to be safe
-                window.location.href = 'login.html';
-            }
-        }
-        
-        // --- DOM Elements ---
+        // DOM Elements
         const ui = {
             dropZone: document.getElementById('drop-zone'),
             fileInput: document.getElementById('excel-file'),
@@ -337,12 +322,18 @@
             mainHeader: document.getElementById('main-header'),
             pinBtn: document.getElementById('pin-sidebar-btn'),
             unpinBtn: document.getElementById('unpin-sidebar-btn'),
+            reviewUpdatesContainer: document.getElementById('review-updates-container'),
+            reviewTableBody: document.getElementById('review-table-body'),
+            cancelReviewButton: document.getElementById('cancel-review-button'),
+            confirmAllUpdatesButton: document.getElementById('confirm-all-updates-button'),
+            uploadForm: document.getElementById('upload-form'),
         };
 
         let selectedFile = null;
         let isSidebarPinned = false;
+        let vehiclesForReview = [];
 
-        // --- Utility Functions ---
+        // Utility Functions
         function showMessage(title, content) {
             ui.notificationTitle.textContent = title;
             ui.notificationContent.innerHTML = content;
@@ -350,12 +341,11 @@
         }
         ui.notificationCloseButton.addEventListener('click', () => ui.notificationModal.classList.add('hidden'));
 
-        // Helper to normalize strings for comparison, now handles non-string types robustly
         function normalizeString(str) {
             return (str === null || str === undefined) ? '' : String(str).trim().toUpperCase();
         }
 
-        // Helper to normalize dates to YYYY-MM-DD format
+        // Fixed date parsing function
         function normalizeDate(date) {
             if (typeof date === 'number') {
                 const excelEpoch = new Date(Date.UTC(1900, 0, 1));
@@ -370,24 +360,23 @@
             if (date instanceof Date) {
                 return date.toISOString().split('T')[0];
             } else if (typeof date === 'string') {
-                try {
-                    const parts = date.split('-');
-                    if (parts.length === 3) {
-                        return `${parts[2]}-${parts[1]}-${parts[0]}`;
-                    }
-                    const d = new Date(date);
-                    if (!isNaN(d.getTime())) {
-                        return d.toISOString().split('T')[0];
-                    }
-                } catch (e) {
-                    console.error("Could not parse date:", date, e);
-                    return date;
+                // First check for explicit DD-MM-YYYY format
+                const parts = date.split('-');
+                if (parts.length === 3 && parts[0].length === 2 && parts[1].length === 2 && parts[2].length === 4) {
+                    // Explicitly treat as DD-MM-YYYY format
+                    return `${parts[2]}-${parts[1]}-${parts[0]}`;
+                }
+                
+                // Try to parse as a standard date string
+                const d = new Date(date);
+                if (!isNaN(d.getTime())) {
+                    return d.toISOString().split('T')[0];
                 }
             }
-            return date;
+            return null;
         }
 
-        // --- Drag and Drop & File Select Logic ---
+        // File Handling
         ui.dropZone.addEventListener('click', () => ui.fileInput.click());
         ui.dropZone.addEventListener('dragover', (e) => { e.preventDefault(); ui.dropZone.classList.add('dragover'); });
         ui.dropZone.addEventListener('dragleave', () => ui.dropZone.classList.remove('dragover'));
@@ -411,11 +400,15 @@
                 ui.fileNameDisplay.textContent = `Selected file: ${file.name}`;
                 ui.processButton.disabled = false;
                 previewExcelData(file);
+                ui.reviewUpdatesContainer.classList.add('hidden'); 
+                ui.uploadForm.classList.remove('hidden');
             } else {
                 showMessage("Invalid File Type", "Please upload a valid Excel file (.xls or .xlsx).");
                 selectedFile = null;
                 ui.fileNameDisplay.textContent = "";
                 ui.processButton.disabled = true;
+                ui.dataPreview.classList.add('hidden');
+                ui.reviewUpdatesContainer.classList.add('hidden');
             }
         }
 
@@ -477,7 +470,7 @@
             }
         }
 
-        // --- Main Form Submission Logic ---
+        // Main Processing
         ui.processButton.addEventListener('click', async (e) => {
             e.preventDefault();
             if (!selectedFile) {
@@ -488,6 +481,8 @@
             ui.processButton.disabled = true;
             ui.statusContainer.classList.remove('hidden');
             ui.processingText.textContent = 'Reading and parsing Excel file...';
+            ui.uploadForm.classList.add('hidden');
+            ui.dataPreview.classList.add('hidden');
 
             try {
                 const data = await selectedFile.arrayBuffer();
@@ -520,120 +515,265 @@
                 if (dbError) throw dbError;
 
                 const dbCarsMap = new Map(dbCars.map(car => [normalizeString(car.plate_number), car]));
-                const dbPlateNumbers = new Set(dbCarsMap.keys());
                 
-                const vehiclesToUpdate = [];
+                vehiclesForReview = [];
                 const vehiclesToInsert = [];
-                const vehiclesWithSameDate = [];
+                const vehiclesToCancel = [];
                 const excelPlateNumbers = new Set();
                 
-                ui.processingText.textContent = 'Comparing and preparing updates...';
+                ui.processingText.textContent = 'Comparing and preparing updates for review...';
                 for (const row of rows) {
                     const excelPlate = row[plateNoHeaderIndex];
                     const excelExpiry = row[expiryDateHeaderIndex];
                     
-                    if (!excelPlate || !excelExpiry) continue;
+                    if (!excelPlate) continue;
                     
                     const normalizedExcelPlate = normalizeString(excelPlate);
-                    const normalizedExcelExpiry = normalizeDate(excelExpiry);
+                    const normalizedExcelExpiry = excelExpiry ? normalizeDate(excelExpiry) : null;
 
                     excelPlateNumbers.add(normalizedExcelPlate);
 
                     if (dbCarsMap.has(normalizedExcelPlate)) {
                         const dbCar = dbCarsMap.get(normalizedExcelPlate);
-                        const normalizedDbExpiry = normalizeDate(dbCar.registration_expiry_date);
+                        const normalizedDbExpiry = dbCar.registration_expiry_date ? normalizeDate(dbCar.registration_expiry_date) : null;
 
                         if (normalizedExcelExpiry !== normalizedDbExpiry) {
-                            vehiclesToUpdate.push({
+                            vehiclesForReview.push({
                                 plate_number: excelPlate,
-                                registration_expiry_date: normalizedExcelExpiry
+                                db_expiry: normalizedDbExpiry,
+                                excel_expiry: normalizedExcelExpiry,
+                                new_expiry: normalizedExcelExpiry
                             });
-                        } else {
-                            vehiclesWithSameDate.push(excelPlate);
                         }
                     } else {
                         vehiclesToInsert.push(excelPlate);
                     }
                 }
                 
-                const vehiclesToCancel = dbCars.filter(dbCar => !excelPlateNumbers.has(normalizeString(dbCar.plate_number))).map(car => car.plate_number);
-
-                ui.processingText.textContent = 'Updating database records...';
-                const updatePromises = vehiclesToUpdate.map(async car => {
-                    const { error } = await supabaseClient
-                        .from('cars')
-                        .update({ registration_expiry_date: car.registration_expiry_date })
-                        .eq('plate_number', car.plate_number);
-                    if (error) {
-                        console.error(`Failed to update car ${car.plate_number}:`, error);
+                dbCars.forEach(dbCar => {
+                    if (!excelPlateNumbers.has(normalizeString(dbCar.plate_number))) {
+                        vehiclesToCancel.push(dbCar.plate_number);
                     }
                 });
 
-                await Promise.all(updatePromises);
-                
-                let messageContent = `<p class="mb-4">The process is complete. Here is a summary of the results:</p>`;
-                
-                messageContent += `<h4 class="font-bold text-lg text-green-700 mb-2">Updates Completed:</h4>`;
-                if (vehiclesToUpdate.length > 0) {
-                    messageContent += `<p>${vehiclesToUpdate.length} record(s) were successfully updated with new registration expiry dates.</p>`;
-                } else {
-                    messageContent += `<p class="text-gray-500">No records required an update because the dates were already a match.</p>`;
-                }
-                 
-                messageContent += `<h4 class="font-bold text-lg text-yellow-500 mt-4 mb-2">Matching Records with Same Date:</h4>`;
-                if (vehiclesWithSameDate.length > 0) {
-                    messageContent += `<p>${vehiclesWithSameDate.length} record(s) were found in both the Excel file and the database, but their expiry dates were identical.</p>`;
-                } else {
-                    messageContent += `<p class="text-gray-500">No matching records had the same expiry date.</p>`;
-                }
+                populateReviewTable(vehiclesForReview);
 
-                messageContent += `<h4 class="font-bold text-lg text-blue-700 mt-4 mb-2">Plates to Insert:</h4>`;
+                let reviewSummaryContent = `<p class="mb-2">Found <strong>${vehiclesForReview.length}</strong> vehicle(s) with different expiry dates that require your review.</p>`;
                 if (vehiclesToInsert.length > 0) {
-                    messageContent += `<p>${vehiclesToInsert.length} new car(s) were found in the Excel file but not in the database. You may need to insert them manually:</p>`;
-                    messageContent += `<ul class="list-disc list-inside mt-2 space-y-1">`;
-                    vehiclesToInsert.forEach(plate => {
-                        messageContent += `<li>${plate}</li>`;
-                    });
-                    messageContent += `</ul>`;
-                } else {
-                    messageContent += `<p class="text-gray-500">All cars in the Excel file were found in the database.</p>`;
+                    reviewSummaryContent += `<p class="text-blue-700"><strong>${vehiclesToInsert.length}</strong> new vehicle(s) found in Excel (not in database).</p>`;
                 }
-
-                messageContent += `<h4 class="font-bold text-lg text-red-700 mt-4 mb-2">Plates to Cancel:</h4>`;
                 if (vehiclesToCancel.length > 0) {
-                    messageContent += `<p>${vehiclesToCancel.length} car(s) were found in the database but not in the Excel file. They may need to be canceled:</p>`;
-                    messageContent += `<ul class="list-disc list-inside mt-2 space-y-1">`;
-                    vehiclesToCancel.forEach(plate => {
-                        messageContent += `<li>${plate}</li>`;
-                    });
-                    messageContent += `</ul>`;
-                } else {
-                    messageContent += `<p class="text-gray-500">All cars in the database were found in the Excel file.</p>`;
+                    reviewSummaryContent += `<p class="text-red-700"><strong>${vehiclesToCancel.length}</strong> vehicle(s) in database not found in Excel (potential cancellations).</p>`;
                 }
                 
-                showMessage("Update Complete", messageContent);
+                if (vehiclesForReview.length === 0 && vehiclesToInsert.length === 0 && vehiclesToCancel.length === 0) {
+                    showMessage("No Updates Needed", "All vehicle registration expiry dates in the Excel file match the database. No updates or new/cancelled vehicles found.");
+                    resetUI();
+                } else {
+                    showMessage("Review Updates", reviewSummaryContent);
+                    ui.reviewUpdatesContainer.classList.remove('hidden');
+                }
 
             } catch (error) {
                 console.error("An error occurred:", error);
                 showMessage("Processing Error", `<p>An error occurred during processing: ${error.message}</p>`);
+                resetUI();
             } finally {
                 ui.processButton.disabled = false;
                 ui.statusContainer.classList.add('hidden');
-                selectedFile = null;
-                ui.fileInput.value = '';
-                ui.fileNameDisplay.textContent = '';
-                ui.dataPreview.classList.add('hidden');
             }
         });
 
+        function populateReviewTable(data) {
+            ui.reviewTableBody.innerHTML = '';
+            if (data.length === 0) {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `<td colspan="5" class="px-4 py-2 text-center text-gray-500">No discrepancies found between Excel and Database for registration expiry dates.</td>`;
+                ui.reviewTableBody.appendChild(tr);
+                ui.confirmAllUpdatesButton.disabled = true;
+            } else {
+                ui.confirmAllUpdatesButton.disabled = false;
+                data.forEach((vehicle, index) => {
+                    const tr = document.createElement('tr');
+                    tr.setAttribute('data-index', index);
 
-        // --- Desktop Sidebar Logic ---
+                    tr.innerHTML = `
+                        <td class="px-4 py-2 whitespace-nowrap text-sm font-medium text-gray-900">${vehicle.plate_number}</td>
+                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700">${vehicle.db_expiry || 'N/A'}</td>
+                        <td class="px-4 py-2 whitespace-nowrap text-sm text-gray-700">${vehicle.excel_expiry || 'N/A'}</td>
+                        <td class="px-4 py-2 whitespace-nowrap">
+                            <input type="date" value="${vehicle.new_expiry || ''}" 
+                                class="new-expiry-input border border-gray-300 rounded-md px-2 py-1 text-sm w-full">
+                        </td>
+                        <td class="px-4 py-2 whitespace-nowrap text-right text-sm font-medium">
+                            <button class="save-row-button bg-green-500 text-white p-2 rounded-md hover:bg-green-600 transition-colors duration-200" title="Save this row">
+                                <i class="fas fa-save"></i>
+                            </button>
+                        </td>
+                    `;
+                    ui.reviewTableBody.appendChild(tr);
+                });
+
+                ui.reviewTableBody.querySelectorAll('.save-row-button').forEach(button => {
+                    button.addEventListener('click', async (e) => {
+                        const row = e.target.closest('tr');
+                        const plateNumber = row.querySelector('td:nth-child(1)').textContent;
+                        const newExpiryInput = row.querySelector('.new-expiry-input');
+                        const newExpiryDate = newExpiryInput.value;
+
+                        if (!newExpiryDate) {
+                            showMessage("Missing Date", `Please select a new expiry date for plate number ${plateNumber}.`);
+                            return;
+                        }
+
+                        button.disabled = true;
+                        newExpiryInput.disabled = true;
+                        button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+                        const updateSuccess = await updateVehicleRegistration(plateNumber, newExpiryDate);
+                        
+                        if (updateSuccess) {
+                            row.classList.add('bg-green-50', 'text-green-800');
+                            button.innerHTML = '<i class="fas fa-check"></i>';
+                            button.title = 'Saved!';
+                        } else {
+                            row.classList.add('bg-red-50', 'text-red-800');
+                            button.innerHTML = '<i class="fas fa-times"></i>';
+                            button.title = 'Error saving!';
+                            button.disabled = false;
+                            newExpiryInput.disabled = false;
+                        }
+                        checkAllUpdatesDone();
+                    });
+                });
+            }
+        }
+
+        async function updateVehicleRegistration(plateNumber, newDate) {
+            try {
+                const { error } = await supabaseClient
+                    .from('cars')
+                    .update({ registration_expiry_date: newDate })
+                    .eq('plate_number', plateNumber);
+
+                if (error) {
+                    console.error(`Failed to update car ${plateNumber}:`, error);
+                    showMessage("Update Failed", `Could not update registration for ${plateNumber}: ${error.message}`);
+                    return false;
+                }
+                console.log(`Successfully updated ${plateNumber} to ${newDate}`);
+                return true;
+            } catch (err) {
+                console.error("Error during Supabase update:", err);
+                showMessage("Update Error", `An unexpected error occurred while updating ${plateNumber}: ${err.message}`);
+                return false;
+            }
+        }
+
+        ui.confirmAllUpdatesButton.addEventListener('click', async () => {
+            const allRows = ui.reviewTableBody.querySelectorAll('tr');
+            if (allRows.length === 0 || allRows[0].textContent.includes('No discrepancies found')) {
+                showMessage("No Pending Updates", "There are no pending updates to confirm.");
+                return;
+            }
+
+            ui.confirmAllUpdatesButton.disabled = true;
+            ui.cancelReviewButton.disabled = true;
+            ui.processingText.textContent = 'Saving all pending updates...';
+            ui.statusContainer.classList.remove('hidden');
+
+            const updatePromises = [];
+            let successfulUpdates = 0;
+            let failedUpdates = 0;
+
+            for (const row of allRows) {
+                const plateNumber = row.querySelector('td:nth-child(1)')?.textContent;
+                const newExpiryInput = row.querySelector('.new-expiry-input');
+                
+                if (plateNumber && newExpiryInput && !row.classList.contains('bg-green-50')) {
+                    const newExpiryDate = newExpiryInput.value;
+                    if (!newExpiryDate) {
+                        showMessage("Missing Date", `Skipping ${plateNumber}: New expiry date is missing.`);
+                        failedUpdates++;
+                        row.classList.add('bg-yellow-50', 'text-yellow-800');
+                        continue;
+                    }
+
+                    newExpiryInput.disabled = true;
+                    const saveButton = row.querySelector('.save-row-button');
+                    if (saveButton) {
+                        saveButton.disabled = true;
+                        saveButton.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+                    }
+
+                    const promise = updateVehicleRegistration(plateNumber, newExpiryDate)
+                        .then(success => {
+                            if (success) {
+                                successfulUpdates++;
+                                row.classList.add('bg-green-50', 'text-green-800');
+                                if (saveButton) saveButton.innerHTML = '<i class="fas fa-check"></i>';
+                            } else {
+                                failedUpdates++;
+                                row.classList.add('bg-red-50', 'text-red-800');
+                                if (saveButton) saveButton.innerHTML = '<i class="fas fa-times"></i>';
+                            }
+                        })
+                        .catch(() => {
+                            failedUpdates++;
+                            row.classList.add('bg-red-50', 'text-red-800');
+                            if (saveButton) saveButton.innerHTML = '<i class="fas fa-times"></i>';
+                        });
+                    updatePromises.push(promise);
+                }
+            }
+
+            await Promise.all(updatePromises);
+            
+            ui.statusContainer.classList.add('hidden');
+            let summaryMessage = `<p>All attempted updates processed.</p>`;
+            summaryMessage += `<p class="text-green-700"><strong>${successfulUpdates}</strong> records successfully updated.</p>`;
+            if (failedUpdates > 0) {
+                summaryMessage += `<p class="text-red-700"><strong>${failedUpdates}</strong> records failed to update.</p>`;
+            }
+            showMessage("Updates Complete", summaryMessage);
+            checkAllUpdatesDone();
+        });
+
+        ui.cancelReviewButton.addEventListener('click', () => {
+            resetUI();
+            showMessage("Operation Canceled", "You have cancelled the update process. Please upload a new file to start again.");
+        });
+
+        function checkAllUpdatesDone() {
+            const pendingRows = ui.reviewTableBody.querySelectorAll('tr:not(.bg-green-50):not(.bg-red-50):not(.bg-yellow-50)');
+            if (pendingRows.length === 0) {
+                ui.confirmAllUpdatesButton.disabled = true;
+                ui.confirmAllUpdatesButton.textContent = "All Updates Complete";
+                setTimeout(resetUI, 3000);
+            }
+        }
+
+        function resetUI() {
+            selectedFile = null;
+            ui.fileInput.value = '';
+            ui.fileNameDisplay.textContent = '';
+            ui.processButton.disabled = true;
+            ui.processButton.textContent = 'Process File and Prepare Updates';
+            ui.dataPreview.classList.add('hidden');
+            ui.statusContainer.classList.add('hidden');
+            ui.reviewUpdatesContainer.classList.add('hidden');
+            ui.uploadForm.classList.remove('hidden');
+            ui.reviewTableBody.innerHTML = '';
+            ui.confirmAllUpdatesButton.disabled = false;
+            ui.confirmAllUpdatesButton.textContent = '<i class="fas fa-check-circle mr-2"></i> Confirm All Pending Updates';
+            ui.cancelReviewButton.disabled = false;
+        }
+
+        // Sidebar Logic
         function setupDesktopSidebar() {
-            // Set initial state
             ui.desktopSidebar.classList.add('collapsed');
             document.body.classList.remove('sidebar-expanded');
 
-            // Handle hover to expand
             ui.desktopSidebar.addEventListener('mouseenter', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.remove('collapsed');
@@ -641,7 +781,6 @@
                 }
             });
 
-            // Handle hover to collapse
             ui.desktopSidebar.addEventListener('mouseleave', () => {
                 if (!isSidebarPinned) {
                     ui.desktopSidebar.classList.add('collapsed');
@@ -649,7 +788,6 @@
                 }
             });
 
-            // Handle pin button click
             ui.pinBtn.addEventListener('click', () => {
                 isSidebarPinned = true;
                 ui.desktopSidebar.classList.remove('collapsed');
@@ -658,7 +796,6 @@
                 document.body.classList.add('sidebar-expanded');
             });
 
-            // Handle unpin button click
             ui.unpinBtn.addEventListener('click', () => {
                 isSidebarPinned = false;
                 ui.desktopSidebar.classList.add('collapsed');
@@ -668,10 +805,8 @@
             });
         }
 
-        // --- Initial Load ---
+        // Initial Load
         window.addEventListener('DOMContentLoaded', () => {
-            // Run the authentication check before setting up the rest of the application
-            checkAuthAndRedirect();
             setupDesktopSidebar();
         });
     </script>
