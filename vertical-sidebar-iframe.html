@@ -293,7 +293,7 @@
     <!-- Main Content Area (Iframe Container) -->
     <div id="main-content-iframe-container" class="flex flex-col flex-1 p-4">
         <!-- The iframe will load content here -->
-        <iframe id="mainContentIframe" src="dashboard-content.html"></iframe>
+        <iframe id="mainContentIframe" src=""></iframe> <!-- src is now empty -->
     </div>
 
     <!-- Modal for notifications (Main layout level, so it covers everything) -->
@@ -452,7 +452,7 @@
                     window.location.href = 'login.html'; // Redirect to login if no session
                 } else {
                     // User is authenticated, proceed
-                    // The initial iframe load is already set to dashboard-content.html
+                    // The initial iframe load is now empty
                 }
             } catch (error) {
                 console.error("Unexpected error during authentication check:", error);
@@ -478,13 +478,15 @@
         window.addEventListener('DOMContentLoaded', () => {
             setupDesktopSidebar();
             checkAuthentication();
-            // Ensure Dashboard is active on initial load
+            // No initial iframe load here, as requested.
+            // You can optionally activate the dashboard link if you want it to appear
+            // selected without loading content.
             const dashboardLink = document.querySelector('[data-tab-id="dashboard"]');
             if (dashboardLink) {
                  // Set the initial active state for the Dashboard link
                  dashboardLink.classList.add('bg-purple-100', 'text-purple-700', 'font-bold');
                  dashboardLink.classList.remove('text-gray-700', 'hover:bg-gray-100');
-                 ui.mainContentIframe.src = dashboardLink.dataset.src; // Ensure iframe loads dashboard
+                 // ui.mainContentIframe.src = dashboardLink.dataset.src; // REMOVED: Do not load content initially
             }
         });
     </script>
