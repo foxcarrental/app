@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+  // Check if the user is logged in
+  // Replace 'userLoggedIn' with your actual login key
+  const isLoggedIn = localStorage.getItem('userLoggedIn');
+
+  if (!isLoggedIn) {
+    // User is not logged in, redirect to login page
+    window.location.href = 'login.html';
+  }
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Coming Soon - Fox Car Rental Admin</title>
