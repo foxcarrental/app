@@ -1,7 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Full Rent History Report - Fox Car Rental Admin</title>
