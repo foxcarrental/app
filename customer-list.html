@@ -17,10 +17,15 @@
     <style>
         body {
             font-family: 'Inter', sans-serif;
+            /* Main dashboard background gradient - inherited from parent iframe for blending */
             background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
             background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
         }
 
         @keyframes gradientAnimation {
@@ -29,88 +34,64 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Custom scrollbar styles for the sidebar */
-        .sidebar-scroll {
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #a8a8a8 #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #a8a8a8;
-            border-radius: 6px;
-        }
-        
-        /* Styles for fixed header and sidebar */
-        #main-header {
-            position: fixed;
-            top: 0;
-            left: 5rem; /* Corresponds to collapsed sidebar width */
-            right: 0;
-            z-index: 40; /* Below sidebar overlay */
-            background-color: transparent;
-            box-shadow: none;
-            transition: left 0.3s ease-in-out;
-        }
-        /* Adjust header left position when sidebar expands */
-        body.sidebar-expanded #main-header {
-            left: 16rem; /* Corresponds to expanded sidebar width */
+        /* New keyframes for the light blue gradient animation */
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
 
-        #desktop-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: width 0.3s ease-in-out;
-            /* Ensure it's always displayed as a flex column for desktop */
-            display: flex;
-            flex-direction: column;
-        }
-
+        /* Main content area - removed fixed positioning and background */
         #main-content {
-            transition: margin-left 0.3s ease-in-out;
-            padding-top: 100px; /* Adjust based on header height */
-            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
-        }
-        /* Adjust main content margin when sidebar expands */
-        body.sidebar-expanded #main-content {
-            margin-left: 16rem; /* Corresponds to expanded sidebar width */
-        }
-        
-        /* Collapsed state for the sidebar */
-        #desktop-sidebar.collapsed {
-            width: 5rem; /* Width when collapsed */
-        }
-        
-        #desktop-sidebar.collapsed .nav-text,
-        #desktop-sidebar.collapsed .sidebar-title,
-        #desktop-sidebar.collapsed #logout-text {
-             display: none;
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* Ensure no left margin from potential sidebar rules */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
         }
 
-        #desktop-sidebar.collapsed .sidebar-logo {
-            justify-content: center;
-        }
-        
-        #desktop-sidebar.collapsed .sidebar-pin-controls {
-            justify-content: center;
+        /* Top Header - removed fixed positioning and background for blending */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
         }
 
-        #desktop-sidebar .nav-item i {
-            width: 2rem; /* Ensure icons align */
-            text-align: center;
+        /* Style for the search and filter panel */
+        /* Removed background and box-shadow to make it blend with the body background */
+        .filter-search-panel { /* Changed to class as per user request (semantic naming) */
+            background: transparent; /* Make the panel background transparent */
+            box-shadow: none; /* Remove shadow to blend it in */
+            border-radius: 1rem; /* Keep rounded corners for consistency */
+            padding: 1rem; /* Maintain padding for spacing */
         }
+        
+        /* Apply light blue gradient to the actual input field inside the filter panel */
+        .filter-search-panel input {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite; /* Animated gradient */
+            color: #333; /* Ensure text is dark for readability */
+            border: 1px solid #d1d5db; /* Keep a subtle border */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem; /* Ensure good padding */
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .filter-search-panel input:focus {
+            border-color: #8860D0;
+            box-shadow: 0 0 0 3px rgba(136, 96, 208, 0.2);
+        }
+
 
         /* Customer Card Styling */
         .customer-card {
-            background-color: white;
+            /* Applied the light blue gradient and animation */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            
             border-radius: 1rem;
             box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
             transition: all 0.3s ease;
@@ -172,110 +153,12 @@
         }
     </style>
 </head>
-<body class="flex flex-row min-h-screen text-gray-800">
-
-    <!-- Sidebar for Desktop -->
-    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
-        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
-            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
-            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
-        </div>
-        <nav class="flex-grow">
-            <ul>
-                <!-- Navigation items -->
-                <li class="mb-2">
-                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
-                    </a>
-                </li>
-                <!-- NEW: Vehicle Registration Link -->
-                <li class="mb-2">
-                    <a href="vehicle-registration.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-clipboard-list mr-3"></i> <span class="nav-text">Vehicle Registration</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg bg-purple-100 text-purple-700 font-bold transition-all duration-200 nav-item">
-                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
-                    </a>
-                </li>
-                <!-- Duplicated items to demonstrate scrollbar -->
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="pt-4 border-t">
-             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
-                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
-             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
-                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
-            </a>
-        </div>
-    </aside>
+<body class="min-h-screen text-gray-800">
 
     <!-- Main Content Area -->
     <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
         <!-- Top Nav for Desktop -->
-        <header id="main-header" class="p-4 mb-6 flex items-center justify-between transition-all duration-300 ease-in-out">
+        <header id="main-header" class="mb-6 flex items-center justify-between">
             <div class="flex items-center">
                 <div>
                     <h2 class="text-2xl font-bold text-gray-800">Customer List</h2>
@@ -295,10 +178,10 @@
             <span id="error-text" class="block sm:inline">Something went wrong.</span>
         </div>
 
-        <!-- Search Section -->
-        <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center">
+        <!-- Search Section - now uses class filter-search-panel -->
+        <div class="filter-search-panel rounded-xl p-4 mb-6 flex items-center">
             <div class="relative w-full">
-                <input type="text" id="search-input" placeholder="Search customers by name, email, phone, or license number..." class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500">
+                <input type="text" id="search-input" placeholder="Search customers by name, email, phone, or license number..." class="w-full pl-10 pr-4 py-2">
                 <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
             </div>
         </div>
@@ -428,14 +311,15 @@
         });
 
         // --- DOM Elements ---
-        const ui = {
-            desktopSidebar: document.getElementById('desktop-sidebar'),
-            mainContent: document.getElementById('main-content'),
-            mainHeader: document.getElementById('main-header'),
-            pinBtn: document.getElementById('pin-sidebar-btn'),
-            unpinBtn: document.getElementById('unpin-sidebar-btn'),
-            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
-        };
+        // Removed sidebar-related UI elements as per request.
+        // const ui = {
+        //     desktopSidebar: document.getElementById('desktop-sidebar'),
+        //     mainContent: document.getElementById('main-content'),
+        //     mainHeader: document.getElementById('main-header'),
+        //     pinBtn: document.getElementById('pin-sidebar-btn'),
+        //     unpinBtn: document.getElementById('unpin-sidebar-btn'),
+        //     logoutButtonDesktop: document.getElementById('logout-button-desktop'),
+        // };
 
         const customerCardsGrid = document.getElementById('customer-cards-grid');
         const loadingMessage = document.getElementById('loading-message');
@@ -471,59 +355,8 @@
         let customerToDeleteId = null;
         let allCustomersData = [];
 
-        // --- Sidebar State ---
-        let isSidebarPinned = localStorage.getItem('sidebarPinned') === 'true';
-
-        // --- Sidebar Logic ---
-        function applySidebarState() {
-            if (ui.desktopSidebar) {
-                if (isSidebarPinned) {
-                    ui.desktopSidebar.classList.remove('collapsed');
-                    document.body.classList.add('sidebar-expanded');
-                    if (ui.pinBtn) ui.pinBtn.classList.add('hidden');
-                    if (ui.unpinBtn) ui.unpinBtn.classList.remove('hidden');
-                } else {
-                    ui.desktopSidebar.classList.add('collapsed');
-                    document.body.classList.remove('sidebar-expanded');
-                    if (ui.unpinBtn) ui.unpinBtn.classList.add('hidden');
-                    if (ui.pinBtn) ui.pinBtn.classList.remove('hidden');
-                }
-            }
-        }
-
-        function setupDesktopSidebar() {
-            applySidebarState(); // Set initial state
-
-            ui.desktopSidebar.addEventListener('mouseenter', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.remove('collapsed');
-                    document.body.classList.add('sidebar-expanded');
-                }
-            });
-
-            ui.desktopSidebar.addEventListener('mouseleave', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.add('collapsed');
-                    document.body.classList.remove('sidebar-expanded');
-                }
-            });
-
-            if (ui.pinBtn) {
-                ui.pinBtn.addEventListener('click', () => {
-                    isSidebarPinned = true;
-                    localStorage.setItem('sidebarPinned', 'true');
-                    applySidebarState();
-                });
-            }
-
-            if (ui.unpinBtn) {
-                ui.unpinBtn.addEventListener('click', () => {
-                    isSidebarPinned = false;
-                    localStorage.setItem('sidebarPinned', 'false');
-                    applySidebarState();
-                });
-            }
-        }
+        // --- Sidebar State & Logic ---
+        // Removed all sidebar-related JS functions and variables as per request.
 
         // --- Helper Functions ---
         function formatDate(dateString) {
@@ -552,7 +385,7 @@
                 const addressCityCountry = [customer.address, customer.city, customer.country].filter(Boolean).join(', ') || 'N/A';
 
                 const card = document.createElement('div');
-                card.className = `bg-white rounded-xl shadow-md p-5 flex flex-col border-t-4 border-purple-500`; /* Using purple for consistency */
+                card.className = `customer-card rounded-xl p-5 flex flex-col border-t-4 border-purple-500`; /* Using purple for consistency */
                 card.innerHTML = `
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-xl font-semibold text-gray-900">${fullName}</h3>
@@ -945,7 +778,7 @@
 
         // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
-            setupDesktopSidebar(); // Initialize desktop sidebar
+            // No need for setupDesktopSidebar() here as this page no longer controls it.
             fetchCustomers(); // Fetch data on initial load
         });
     </script>

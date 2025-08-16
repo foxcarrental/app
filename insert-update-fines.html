@@ -17,23 +17,6 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Custom scrollbar for the sidebar */
-        .sidebar-scroll {
-            overflow-y: auto;
-            scrollbar-width: thin;
-            scrollbar-color: #a8a8a8 #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #a8a8a8;
-            border-radius: 6px;
-        }
-
         /* Custom styles for the background gradient */
         body {
             font-family: 'Inter', sans-serif;
@@ -41,6 +24,10 @@
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
             background-attachment: fixed;
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
         }
 
         @keyframes gradientAnimation {
@@ -68,63 +55,20 @@
         .border-custom-light-purple { border-color: #C1C8E4; }
         .border-custom-purple { border-color: #8860D0; }
 
-        /* Styles for fixed header and sidebar */
-        #main-header {
-            position: fixed;
-            top: 0;
-            left: 5rem; /* Corresponds to collapsed sidebar width */
-            right: 0;
-            z-index: 40;
-            background-color: transparent;
-            box-shadow: none;
-            transition: left 0.3s ease-in-out;
-        }
-        /* Adjust header left position when sidebar expands */
-        body.sidebar-expanded #main-header {
-            left: 16rem; /* Corresponds to expanded sidebar width */
-        }
-
-        #desktop-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: width 0.3s ease-in-out;
-        }
-
+        /* Main content area - adjusted for no sidebar */
         #main-content {
-            transition: margin-left 0.3s ease-in-out;
-            padding-top: 100px; /* Adjust based on header height */
-            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
-        }
-        /* Adjust main content margin when sidebar expands */
-        body.sidebar-expanded #main-content {
-            margin-left: 16rem; /* Corresponds to expanded sidebar width */
-        }
-        
-        /* Collapsed state for the sidebar */
-        #desktop-sidebar.collapsed {
-            width: 5rem;
-        }
-        
-        #desktop-sidebar.collapsed .nav-text,
-        #desktop-sidebar.collapsed .sidebar-title,
-        #desktop-sidebar.collapsed #logout-text {
-             display: none;
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* No margin from sidebar */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
         }
 
-        #desktop-sidebar.collapsed .sidebar-logo {
-            justify-content: center;
-        }
-        
-        #desktop-sidebar.collapsed .sidebar-pin-controls {
-            justify-content: center;
-        }
-
-        #desktop-sidebar .nav-item i {
-            width: 2rem;
-            text-align: center;
+        /* Top Header - adjusted for no sidebar */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
         }
 
         /* File Upload specific styles */
@@ -156,101 +100,6 @@
 </head>
 <body class="flex min-h-screen text-gray-800">
 
-    <!-- Sidebar for Desktop -->
-    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
-        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
-            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
-            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
-        </div>
-        <nav class="flex-grow">
-            <ul>
-                <li class="mb-2">
-                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="reports.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="vehicle-registration.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-id-card-alt mr-3"></i> <span class="nav-text">Vehicle Registration</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="pt-4 border-t">
-             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
-                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
-             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
-                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
-            </a>
-        </div>
-    </aside>
-
     <!-- Main Content Area -->
     <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <!-- Top Nav for Desktop -->
@@ -272,13 +121,13 @@
         <div class="w-full max-w-7xl bg-white p-8 rounded-xl shadow-lg mt-6">
             <div class="text-center mb-8">
                 <h1 class="text-3xl font-bold text-gray-800">Traffic Fine Uploader</h1>
-                <p class="text-gray-500 mt-2">Upload a PDF of traffic fines to save them to your Supabase database.</p>
+                <p class="text-gray-500 mt-2">Upload a PDF of traffic fines.</p>
             </div>
 
             <!-- File Upload Form -->
             <form id="upload-form">
                 <div id="drop-zone" class="drop-zone">
-                    <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-3"></i>
+                    <i class="fas fa-cloud-upload-alt text-4xl text-red-600 mb-3"></i> <!-- Changed icon color to red-600 -->
                     <p class="text-gray-600">Drag & drop your PDF here, or click to select a file.</p>
                     <input type="file" id="pdf-file" class="hidden" accept="application/pdf">
                 </div>
@@ -334,21 +183,18 @@
     <script type="module">
         // --- Supabase Configuration ---
         const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
-        // Updated SUPABASE_KEY from dashboard.html
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
 
         // --- PDF.js Worker ---
         pdfjsLib.GlobalWorkerOptions.workerSrc = `https://mozilla.github.io/pdf.js/build/pdf.worker.mjs`;
 
         // --- DOM Elements ---
         const ui = {
-            // Sidebar and Header elements
-            desktopSidebar: document.getElementById('desktop-sidebar'),
             mainContent: document.getElementById('main-content'),
             mainHeader: document.getElementById('main-header'),
-            pinBtn: document.getElementById('pin-sidebar-btn'),
-            unpinBtn: document.getElementById('unpin-sidebar-btn'),
             userEmail: document.getElementById('user-email'),
             userIdDisplay: document.getElementById('user-id-display'),
             lastUpdated: document.getElementById('last-updated'),
@@ -370,7 +216,6 @@
         };
 
         let selectedFile = null;
-        let isSidebarPinned = false; // State for sidebar pinning
 
         // --- Modal Logic ---
         function showMessage(message, title = "Notification") {
@@ -608,7 +453,7 @@
                     let isHeaderOrFooter = false;
                     for (const pattern of skipPatterns) {
                         if (new RegExp(pattern).test(match[0])) {
-                            isHeaderOrFooter = true;
+                            isHeaderOrooter = true;
                             break;
                         }
                     }
@@ -673,53 +518,8 @@
             return fines;
         }
 
-        // --- Desktop Sidebar Logic ---
-        function setupDesktopSidebar() {
-            // Set initial state
-            ui.desktopSidebar.classList.add('collapsed');
-            ui.mainContent.style.marginLeft = '5rem';
-            ui.mainHeader.style.left = '5rem';
-            ui.userEmail.textContent = "admin@foxcarrental.com"; // Placeholder user email
-            ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
-
-            ui.desktopSidebar.addEventListener('mouseenter', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.remove('collapsed');
-                    ui.mainContent.style.marginLeft = '16rem';
-                    ui.mainHeader.style.left = '16rem';
-                }
-            });
-
-            ui.desktopSidebar.addEventListener('mouseleave', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.add('collapsed');
-                    ui.mainContent.style.marginLeft = '5rem';
-                    ui.mainHeader.style.left = '5rem';
-                }
-            });
-
-            ui.pinBtn.addEventListener('click', () => {
-                isSidebarPinned = true;
-                ui.desktopSidebar.classList.remove('collapsed');
-                ui.pinBtn.classList.add('hidden');
-                ui.unpinBtn.classList.remove('hidden');
-                ui.mainContent.style.marginLeft = '16rem';
-                ui.mainHeader.style.left = '16rem';
-            });
-
-            ui.unpinBtn.addEventListener('click', () => {
-                isSidebarPinned = false;
-                ui.desktopSidebar.classList.add('collapsed');
-                ui.unpinBtn.classList.add('hidden');
-                ui.pinBtn.classList.remove('hidden');
-                ui.mainContent.style.marginLeft = '5rem';
-                ui.mainHeader.style.left = '5rem';
-            });
-        }
-        
         // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
-            setupDesktopSidebar();
             // Update last updated time
             ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
         });

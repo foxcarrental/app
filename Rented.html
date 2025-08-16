@@ -15,25 +15,6 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Custom scrollbar for the sidebar */
-        .sidebar-scroll {
-            /* Enable scrolling */
-            overflow-y: auto;
-            /* Custom scrollbar styles */
-            scrollbar-width: thin;
-            scrollbar-color: #a8a8a8 #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar {
-            width: 6px;
-        }
-        .sidebar-scroll::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        .sidebar-scroll::-webkit-scrollbar-thumb {
-            background-color: #a8a8a8;
-            border-radius: 6px;
-        }
-
         /* Custom styles for the background gradient */
         body {
             font-family: 'Inter', sans-serif;
@@ -41,6 +22,10 @@
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
             background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
         }
 
         @keyframes gradientAnimation {
@@ -68,66 +53,22 @@
         .border-custom-light-purple { border-color: #C1C8E4; }
         .border-custom-purple { border-color: #8860D0; }
 
-        /* New styles for fixed header and sidebar */
-        #main-header {
-            position: fixed;
-            top: 0;
-            /* Set initial left to match collapsed sidebar margin */
-            left: 5rem; /* Corresponds to collapsed sidebar width */
-            right: 0;
-            z-index: 40; /* Below sidebar overlay */
-            background-color: transparent; /* Made transparent */
-            box-shadow: none; /* Removed shadow */
-            transition: left 0.3s ease-in-out; /* Add transition for smooth movement */
-        }
-        /* Adjust header left position when sidebar expands */
-        body.sidebar-expanded #main-header {
-            left: 16rem; /* Corresponds to expanded sidebar width */
-        }
-
-        #desktop-sidebar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            z-index: 50;
-            transition: width 0.3s ease-in-out;
-        }
-
+        /* Main content area - adjusted for no sidebar */
         #main-content {
-            transition: margin-left 0.3s ease-in-out;
-            padding-top: 100px; /* Adjust based on header height */
-            margin-left: 5rem; /* Initial margin for content when sidebar is collapsed */
-        }
-        /* Adjust main content margin when sidebar expands */
-        body.sidebar-expanded #main-content {
-            margin-left: 16rem; /* Corresponds to expanded sidebar width */
-        }
-        
-        /* Collapsed state for the sidebar */
-        #desktop-sidebar.collapsed {
-            width: 5rem; /* Width when collapsed */
-        }
-        
-        #desktop-sidebar.collapsed .nav-text,
-        #desktop-sidebar.collapsed .sidebar-title,
-        #desktop-sidebar.collapsed #logout-text {
-             display: none;
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* No margin from sidebar */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
         }
 
-        #desktop-sidebar.collapsed .sidebar-logo {
-            justify-content: center;
+        /* Top Header - adjusted for no sidebar */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
         }
         
-        #desktop-sidebar.collapsed .sidebar-pin-controls {
-            justify-content: center;
-        }
-
-        #desktop-sidebar .nav-item i {
-            width: 2rem; /* Ensure icons align */
-            text-align: center;
-        }
-
         /* Table specific styles */
         .table-container {
             overflow-x: auto; /* Enable horizontal scrolling on small screens */
@@ -137,6 +78,9 @@
         .car-table {
             width: 100%;
             border-collapse: collapse;
+            border-radius: 1rem; /* Apply rounded corners to the overall table container */
+            overflow: hidden; /* Ensure content inside respects rounded corners */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
 
         .car-table th, .car-table td {
@@ -146,16 +90,24 @@
         }
 
         .car-table th {
-            background-color: #f8fafc; /* Light header background */
+            background-color: #f8faff; /* Light header background */
+            color: #5680E9; /* Blue color for headers */
             font-weight: 600;
-            color: #4a5568;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             letter-spacing: 0.05em;
         }
 
         .car-table tbody tr:hover {
             background-color: #f0f4f8; /* Subtle hover effect */
+        }
+        
+        .car-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .car-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
         }
 
         .status-badge {
@@ -180,101 +132,39 @@
             border-top: 2px solid #a0aec0;
         }
 
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8860D0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Styling for the main content panel (Car Report panel) */
+        .report-panel-bg {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden; /* Ensures content stays within rounded corners */
+        }
+        /* Animation for light blue gradient */
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
     </style>
 </head>
-<body>
-
-    <!-- Sidebar for Desktop -->
-    <aside id="desktop-sidebar" class="flex flex-col w-64 bg-white shadow-lg p-4 sidebar-scroll">
-        <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
-            <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
-            <h1 class="text-xl font-bold text-gray-800 sidebar-title">Fox Car Rental</h1>
-        </div>
-        <nav class="flex-grow">
-            <ul>
-                <!-- Navigation items -->
-                <li class="mb-2">
-                    <a href="dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-tachometer-alt mr-3"></i> <span class="nav-text">Dashboard</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="vehicle-inventory.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-car mr-3"></i> <span class="nav-text">Vehicle Inventory</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="customer-list.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users mr-3"></i> <span class="nav-text">Customer List</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="rent-history.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="reports.html" class="flex items-center p-3 rounded-lg bg-custom-blue-light text-white shadow-md transition-all duration-200 hover:bg-custom-blue-dark nav-item">
-                        <i class="fas fa-chart-bar mr-3"></i> <span class="nav-text">Reports</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="vehicle-maintenance.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-wrench mr-3"></i> <span class="nav-text">Under Maintenance</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="financial-dashboard.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-dollar-sign mr-3"></i> <span class="nav-text">Financial</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="business-analytics.html" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-chart-pie mr-3"></i> <span class="nav-text">Analytics</span>
-                    </a>
-                </li>
-                <!-- Duplicated items to demonstrate scrollbar -->
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-cogs mr-3"></i> <span class="nav-text">Settings</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-headset mr-3"></i> <span class="nav-text">Support</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-file-alt mr-3"></i> <span class="nav-text">Documents</span>
-                    </a>
-                </li>
-                 <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-bell mr-3"></i> <span class="nav-text">Notifications</span>
-                    </a>
-                </li>
-                <li class="mb-2">
-                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item">
-                        <i class="fas fa-users-cog mr-3"></i> <span class="nav-text">User Management</span>
-                    </a>
-                </li>
-            </ul>
-        </nav>
-        <div class="pt-4 border-t">
-             <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
-                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-            </div>
-             <a href="#" id="logout-button-desktop" class="flex items-center p-3 rounded-lg text-red-500 hover:bg-red-100 transition-all duration-200 nav-item">
-                <i class="fas fa-sign-out-alt mr-3"></i> <span id="logout-text">Logout</span>
-            </a>
-        </div>
-    </aside>
+<body class="min-h-screen text-gray-800">
 
     <!-- Main Content Area -->
     <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
@@ -297,7 +187,7 @@
         </header>
 
         <!-- Car Report Content -->
-        <div class="bg-white shadow-md rounded-xl p-4 mb-6">
+        <div class="report-panel-bg p-4 mb-6"> <!-- Added report-panel-bg class -->
             <h3 class="text-xl font-bold text-gray-800 mb-4">Rented Vehicles Report</h3>
 
             <div id="loading-message" class="text-center text-gray-600 py-8">
@@ -367,12 +257,9 @@
             noDataMessage: document.getElementById('no-data-message'),
             lastUpdated: document.getElementById('last-updated'),
             refreshButton: document.getElementById('refresh-data'),
-            logoutButtonDesktop: document.getElementById('logout-button-desktop'),
-            desktopSidebar: document.getElementById('desktop-sidebar'),
+            // Removed sidebar related elements
             mainContent: document.getElementById('main-content'),
             mainHeader: document.getElementById('main-header'),
-            pinBtn: document.getElementById('pin-sidebar-btn'),
-            unpinBtn: document.getElementById('unpin-sidebar-btn'),
             notificationModal: document.getElementById('notification-modal'),
             notificationTitle: document.getElementById('notification-title'),
             notificationMessage: document.getElementById('notification-message'),
@@ -381,8 +268,6 @@
             userIdDisplay: document.getElementById('user-id-display')
         };
 
-        // --- Sidebar State ---
-        let isSidebarPinned = false;
         ui.userEmail.textContent = "admin@foxcarrental.com";
         ui.userIdDisplay.classList.add('hidden');
 
@@ -497,64 +382,11 @@
             }
         }
 
-        // --- Desktop Sidebar Logic ---
-        function setupDesktopSidebar() {
-            // Set initial state
-            ui.desktopSidebar.classList.add('collapsed');
-            ui.mainContent.style.marginLeft = '5rem';
-            ui.mainHeader.style.left = '5rem';
-
-            ui.desktopSidebar.addEventListener('mouseenter', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.remove('collapsed');
-                    ui.mainContent.style.marginLeft = '16rem';
-                    ui.mainHeader.style.left = '16rem';
-                }
-            });
-
-            ui.desktopSidebar.addEventListener('mouseleave', () => {
-                if (!isSidebarPinned) {
-                    ui.desktopSidebar.classList.add('collapsed');
-                    ui.mainContent.style.marginLeft = '5rem';
-                    ui.mainHeader.style.left = '5rem';
-                }
-            });
-
-            ui.pinBtn.addEventListener('click', () => {
-                isSidebarPinned = true;
-                ui.desktopSidebar.classList.remove('collapsed');
-                ui.pinBtn.classList.add('hidden');
-                ui.unpinBtn.classList.remove('hidden');
-                ui.mainContent.style.marginLeft = '16rem';
-                ui.mainHeader.style.left = '16rem';
-            });
-
-            ui.unpinBtn.addEventListener('click', () => {
-                isSidebarPinned = false;
-                ui.desktopSidebar.classList.add('collapsed');
-                ui.unpinBtn.classList.add('hidden');
-                ui.pinBtn.classList.remove('hidden');
-                ui.mainContent.style.marginLeft = '5rem';
-                ui.mainHeader.style.left = '5rem';
-            });
-        }
-
         // --- Event Listeners ---
         ui.refreshButton.addEventListener('click', fetchAndRenderCarData);
-
-        ui.logoutButtonDesktop.addEventListener('click', async (e) => {
-            e.preventDefault();
-            showMessage("You have been logged out (simulated).", "Logged Out");
-            ui.carReportTbody.innerHTML = '';
-            ui.carReportTfoot.innerHTML = '';
-            ui.lastUpdated.textContent = '...';
-            ui.userEmail.textContent = "admin@foxcarrental.com";
-            ui.userIdDisplay.classList.add('hidden');
-        });
         
         // --- Initial Load ---
         window.addEventListener('DOMContentLoaded', () => {
-            setupDesktopSidebar(); // Always set up desktop sidebar as mobile view is removed
             // Redirect if not logged in
             supabaseClient.auth.getSession().then(({ data: { session } }) => {
                 if (!session) {

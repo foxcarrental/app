@@ -84,7 +84,7 @@
         // Check if user is already logged in
         supabaseClient.auth.getSession().then(({ data: { session } }) => {
             if (session) {
-                window.location.href = 'dashboard.html'; // Redirect to dashboard if already logged in
+                window.location.href = 'vertical-sidebar-iframe.html'; // Redirect to dashboard if already logged in
             }
         });
 
@@ -108,7 +108,7 @@
                     errorMessage.classList.remove('hidden');
                 } else {
                     console.log("User logged in:", data.user);
-                    window.location.href = 'dashboard.html'; // Redirect to dashboard on successful login
+                    window.location.href = 'vertical-sidebar-iframe.html'; // Redirect to dashboard on successful login
                 }
             } catch (error) {
                 console.error("An unexpected error occurred:", error);
