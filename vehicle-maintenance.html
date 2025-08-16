@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vehicle Maintenance - Fox Car Rental Admin</title>
+    <title>Car Maintenance - Fox Car Rental Admin</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
@@ -15,17 +15,16 @@
     <!-- Supabase CDN -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        /* Custom styles for the background gradient */
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
             background-size: 400% 400%;
             animation: gradientAnimation 15s ease infinite;
-            background-attachment: fixed; /* Ensures gradient covers full viewport */
-            min-height: 100vh; /* Ensure body takes full height for gradient */
-            margin: 0; /* Remove default body margin */
-            padding: 0; /* Remove default body padding */
-            color: #333; /* Default text color */
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #333;
         }
 
         @keyframes gradientAnimation {
@@ -34,7 +33,7 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Define custom colors from the image */
+        /* Define custom colors */
         .bg-custom-blue-dark { background-color: #5680E9; }
         .bg-custom-blue-light { background-color: #84CEEB; }
         .bg-custom-cyan { background-color: #5AB9EA; }
@@ -53,35 +52,31 @@
         .border-custom-light-purple { border-color: #C1C8E4; }
         .border-custom-purple { border-color: #8860D0; }
 
-        /* Main content area - removed fixed positioning and background adjustments related to sidebar */
+        /* Main content area - no sidebar */
         #main-content {
-            padding: 1rem; /* Adjust padding as needed for overall layout */
-            margin-left: 0; /* Ensure no left margin from sidebar */
-            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
+            padding: 1rem;
+            margin-left: 0;
+            padding-top: 1rem;
         }
 
-        /* Top Header - removed fixed positioning and background for blending */
+        /* Top Header - no sidebar */
         #main-header {
-            position: static; /* No longer fixed within this document */
-            background-color: transparent; /* Make header background transparent */
-            box-shadow: none; /* Remove any shadows */
-            padding: 1rem; /* Retain padding for spacing */
-            margin-bottom: 1.5rem; /* Ensure spacing below header */
+            position: static;
+            background-color: transparent;
+            box-shadow: none;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
         }
         
-        /* Reports Cards Styling (if any were still here, they would blend) */
-        .reports-card {
+        /* Panel background with gradient */
+        .panel-bg {
             background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
             background-size: 300% 300%;
             animation: lightBlueGradientAnimation 8s ease infinite;
             border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.05);
             transition: all 0.3s ease;
             overflow: hidden;
-        }
-        .reports-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
         }
         @keyframes lightBlueGradientAnimation {
             0% { background-position: 0% 50%; }
@@ -89,268 +84,483 @@
             100% { background-position: 0% 50%; }
         }
 
-        /* Styling for the Maintenance Report Content panel */
-        /* Changed from .maintenance-report-panel to directly target the div with bg-white classes */
-        .maintenance-section-panel { /* New class for the Maintenance Records section */
-            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
-            background-size: 300% 300%;
-            animation: lightBlueGradientAnimation 8s ease infinite;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-
-        /* Styling for the tbody of the maintenance cars table */
-        #maintenance-records-table-body { /* Corrected ID to match the tbody in HTML */
-            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
-            background-size: 300% 300%;
-            animation: lightBlueGradientAnimation 8s ease infinite;
-        }
-        /* Ensure table cells (td) within tbody don't override the background */
-        #maintenance-records-table-body td {
-            background-color: transparent !important; /* Make sure td background is transparent */
-        }
-
-        /* Style for the Stat Cards */
-        .stat-card {
-            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
-            background-size: 300% 300%;
-            animation: lightBlueGradientAnimation 8s ease infinite;
-            border-radius: 1rem;
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-            transition: all 0.3s ease;
-            overflow: hidden;
-        }
-
-
         /* Table specific styles */
-        .table-container {
-            overflow-x: auto; /* Enable horizontal scrolling on small screens */
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
-        }
-
-        .car-table {
+        .maintenance-table {
             width: 100%;
             border-collapse: collapse;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
         }
 
-        .car-table th, .car-table td {
+        .maintenance-table th, .maintenance-table td {
             padding: 12px 15px;
-            border-bottom: 1px solid #e2e8f0; /* Light border for rows */
+            border-bottom: 1px solid #e2e8f0;
             text-align: left;
         }
 
-        .car-table th {
-            background-color: #f8fafc; /* Light header background */
+        .maintenance-table th {
+            background-color: #f8faff;
+            color: #5680E9;
             font-weight: 600;
-            color: #4a5568;
             text-transform: uppercase;
-            font-size: 0.85rem;
+            font-size: 0.75rem;
             letter-spacing: 0.05em;
         }
 
-        .car-table tbody tr:hover {
-            background-color: #f0f4f8; /* Subtle hover effect */
+        .maintenance-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+        
+        .maintenance-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
         }
 
-        .status-badge {
-            padding: 0.3rem 0.6rem;
-            border-radius: 9999px; /* Fully rounded */
-            font-size: 0.75rem;
-            font-weight: 600;
+        .maintenance-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8860D0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* KPI Card Styles */
+        .kpi-card {
+            background-color: #f8fafc; /* light background */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: transform 0.2s ease-in-out;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .kpi-card-bg-scheduled {
+            background: linear-gradient(135deg, #e4d7f7, #d0b8f4); /* Light purple gradient */
+            background-size: 200% 200%;
+            animation: kpiGradientAnimation 6s ease infinite;
+        }
+        .kpi-card-bg-in-progress {
+            background: linear-gradient(135deg, #ffe08a, #ffc700); /* Yellow/Orange gradient */
+            background-size: 200% 200%;
+            animation: kpiGradientAnimation 6s ease infinite;
+        }
+        .kpi-card-bg-completed {
+            background: linear-gradient(135deg, #d1f7d1, #a9f0a9); /* Light green gradient */
+            background-size: 200% 200%;
+            animation: kpiGradientAnimation 6s ease infinite;
+        }
+        .kpi-card-bg-total-cost {
+            background: linear-gradient(135deg, #d2f4f8, #a7e7ed); /* Light blue/cyan gradient */
+            background-size: 200% 200%;
+            animation: kpiGradientAnimation 6s ease infinite;
+        }
+
+        @keyframes kpiGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .kpi-icon {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 9999px; /* Full circle */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
             color: white;
-            text-transform: capitalize;
-            display: inline-block; /* Allows padding and margin to work */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .kpi-icon-scheduled { background-color: #8860D0; } /* Purple */
+        .kpi-icon-in-progress { background-color: #FFD200; } /* Yellow */
+        .kpi-icon-completed { background-color: #28a745; } /* Green */
+        .kpi-icon-total-cost { background-color: #5AB9EA; } /* Cyan */
+
+        /* Modal specific styles */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            padding: 1rem;
         }
 
-        /* Specific status badge colors */
-        .status-available { background-color: #4CAF50; /* Green */ }
-        .status-rented { background-color: #2196F3; /* Blue */ }
-        .status-maintenance { background-color: #FFC107; /* Amber/Yellow */ }
-        .status-other { background-color: #9E9E9E; /* Grey for unknown status */ }
-
-        .total-row th, .total-row td {
-            font-weight: bold;
-            background-color: #e2e8f0;
-            border-top: 2px solid #a0aec0;
+        .modal-content {
+            background-color: white;
+            border-radius: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
+            width: 100%;
+            max-width: 900px; /* Adjust max-width for the form */
+            max-height: 90vh; /* Limit height and enable scrolling */
+            overflow-y: auto;
+            position: relative;
+            padding: 2rem;
+            animation: fadeIn 0.3s ease-out;
         }
 
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .modal-close-button:hover {
+            color: #6b7280;
+        }
+
+        /* Filter styles */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .filter-grid label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .filter-grid input,
+        .filter-grid select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            color: #333;
+            background-color: white;
+        }
+        .filter-grid input:focus,
+        .filter-grid select:focus {
+            border-color: #5680E9;
+            box-shadow: 0 0 0 2px rgba(86, 128, 233, 0.2);
+            outline: none;
+        }
+        .filter-actions {
+            grid-column: 1 / -1; /* Span all columns */
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
     </style>
 </head>
-<body>
+<body class="min-h-screen text-gray-800">
 
-    <!-- Main Content Area -->
     <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
         <!-- Top Nav for Desktop -->
         <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
-             <div class="flex items-center">
-                <h2 class="text-2xl font-bold text-gray-800">Vehicle Maintenance</h2>
+            <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Car Maintenance Management</h2>
             </div>
             <div class="flex items-center space-x-4">
                 <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
                 <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
                     <i class="fas fa-sync-alt mr-2"></i>Refresh Data
                 </button>
-                <!-- Moved Schedule Maintenance Button Here -->
-                <button id="schedule-maintenance-button" class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200 flex items-center">
-                    <i class="fas fa-plus mr-2"></i>Schedule Maintenance
-                </button>
-                 <div class="flex items-center space-x-2">
-                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
-                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
-                 </div>
-                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                    <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                </div>
+                <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
             </div>
         </header>
 
-        <!-- Removed Vehicle Maintenance Header panel -->
-        <!-- <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
-            <h2 class="text-2xl font-semibold text-gray-800">Vehicle Maintenance</h2>
-            <button id="schedule-maintenance-button" class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
-                <i class="fas fa-plus mr-2"></i>Schedule Maintenance
-            </button>
-        </div> -->
-
-        <p class="text-gray-600 mb-6">Manage vehicle maintenance schedules and records</p>
-
-        <!-- Stats Cards -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <!-- KPI Cards Section -->
+        <div id="kpi-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Scheduled Card -->
-            <div class="stat-card p-5 flex items-center justify-between border-l-4 border-purple-500">
+            <div class="kpi-card kpi-card-bg-scheduled">
                 <div>
-                    <p class="text-sm text-gray-500">Scheduled</p>
-                    <p id="scheduled-count" class="text-3xl font-bold text-gray-900">0</p>
+                    <p class="text-gray-600 text-md font-medium">Scheduled</p>
+                    <div id="scheduled-kpi" class="text-3xl font-extrabold text-gray-900 mt-1">
+                         <div class="loader !w-6 !h-6 !border-2"></div>
+                    </div>
                 </div>
-                <div class="p-3 bg-purple-500 rounded-full text-white text-xl">
+                <div class="kpi-icon kpi-icon-scheduled">
                     <i class="fas fa-clock"></i>
                 </div>
             </div>
 
             <!-- In Progress Card -->
-            <div class="stat-card p-5 flex items-center justify-between border-l-4 border-yellow-500">
+            <div class="kpi-card kpi-card-bg-in-progress">
                 <div>
-                    <p class="text-sm text-gray-500">In Progress</p>
-                    <p id="in-progress-count" class="text-3xl font-bold text-gray-900">0</p>
+                    <p class="text-gray-600 text-md font-medium">In Progress</p>
+                    <div id="in-progress-kpi" class="text-3xl font-extrabold text-gray-900 mt-1">
+                        <div class="loader !w-6 !h-6 !border-2"></div>
+                    </div>
                 </div>
-                <div class="p-3 bg-yellow-500 rounded-full text-white text-xl">
+                <div class="kpi-icon kpi-icon-in-progress">
                     <i class="fas fa-sync-alt"></i>
                 </div>
             </div>
 
             <!-- Completed Card -->
-            <div class="stat-card p-5 flex items-center justify-between border-l-4 border-green-500">
+            <div class="kpi-card kpi-card-bg-completed">
                 <div>
-                    <p class="text-sm text-gray-500">Completed</p>
-                    <p id="completed-count" class="text-3xl font-bold text-gray-900">0</p>
+                    <p class="text-gray-600 text-md font-medium">Completed</p>
+                    <div id="completed-kpi" class="text-3xl font-extrabold text-gray-900 mt-1">
+                        <div class="loader !w-6 !h-6 !border-2"></div>
+                    </div>
                 </div>
-                <div class="p-3 bg-green-500 rounded-full text-white text-xl">
+                <div class="kpi-icon kpi-icon-completed">
                     <i class="fas fa-check-circle"></i>
                 </div>
-                </div>
+            </div>
 
             <!-- Total Cost Card -->
-            <div class="stat-card p-5 flex items-center justify-between border-l-4 border-custom-blue-dark">
+            <div class="kpi-card kpi-card-bg-total-cost">
                 <div>
-                    <p class="text-sm text-gray-500">Total Cost</p>
-                    <p id="total-cost" class="text-3xl font-bold text-gray-900">AED 0</p>
+                    <p class="text-gray-600 text-md font-medium">Total Cost</p>
+                    <div id="total-cost-kpi" class="text-3xl font-extrabold text-gray-900 mt-1">
+                        <div class="loader !w-6 !h-6 !border-2"></div>
+                    </div>
                 </div>
-                <div class="p-3 bg-custom-blue-light rounded-full text-white text-xl">
+                <div class="kpi-icon kpi-icon-total-cost">
                     <i class="fas fa-dollar-sign"></i>
                 </div>
             </div>
         </div>
 
-        <!-- Maintenance Records Section -->
-        <div class="maintenance-section-panel p-6 mb-6"> <!-- Changed class here -->
-            <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
-                <i class="fas fa-clipboard-list mr-2 text-custom-blue-dark"></i> Maintenance Records
-            </h3>
+        <!-- Button to open Add New Maintenance Record Form -->
+        <div class="mb-6 flex justify-end">
+            <button id="add-new-maintenance-btn" class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-all duration-200 flex items-center justify-center">
+                <i class="fas fa-plus mr-2"></i>Add New Maintenance
+            </button>
+        </div>
+
+        <hr class="my-6 border-gray-300">
+
+        <!-- Maintenance Records Report Section -->
+        <div class="panel-bg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">Maintenance Records Report</h3>
+            
+            <!-- Filter Section -->
+            <div class="filter-grid">
+                <div>
+                    <label for="filter-car-info">Car (Plate / Make / Model)</label>
+                    <input type="text" id="filter-car-info" placeholder="Search car info">
+                </div>
+                <div>
+                    <label for="filter-maintenance-type">Maintenance Type</label>
+                    <select id="filter-maintenance-type" name="maintenance_type_id">
+                        <option value="">All Types</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                 <div>
+                    <label for="filter-category">Category</label>
+                    <select id="filter-category" name="category">
+                        <option value="">All Categories</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="1">Scheduled</option>
+                        <option value="2">In Progress</option>
+                        <option value="3">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-scheduled-date-from">Scheduled Date From</label>
+                    <input type="date" id="filter-scheduled-date-from">
+                </div>
+                <div>
+                    <label for="filter-scheduled-date-to">Scheduled Date To</label>
+                    <input type="date" id="filter-scheduled-date-to">
+                </div>
+                <div>
+                    <label for="filter-completion-date-from">Completion Date From</label>
+                    <input type="date" id="filter-completion-date-from">
+                </div>
+                <div>
+                    <label for="filter-completion-date-to">Completion Date To</label>
+                    <input type="date" id="filter-completion-date-to">
+                </div>
+                <div>
+                    <label for="filter-odometer-min">Odometer (Min KM)</label>
+                    <input type="number" id="filter-odometer-min" placeholder="Min KM">
+                </div>
+                <div>
+                    <label for="filter-odometer-max">Odometer (Max KM)</label>
+                    <input type="number" id="filter-odometer-max" placeholder="Max KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-km-min">Next Due KM (Min)</label>
+                    <input type="number" id="filter-next-due-km-min" placeholder="Min KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-km-max">Next Due KM (Max)</label>
+                    <input type="number" id="filter-next-due-km-max" placeholder="Max KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-date-from">Next Due Date From</label>
+                    <input type="date" id="filter-next-due-date-from">
+                </div>
+                <div>
+                    <label for="filter-next-due-date-to">Next Due Date To</label>
+                    <input type="date" id="filter-next-due-date-to">
+                </div>
+                <div>
+                    <label for="filter-cost-min">Cost (Min AED)</label>
+                    <input type="number" id="filter-cost-min" placeholder="Min AED" step="0.01">
+                </div>
+                <div>
+                    <label for="filter-cost-max">Cost (Max AED)</label>
+                    <input type="number" id="filter-cost-max" placeholder="Max AED" step="0.01">
+                </div>
+                <div class="lg:col-span-1">
+                    <label for="filter-notes">Notes</label>
+                    <input type="text" id="filter-notes" placeholder="Search notes">
+                </div>
+                <div class="filter-actions">
+                    <button id="clear-filters-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 flex items-center">
+                        <i class="fas fa-times mr-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <div id="report-loading-indicator" class="text-center py-8">
+                <div class="loader inline-block"></div>
+                <p class="mt-4 text-gray-600">Loading maintenance records...</p>
+            </div>
+            <div id="report-error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 hidden" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span id="report-error-text" class="block sm:inline">Failed to load maintenance records.</span>
+            </div>
+            <div id="no-report-data-message" class="text-center text-gray-600 py-8 hidden">
+                <i class="fas fa-file-alt text-4xl text-gray-300 mb-2"></i><br>
+                <p>No maintenance records available for the report.</p>
+            </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full bg-white rounded-lg overflow-hidden">
-                    <thead class="bg-gray-50 border-b border-gray-200">
+                <table class="maintenance-table">
+                    <thead>
                         <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Scheduled Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Completion Date</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th>Car (Plate # / Make / Model)</th>
+                            <th>Maintenance Type</th>
+                            <th>Category</th>
+                            <th>Scheduled Date</th>
+                            <th>Completion Date</th>
+                            <th>Status</th>
+                            <th>Odometer (KM)</th>
+                            <th>Next Due KM</th>
+                            <th>Next Due Date</th>
+                            <th>Cost (AED)</th>
+                            <th>Notes</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
-                    <tbody id="maintenance-records-table-body" class="divide-y divide-gray-200">
-                        <!-- Data will be loaded dynamically here -->
-                        <tr>
-                            <td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading maintenance records...</td>
-                        </tr>
+                    <tbody id="maintenance-report-tbody">
+                        <!-- Report rows will be loaded here -->
                     </tbody>
                 </table>
             </div>
-            <p id="no-records-message" class="text-center text-gray-600 mt-4 hidden">
-                <i class="fas fa-clipboard-check text-4xl text-gray-300 mb-2"></i><br>
-                No maintenance records found. Get started by scheduling your first maintenance.
-            </p>
         </div>
     </div>
 
-    <!-- Schedule Maintenance Modal -->
-    <div id="maintenance-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
-            <h3 id="modal-title" class="text-2xl font-semibold text-gray-800 mb-4">Schedule New Maintenance</h3>
-            <form id="maintenance-form" class="space-y-4">
+    <!-- Add/Edit Maintenance Modal (using the form from original HTML) -->
+    <div id="maintenance-form-modal" class="modal hidden">
+        <div class="modal-content">
+            <button id="modal-close-button" class="modal-close-button">&times;</button>
+            <h3 id="form-modal-title" class="text-xl font-bold text-gray-800 mb-4">Add New Maintenance Record</h3>
+            <form id="add-maintenance-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div>
-                    <label for="car_search_input" class="block text-sm font-medium text-gray-700">Search Vehicle</label>
-                    <input type="text" id="car_search_input" placeholder="Search by plate number, make, or model" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
-                </div>
-                <div>
-                    <label for="car_id" class="block text-sm font-medium text-gray-700">Vehicle</label>
-                    <select id="car_id" name="car_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
-                        <option value="">Loading vehicles...</option>
-                        <!-- Options will be loaded dynamically -->
+                    <label for="car-select" class="block text-sm font-medium text-gray-700">Select Car</label>
+                    <select id="car-select" name="car_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                        <option value="">-- Select a Car --</option>
                     </select>
-                    <p id="car-select-error" class="text-red-500 text-sm mt-1 hidden">Failed to load vehicles. Please check your Supabase setup.</p>
                 </div>
                 <div>
-                    <label for="maintenance_type" class="block text-sm font-medium text-gray-700">Maintenance Type</label>
-                    <input type="text" id="maintenance_type" name="maintenance_type" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <label for="maintenance-type-select" class="block text-sm font-medium text-gray-700">Maintenance Type</label>
+                    <select id="maintenance-type-select" name="maintenance_type_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                        <option value="">-- Select Maintenance Type --</option>
+                    </select>
                 </div>
                 <div>
-                    <label for="scheduled_date" class="block text-sm font-medium text-gray-700">Scheduled Date</label>
-                    <input type="date" id="scheduled_date" name="scheduled_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                    <label for="scheduled-date" class="block text-sm font-medium text-gray-700">Scheduled Date (Optional)</label>
+                    <input type="date" id="scheduled-date" name="scheduled_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
                 </div>
                 <div>
-                    <label for="completion_date" class="block text-sm font-medium text-gray-700">Completion Date (Optional)</label>
-                    <input type="date" id="completion_date" name="completion_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <label for="completion-date" class="block text-sm font-medium text-gray-700">Completion Date</label>
+                    <input type="date" id="completion-date" name="completion_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                </div>
+                <div>
+                    <label for="status-select" class="block text-sm font-medium text-gray-700">Status</label>
+                    <select id="status-select" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                        <option value="1">Scheduled</option>
+                        <option value="2">In Progress</option>
+                        <option value="3">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="odometer-km" class="block text-sm font-medium text-gray-700">Current Odometer (KM)</label>
+                    <input type="number" id="odometer-km" name="odometer_km" step="1" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" readonly>
+                </div>
+                <div>
+                    <label for="next-due-km" class="block text-sm font-medium text-gray-700">Next Due KM (Calculated)</label>
+                    <input type="number" id="next-due-km" name="next_due_km" step="1" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed" readonly>
+                </div>
+                <div>
+                    <label for="next-due-date" class="block text-sm font-medium text-gray-700">Next Due Date (Calculated)</label>
+                    <input type="date" id="next-due-date" name="next_due_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100 cursor-not-allowed" readonly>
                 </div>
                 <div>
                     <label for="cost" class="block text-sm font-medium text-gray-700">Cost (AED)</label>
-                    <input type="number" id="cost" name="cost" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <input type="number" id="cost" name="cost" step="0.01" min="0" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
                 </div>
-                <div>
-                    <label for="status" class="block text-sm font-medium text-gray-700">Status</label>
-                    <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
-                        <option value="Scheduled">Scheduled</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Completed">Completed</option>
-                        <option value="Cancelled">Cancelled</option>
-                        <option value="Under Maintenance">Under Maintenance</option> <!-- Added for consistency -->
-                    </select>
-                </div>
-                <div>
+                <div class="lg:col-span-1">
                     <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
-                    <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+                    <textarea id="notes" name="notes" rows="1" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
                 </div>
-                <div class="flex justify-end space-x-3">
-                    <button type="button" id="cancel-maintenance-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
-                    <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Save Maintenance</button>
+                <div class="md:col-span-2 lg:col-span-3 flex justify-end space-x-3">
+                    <button type="button" id="cancel-form-button" class="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg shadow-md hover:bg-gray-400 transition-all duration-200">Cancel</button>
+                    <button type="submit" id="submit-maintenance-btn" class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-all duration-200 flex items-center justify-center">
+                        <span id="submit-btn-text">Add Record</span>
+                        <div id="submit-loader" class="loader !w-5 !h-5 !border-2 ml-2 hidden"></div>
+                    </button>
                 </div>
             </form>
         </div>
     </div>
+
 
     <!-- Modal for notifications -->
     <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
@@ -367,432 +577,769 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
 
         // Initialize Supabase client
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm';
+        const { createClient } = supabase;
         const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
-
-        // Redirect if not logged in
-        supabaseClient.auth.getSession().then(({ data: { session } }) => {
-            if (!session) {
-                window.location.href = 'login.html'; // Redirect to login page
-            }
-        });
 
         // DOM Elements
         const ui = {
-            mainContent: document.getElementById('main-content'),
-            mainHeader: document.getElementById('main-header'),
+            lastUpdated: document.getElementById('last-updated'),
+            refreshButton: document.getElementById('refresh-data'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+
+            // KPI elements
+            scheduledKpi: document.getElementById('scheduled-kpi'),
+            inProgressKpi: document.getElementById('in-progress-kpi'),
+            completedKpi: document.getElementById('completed-kpi'),
+            totalCostKpi: document.getElementById('total-cost-kpi'),
+
+            // Form elements (now inside a modal)
+            maintenanceFormModal: document.getElementById('maintenance-form-modal'),
+            modalCloseButton: document.getElementById('modal-close-button'),
+            formModalTitle: document.getElementById('form-modal-title'),
+            addMaintenanceForm: document.getElementById('add-maintenance-form'), // Still refers to the form
+            carSelect: document.getElementById('car-select'),
+            maintenanceTypeSelect: document.getElementById('maintenance-type-select'),
+            scheduledDateInput: document.getElementById('scheduled-date'),
+            completionDateInput: document.getElementById('completion-date'),
+            statusSelect: document.getElementById('status-select'),
+            odometerKmInput: document.getElementById('odometer-km'),
+            nextDueKmInput: document.getElementById('next-due-km'),
+            nextDueDateInput: document.getElementById('next-due-date'),
+            costInput: document.getElementById('cost'),
+            notesInput: document.getElementById('notes'),
+            submitMaintenanceBtn: document.getElementById('submit-maintenance-btn'),
+            submitBtnText: document.getElementById('submit-btn-text'),
+            submitLoader: document.getElementById('submit-loader'),
+            cancelFormButton: document.getElementById('cancel-form-button'), // New cancel button for the form modal
+
+            // Report elements
+            reportLoadingIndicator: document.getElementById('report-loading-indicator'),
+            reportErrorMessage: document.getElementById('report-error-message'),
+            reportErrorText: document.getElementById('report-error-text'),
+            noReportDataMessage: document.getElementById('no-report-data-message'),
+            maintenanceReportTbody: document.getElementById('maintenance-report-tbody'),
+            addNewMaintenanceBtn: document.getElementById('add-new-maintenance-btn'), // Button to open the add form
+
+            // Filter elements (NEW)
+            filterCarInfo: document.getElementById('filter-car-info'),
+            filterMaintenanceType: document.getElementById('filter-maintenance-type'),
+            filterCategory: document.getElementById('filter-category'),
+            filterStatus: document.getElementById('filter-status'),
+            filterScheduledDateFrom: document.getElementById('filter-scheduled-date-from'),
+            filterScheduledDateTo: document.getElementById('filter-scheduled-date-to'),
+            filterCompletionDateFrom: document.getElementById('filter-completion-date-from'),
+            filterCompletionDateTo: document.getElementById('filter-completion-date-to'),
+            filterOdometerMin: document.getElementById('filter-odometer-min'),
+            filterOdometerMax: document.getElementById('filter-odometer-max'),
+            filterNextDueKmMin: document.getElementById('filter-next-due-km-min'),
+            filterNextDueKmMax: document.getElementById('filter-next-due-km-max'),
+            filterNextDueDateFrom: document.getElementById('filter-next-due-date-from'),
+            filterNextDueDateTo: document.getElementById('filter-next-due-date-to'),
+            filterCostMin: document.getElementById('filter-cost-min'),
+            filterCostMax: document.getElementById('filter-cost-max'),
+            filterNotes: document.getElementById('filter-notes'),
+            clearFiltersBtn: document.getElementById('clear-filters-btn'),
+
+
+            // Notification Modal (for simple messages)
             notificationModal: document.getElementById('notification-modal'),
             notificationTitle: document.getElementById('notification-title'),
             notificationMessage: document.getElementById('notification-message'),
             notificationCloseButton: document.getElementById('notification-close-button'),
-            userEmail: document.getElementById('user-email'),
-            userIdDisplay: document.getElementById('user-id-display'),
-            lastUpdated: document.getElementById('last-updated'),
-            // Maintenance Specific
-            scheduleMaintenanceButton: document.getElementById('schedule-maintenance-button'),
-            maintenanceModal: document.getElementById('maintenance-modal'),
-            modalTitle: document.getElementById('modal-title'),
-            maintenanceForm: document.getElementById('maintenance-form'),
-            cancelMaintenanceButton: document.getElementById('cancel-maintenance-button'),
-            carSearchInput: document.getElementById('car_search_input'),
-            carIdSelect: document.getElementById('car_id'),
-            carSelectError: document.getElementById('car-select-error'),
-            maintenanceRecordsTableBody: document.getElementById('maintenance-records-table-body'),
-            noRecordsMessage: document.getElementById('no-records-message'),
-            scheduledCountElem: document.getElementById('scheduled-count'),
-            inProgressCountElem: document.getElementById('in-progress-count'),
-            completedCountElem: document.getElementById('completed-count'),
-            totalCostElem: document.getElementById('total-cost')
         };
 
+        let carsLookup = []; 
+        let maintenanceTypesLookup = []; 
+        let currentEditingRecordId = null; // Stores the ID of the record being edited
+        let allMaintenanceRecordsData = []; // Stores all fetched records for client-side filtering
+
+        // --- Initial Setup ---
         ui.userEmail.textContent = "admin@foxcarrental.com";
-        ui.userIdDisplay.classList.add('hidden'); // Hide user ID as it's not directly applicable with this key
+        ui.userIdDisplay.classList.add('hidden'); // Hide userId for now, if not used
 
-        // Global variables
-        let currentEditMaintenanceId = null;
-        let allVehiclesData = [];
+        // Set today's date for completion date input
+        function setTodayDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            ui.completionDateInput.value = `${yyyy}-${mm}-${dd}`;
+        }
 
-        // --- Modal Logic ---
+        // --- Modal Logic (General Notification) ---
         function showCustomMessageBox(title, message) {
             ui.notificationTitle.textContent = title;
-            ui.notificationMessage.innerHTML = message;
+            ui.notificationMessage.textContent = message;
             ui.notificationModal.classList.remove('hidden');
         }
 
-        function hideCustomMessageBox() {
+        ui.notificationCloseButton.addEventListener('click', () => {
             ui.notificationModal.classList.add('hidden');
+        });
+
+        // --- Modal Logic (Add/Edit Form Modal) ---
+        function openFormModal(isEditMode = false, recordData = null) {
+            ui.addMaintenanceForm.reset(); // Always reset form first
+            currentEditingRecordId = null; // Assume add mode by default
+
+            if (isEditMode && recordData) {
+                currentEditingRecordId = recordData.veh_mai_id;
+                ui.formModalTitle.textContent = 'Edit Maintenance Record';
+                ui.submitBtnText.textContent = 'Update Record';
+                // Populate form fields
+                ui.carSelect.value = recordData.car_id || '';
+                ui.maintenanceTypeSelect.value = recordData.maintenance_type_id || '';
+                ui.scheduledDateInput.value = recordData.scheduled_date ? recordData.scheduled_date.split('T')[0] : '';
+                ui.completionDateInput.value = recordData.completion_date ? recordData.completion_date.split('T')[0] : '';
+                ui.statusSelect.value = recordData.status ? String(recordData.status) : '1'; // Ensure string for select
+                ui.odometerKmInput.value = recordData.odometer_km || '';
+                ui.nextDueKmInput.value = recordData.next_due_km || '';
+                ui.nextDueDateInput.value = recordData.next_due_date ? recordData.next_due_date.split('T')[0] : '';
+                ui.costInput.value = recordData.cost || '';
+                ui.notesInput.value = recordData.notes || '';
+
+                // Trigger change events to recalculate derived fields if needed
+                ui.carSelect.dispatchEvent(new Event('change'));
+                ui.maintenanceTypeSelect.dispatchEvent(new Event('change'));
+                ui.completionDateInput.dispatchEvent(new Event('change'));
+
+            } else {
+                ui.formModalTitle.textContent = 'Add New Maintenance Record';
+                ui.submitBtnText.textContent = 'Add Record';
+                setTodayDate(); // Set default date for new records
+                ui.odometerKmInput.value = ''; // Clear display-only fields for new record
+                ui.nextDueKmInput.value = '';
+                ui.nextDueDateInput.value = '';
+            }
+            ui.maintenanceFormModal.classList.remove('hidden');
         }
 
-        ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+        function closeFormModal() {
+            ui.maintenanceFormModal.classList.add('hidden');
+            ui.addMaintenanceForm.reset(); // Reset form state
+            currentEditingRecordId = null; // Clear editing ID
+            ui.submitBtnText.textContent = 'Add Record'; // Reset button text
+            ui.odometerKmInput.value = ''; // Clear calculated fields explicitly
+            ui.nextDueKmInput.value = '';
+            ui.nextDueDateInput.value = '';
+        }
+
+        // Close modal when close button is clicked
+        ui.modalCloseButton.addEventListener('click', closeFormModal);
+        ui.cancelFormButton.addEventListener('click', closeFormModal);
+
+        // Close modal when clicking outside the content
+        ui.maintenanceFormModal.addEventListener('click', (e) => {
+            if (e.target === ui.maintenanceFormModal) {
+                closeFormModal();
+            }
+        });
 
         // --- Helper Functions ---
         function formatDate(dateString) {
             if (!dateString) return 'N/A';
+            const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
+            if (isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+
+        // Helper to parse date string to Date object, returns null if invalid
+        function parseDate(dateString) {
+            if (!dateString) return null;
             const date = new Date(dateString);
-            return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+            return isNaN(date.getTime()) ? null : date;
         }
 
-        function populateSelect(selectElement, data, textKey, valueKey, selectedValue = null) {
-            selectElement.innerHTML = '<option value="">Select Vehicle</option>';
-            ui.carSelectError.classList.add('hidden');
-
-            if (data.length === 0) {
-                const noOption = document.createElement('option');
-                noOption.value = "";
-                noOption.textContent = "No vehicles found";
-                noOption.disabled = true;
-                selectElement.appendChild(noOption);
-                return;
-            }
-            data.forEach(item => {
-                const option = document.createElement('option');
-                option.value = item[valueKey];
-                option.textContent = item[textKey];
-                if (selectedValue && item[valueKey] == selectedValue) {
-                    option.selected = true;
-                }
-                selectElement.appendChild(option);
-            });
-        }
-
-        function getStatusBadgeColor(status) {
-            switch (status) {
-                case 'Scheduled': return 'bg-purple-500';
-                case 'In Progress': return 'bg-yellow-500';
-                case 'Completed': return 'bg-green-500';
-                case 'Cancelled': return 'bg-red-500';
-                case 'Under Maintenance': return 'bg-red-500';
-                default: return 'bg-gray-500';
+        function getStatusText(statusValue) {
+            switch (String(statusValue)) {
+                case '1': return 'Scheduled';
+                case '2': return 'In Progress';
+                case '3': return 'Completed';
+                default: return 'Unknown';
             }
         }
 
-        // --- Fetch and Render Maintenance Records ---
-        async function fetchMaintenanceRecords() {
-            ui.maintenanceRecordsTableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-gray-500">Loading maintenance records...</td></tr>';
-            ui.noRecordsMessage.classList.add('hidden');
-
-            const { data, error } = await supabaseClient
-                .from('vehicle_maintenance')
-                .select(`
-                    veh_mai_id, maintenance_type, scheduled_date, completion_date, cost, status, notes, car_id,
-                    cars (
-                        plate_number,
-                        veh_make (make),
-                        veh_model (model)
-                    )
-                `);
-
-            if (error) {
-                console.error("Error fetching maintenance records:", error);
-                ui.maintenanceRecordsTableBody.innerHTML = '<tr><td colspan="8" class="px-6 py-4 text-center text-red-500">Error loading maintenance records.</td></tr>';
-                return;
+        function setSubmitButtonState(isLoading) {
+            if (isLoading) {
+                ui.submitMaintenanceBtn.disabled = true;
+                ui.submitBtnText.classList.add('hidden');
+                ui.submitLoader.classList.remove('hidden');
+            } else {
+                ui.submitMaintenanceBtn.disabled = false;
+                ui.submitBtnText.classList.remove('hidden');
+                ui.submitLoader.classList.add('hidden');
             }
-
-            ui.maintenanceRecordsTableBody.innerHTML = ''; // Clear loading message
-
-            if (data.length === 0) {
-                ui.noRecordsMessage.classList.remove('hidden');
-                return;
-            }
-
-            let scheduledCount = 0;
-            let inProgressCount = 0;
-            let completedCount = 0;
-            let totalCost = 0;
-
-            data.forEach(record => {
-                const carInfo = record.cars || {};
-                const makeInfo = carInfo.veh_make || {};
-                const modelInfo = carInfo.veh_model || {};
-
-                const vehicleDisplay = `${makeInfo.make || 'N/A'} ${modelInfo.model || 'N/A'} (${carInfo.plate_number || 'N/A'})`;
-                const scheduledDate = formatDate(record.scheduled_date);
-                const completionDate = formatDate(record.completion_date);
-                const cost = parseFloat(record.cost || 0).toFixed(2);
-
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${vehicleDisplay}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${record.maintenance_type || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${scheduledDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${completionDate}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">AED ${cost}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm">
-                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full text-white ${getStatusBadgeColor(record.status)}">
-                            ${record.status || 'N/A'}
-                        </span>
-                    </td>
-                    <td class="px-6 py-4 text-sm text-gray-700">${record.notes || 'N/A'}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button data-id="${record.veh_mai_id}" class="edit-maintenance-btn text-custom-blue-dark hover:text-custom-blue-dark/80 transition-colors duration-200 p-2 rounded-full">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button data-id="${record.veh_mai_id}" class="delete-maintenance-btn text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full">
-                            <i class="fas fa-trash-alt"></i>
-                        </button>
-                    </td>
-                `;
-                ui.maintenanceRecordsTableBody.appendChild(row);
-
-                // Update stats
-                if (record.status === 'Scheduled') {
-                    scheduledCount++;
-                } else if (record.status === 'In Progress') {
-                    inProgressCount++;
-                } else if (record.status === 'Completed') {
-                    completedCount++;
-                    totalCost += parseFloat(record.cost || 0);
-                }
-            });
-
-            ui.scheduledCountElem.textContent = scheduledCount;
-            ui.inProgressCountElem.textContent = inProgressCount;
-            ui.completedCountElem.textContent = completedCount;
-            ui.totalCostElem.textContent = `AED ${totalCost.toFixed(2)}`;
-
-            // Add event listeners for edit and delete buttons
-            document.querySelectorAll('.edit-maintenance-btn').forEach(button => {
-                button.addEventListener('click', (e) => openEditMaintenanceModal(e.currentTarget.dataset.id));
-            });
-            document.querySelectorAll('.delete-maintenance-btn').forEach(button => {
-                button.addEventListener('click', (e) => deleteMaintenanceRecord(e.currentTarget.dataset.id));
-            });
         }
 
-        async function fetchAllVehicles() {
-            console.log("Fetching all vehicles for dropdown...");
-            ui.carIdSelect.innerHTML = '<option value="">Loading vehicles...</option>';
-            ui.carIdSelect.disabled = true;
-            ui.carSelectError.classList.add('hidden');
-
+        // --- Populate Dropdowns ---
+        async function populateCarSelect() {
             try {
                 const { data, error } = await supabaseClient
                     .from('cars')
-                    .select('id, plate_number, veh_make (make), veh_model (model)');
+                    .select('id, plate_number, odometer_km, veh_make(make), veh_model(model)');
+                if (error) throw error;
+                carsLookup = data;
 
-                if (error) {
-                    console.error("Error fetching all cars:", error);
-                    ui.carIdSelect.innerHTML = '<option value="">Error loading vehicles</option>';
-                    ui.carSelectError.textContent = `Error: ${error.message}. Check Supabase RLS.`;
-                    ui.carSelectError.classList.remove('hidden');
-                    return [];
+                ui.carSelect.innerHTML = '<option value="">-- Select a Car --</option>';
+                carsLookup.forEach(car => {
+                    const option = document.createElement('option');
+                    option.value = car.id;
+                    const make = car.veh_make ? car.veh_make.make : 'Unknown Make';
+                    const model = car.veh_model ? car.veh_model.model : 'Unknown Model';
+                    option.textContent = `${car.plate_number} (${make} ${model})`;
+                    ui.carSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error("Error populating car select:", error);
+                showCustomMessageBox("Error", "Failed to load cars for selection.");
+            }
+        }
+
+        // Event listener for car selection to pre-fill odometer and update Next Due KM
+        ui.carSelect.addEventListener('change', () => {
+            const selectedCarId = ui.carSelect.value;
+            if (selectedCarId) {
+                const selectedCar = carsLookup.find(car => String(car.id) === selectedCarId);
+                if (selectedCar && selectedCar.odometer_km !== null) {
+                    ui.odometerKmInput.value = selectedCar.odometer_km;
+                } else {
+                    ui.odometerKmInput.value = '';
                 }
-                console.log("Vehicles fetched:", data);
-                allVehiclesData = data.map(car => ({
-                    id: car.id,
-                    plate_number: car.plate_number,
-                    make: car.veh_make ? car.veh_make.make : '',
-                    model: car.veh_model ? car.veh_model.model : '',
-                    text: `${car.veh_make ? car.veh_make.make : 'N/A'} ${car.veh_model ? car.veh_model.model : 'N/A'} (${car.plate_number || 'N/A'})`
-                }));
-                ui.carIdSelect.disabled = false;
-                return allVehiclesData;
-            } catch (e) {
-                console.error("An unexpected error occurred in fetchAllVehicles:", e);
-                ui.carIdSelect.innerHTML = '<option value="">An unexpected error occurred</option>';
-                ui.carSelectError.textContent = `Unexpected error: ${e.message}.`;
-                ui.carSelectError.classList.remove('hidden');
-                ui.carIdSelect.disabled = true;
-                return [];
-            }
-        }
-
-        function filterAndPopulateVehicles(searchTerm = '', selectedCarId = null) {
-            const filtered = allVehiclesData.filter(car =>
-                (car.plate_number && car.plate_number.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (car.make && car.make.toLowerCase().includes(searchTerm.toLowerCase())) ||
-                (car.model && car.model.toLowerCase().includes(searchTerm.toLowerCase()))
-            );
-            populateSelect(ui.carIdSelect, filtered, 'text', 'id', selectedCarId);
-        }
-
-        ui.scheduleMaintenanceButton.addEventListener('click', async () => {
-            ui.modalTitle.textContent = 'Schedule New Maintenance';
-            ui.maintenanceForm.reset();
-            currentEditMaintenanceId = null;
-            ui.carSearchInput.value = '';
-            ui.carIdSelect.disabled = false;
-            await fetchAllVehicles();
-            filterAndPopulateVehicles();
-            ui.maintenanceModal.classList.remove('hidden');
-        });
-
-        ui.cancelMaintenanceButton.addEventListener('click', () => {
-            ui.maintenanceModal.classList.add('hidden');
-        });
-
-        ui.maintenanceModal.addEventListener('click', (e) => {
-            if (e.target === ui.maintenanceModal) {
-                ui.maintenanceModal.classList.add('hidden');
-            }
-        });
-
-        ui.carSearchInput.addEventListener('input', (e) => {
-            filterAndPopulateVehicles(e.target.value);
-        });
-
-        async function openEditMaintenanceModal(veh_mai_id) {
-            const { data, error } = await supabaseClient
-                .from('vehicle_maintenance')
-                .select('*')
-                .eq('veh_mai_id', veh_mai_id)
-                .single();
-
-            if (error) {
-                console.error("Error fetching maintenance record for edit:", error);
-                showCustomMessageBox("Error", "Error fetching maintenance record details: " + error.message);
-                return;
-            }
-
-            if (data) {
-                ui.modalTitle.textContent = 'Edit Maintenance Record';
-                document.getElementById('maintenance_type').value = data.maintenance_type || '';
-                document.getElementById('scheduled_date').value = data.scheduled_date ? data.scheduled_date.split('T')[0] : '';
-                document.getElementById('completion_date').value = data.completion_date ? data.completion_date.split('T')[0] : '';
-                document.getElementById('cost').value = data.cost || '';
-                document.getElementById('status').value = data.status || 'Scheduled';
-                document.getElementById('notes').value = data.notes || '';
-
-                await fetchAllVehicles();
-                filterAndPopulateVehicles('', data.car_id);
-
-                currentEditMaintenanceId = veh_mai_id;
-                ui.maintenanceModal.classList.remove('hidden');
             } else {
-                console.error("No maintenance record found with ID:", veh_mai_id);
-                showCustomMessageBox("Error", "No maintenance record found with the provided ID.");
+                ui.odometerKmInput.value = '';
+            }
+            updateNextDueKm();
+            updateNextDueDate();
+        });
+
+
+        async function populateMaintenanceTypeAndCategorySelect() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('maintenance_types')
+                    .select('id, name, category, recommended_km, recommended_months')
+                    .eq('active', true)
+                    .order('category', { ascending: true })
+                    .order('name', { ascending: true });
+                if (error) throw error;
+                maintenanceTypesLookup = data;
+
+                ui.maintenanceTypeSelect.innerHTML = '<option value="">-- Select Maintenance Type --</option>';
+                const categories = new Set();
+                maintenanceTypesLookup.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = `${type.name} (${type.category})`;
+                    ui.maintenanceTypeSelect.appendChild(option);
+                    categories.add(type.category);
+                });
+
+                // Populate filter-category dropdown
+                ui.filterCategory.innerHTML = '<option value="">All Categories</option>';
+                Array.from(categories).sort().forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    ui.filterCategory.appendChild(option);
+                });
+
+                // Populate filter-maintenance-type dropdown
+                ui.filterMaintenanceType.innerHTML = '<option value="">All Types</option>';
+                maintenanceTypesLookup.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    ui.filterMaintenanceType.appendChild(option);
+                });
+
+
+            } catch (error) {
+                console.error("Error populating maintenance type and category select:", error);
+                showCustomMessageBox("Error", "Failed to load maintenance types for selection.");
             }
         }
 
-        ui.maintenanceForm.addEventListener('submit', async (e) => {
-            e.preventDefault();
+        // Event listener for maintenance type selection to update Next Due KM and Next Due Date
+        ui.maintenanceTypeSelect.addEventListener('change', () => {
+            updateNextDueKm();
+            updateNextDueDate();
+        });
 
-            const formData = new FormData(ui.maintenanceForm);
-            const maintenanceData = {
-                car_id: parseInt(formData.get('car_id')),
-                maintenance_type: formData.get('maintenance_type'),
-                scheduled_date: formData.get('scheduled_date') || null,
-                completion_date: formData.get('completion_date') || null,
-                cost: parseFloat(formData.get('cost')) || 0,
-                status: formData.get('status'),
-                notes: formData.get('notes') || null,
-                created_at: currentEditMaintenanceId ? undefined : new Date().toISOString(),
-                updated_at: new Date().toISOString()
+        // Event listener for completion date input to update Next Due Date
+        ui.completionDateInput.addEventListener('change', updateNextDueDate);
+
+        // --- Calculate and Display Next Due KM ---
+        function updateNextDueKm() {
+            const selectedCarId = ui.carSelect.value;
+            const selectedMaintenanceTypeId = ui.maintenanceTypeSelect.value;
+
+            const currentOdometer = ui.odometerKmInput.value ? parseFloat(ui.odometerKmInput.value) : null;
+
+            if (selectedCarId && selectedMaintenanceTypeId && currentOdometer !== null) {
+                const selectedMaintenanceType = maintenanceTypesLookup.find(type => String(type.id) === selectedMaintenanceTypeId);
+                if (selectedMaintenanceType && selectedMaintenanceType.recommended_km !== null) {
+                    const recommendedKm = parseFloat(selectedMaintenanceType.recommended_km);
+                    const nextDueKm = currentOdometer + recommendedKm;
+                    ui.nextDueKmInput.value = nextDueKm;
+                } else {
+                    ui.nextDueKmInput.value = '';
+                }
+            } else {
+                ui.nextDueKmInput.value = '';
+            }
+        }
+
+        // --- Calculate and Display Next Due Date ---
+        function updateNextDueDate() {
+            const selectedMaintenanceTypeId = ui.maintenanceTypeSelect.value;
+            const completionDateStr = ui.completionDateInput.value;
+
+            if (selectedMaintenanceTypeId && completionDateStr) {
+                const selectedMaintenanceType = maintenanceTypesLookup.find(type => String(type.id) === selectedMaintenanceTypeId);
+                if (selectedMaintenanceType && selectedMaintenanceType.recommended_months !== null) {
+                    const completionDate = new Date(completionDateStr);
+                    const recommendedMonths = parseInt(selectedMaintenanceType.recommended_months, 10);
+                    
+                    completionDate.setMonth(completionDate.getMonth() + recommendedMonths);
+
+                    const yyyy = completionDate.getFullYear();
+                    const mm = String(completionDate.getMonth() + 1).padStart(2, '0');
+                    const dd = String(completionDate.getDate()).padStart(2, '0');
+                    ui.nextDueDateInput.value = `${yyyy}-${mm}-${dd}`;
+                } else {
+                    ui.nextDueDateInput.value = '';
+                }
+            } else {
+                ui.nextDueDateInput.value = '';
+            }
+        }
+
+        // --- Load All Maintenance Records and Filter ---
+        async function loadAllMaintenanceRecords() {
+            ui.reportLoadingIndicator.classList.remove('hidden');
+            ui.reportErrorMessage.classList.add('hidden');
+            ui.noReportDataMessage.classList.add('hidden');
+            ui.maintenanceReportTbody.innerHTML = '';
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .select(`
+                        veh_mai_id,
+                        car_id,
+                        maintenance_type_id,
+                        scheduled_date,
+                        completion_date,
+                        status,
+                        odometer_km,
+                        next_due_km,
+                        next_due_date,
+                        cost,
+                        notes,
+                        cars (plate_number, veh_make(make), veh_model(model)),
+                        maintenance_types (name, category)
+                    `)
+                    .order('completion_date', { ascending: false });
+
+                if (error) throw error;
+                allMaintenanceRecordsData = data; // Store fetched data
+                filterAndRenderMaintenanceReport(); // Render with current filters (or no filters if first load)
+
+            } catch (error) {
+                console.error("Error loading maintenance report:", error);
+                ui.reportLoadingIndicator.classList.add('hidden');
+                ui.reportErrorText.textContent = `Failed to load maintenance report: ${error.message}`;
+                ui.reportErrorMessage.classList.remove('hidden');
+                ui.noReportDataMessage.classList.add('hidden'); // Hide no data message on error
+            } finally {
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+        }
+
+        // --- Filter and Render Maintenance Report ---
+        function filterAndRenderMaintenanceReport() {
+            ui.maintenanceReportTbody.innerHTML = ''; // Clear table before rendering
+            ui.reportLoadingIndicator.classList.add('hidden'); // Ensure loader is hidden
+            ui.reportErrorMessage.classList.add('hidden'); // Ensure error message is hidden
+
+            let filteredRecords = [...allMaintenanceRecordsData];
+
+            const filterCarInfo = ui.filterCarInfo.value.toLowerCase();
+            const filterMaintenanceTypeId = ui.filterMaintenanceType.value;
+            const filterCategory = ui.filterCategory.value;
+            const filterStatus = ui.filterStatus.value;
+            const filterScheduledDateFrom = parseDate(ui.filterScheduledDateFrom.value);
+            const filterScheduledDateTo = parseDate(ui.filterScheduledDateTo.value);
+            const filterCompletionDateFrom = parseDate(ui.filterCompletionDateFrom.value);
+            const filterCompletionDateTo = parseDate(ui.filterCompletionDateTo.value);
+            const filterOdometerMin = ui.filterOdometerMin.value ? parseFloat(ui.filterOdometerMin.value) : null;
+            const filterOdometerMax = ui.filterOdometerMax.value ? parseFloat(ui.filterOdometerMax.value) : null;
+            const filterNextDueKmMin = ui.filterNextDueKmMin.value ? parseFloat(ui.filterNextDueKmMin.value) : null;
+            const filterNextDueKmMax = ui.filterNextDueKmMax.value ? parseFloat(ui.filterNextDueKmMax.value) : null;
+            const filterNextDueDateFrom = parseDate(ui.filterNextDueDateFrom.value);
+            const filterNextDueDateTo = parseDate(ui.filterNextDueDateTo.value);
+            const filterCostMin = ui.filterCostMin.value ? parseFloat(ui.filterCostMin.value) : null;
+            const filterCostMax = ui.filterCostMax.value ? parseFloat(ui.filterCostMax.value) : null;
+            const filterNotes = ui.filterNotes.value.toLowerCase();
+
+            filteredRecords = filteredRecords.filter(record => {
+                const car = record.cars;
+                const maintenanceType = record.maintenance_types;
+
+                // Car Info Filter
+                if (filterCarInfo && !(
+                    (car?.plate_number && car.plate_number.toLowerCase().includes(filterCarInfo)) ||
+                    (car?.veh_make?.make && car.veh_make.make.toLowerCase().includes(filterCarInfo)) ||
+                    (car?.veh_model?.model && car.veh_model.model.toLowerCase().includes(filterCarInfo))
+                )) {
+                    return false;
+                }
+
+                // Maintenance Type Filter
+                if (filterMaintenanceTypeId && String(maintenanceType?.id) !== filterMaintenanceTypeId) {
+                    return false;
+                }
+
+                // Category Filter
+                if (filterCategory && maintenanceType?.category !== filterCategory) {
+                    return false;
+                }
+
+                // Status Filter
+                if (filterStatus && String(record.status) !== filterStatus) {
+                    return false;
+                }
+
+                // Scheduled Date Filters
+                const recordScheduledDate = parseDate(record.scheduled_date);
+                if (filterScheduledDateFrom && (!recordScheduledDate || recordScheduledDate < filterScheduledDateFrom)) {
+                    return false;
+                }
+                if (filterScheduledDateTo && (!recordScheduledDate || recordScheduledDate > filterScheduledDateTo)) {
+                    return false;
+                }
+
+                // Completion Date Filters
+                const recordCompletionDate = parseDate(record.completion_date);
+                if (filterCompletionDateFrom && (!recordCompletionDate || recordCompletionDate < filterCompletionDateFrom)) {
+                    return false;
+                }
+                if (filterCompletionDateTo && (!recordCompletionDate || recordCompletionDate > filterCompletionDateTo)) {
+                    return false;
+                }
+
+                // Odometer KM Filters
+                if (filterOdometerMin !== null && (record.odometer_km === null || record.odometer_km < filterOdometerMin)) {
+                    return false;
+                }
+                if (filterOdometerMax !== null && (record.odometer_km === null || record.odometer_km > filterOdometerMax)) {
+                    return false;
+                }
+
+                // Next Due KM Filters
+                if (filterNextDueKmMin !== null && (record.next_due_km === null || record.next_due_km < filterNextDueKmMin)) {
+                    return false;
+                }
+                if (filterNextDueKmMax !== null && (record.next_due_km === null || record.next_due_km > filterNextDueKmMax)) {
+                    return false;
+                }
+
+                // Next Due Date Filters
+                const recordNextDueDate = parseDate(record.next_due_date);
+                if (filterNextDueDateFrom && (!recordNextDueDate || recordNextDueDate < filterNextDueDateFrom)) {
+                    return false;
+                }
+                if (filterNextDueDateTo && (!recordNextDueDate || recordNextDueDate > filterNextDueDateTo)) {
+                    return false;
+                }
+
+                // Cost Filters
+                if (filterCostMin !== null && (record.cost === null || record.cost < filterCostMin)) {
+                    return false;
+                }
+                if (filterCostMax !== null && (record.cost === null || record.cost > filterCostMax)) {
+                    return false;
+                }
+
+                // Notes Filter
+                if (filterNotes && !(record.notes && record.notes.toLowerCase().includes(filterNotes))) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (filteredRecords.length === 0) {
+                ui.noReportDataMessage.classList.remove('hidden');
+            } else {
+                ui.noReportDataMessage.classList.add('hidden');
+            }
+
+            filteredRecords.forEach((record) => {
+                const row = document.createElement('tr');
+                const carInfo = record.cars
+                    ? `${record.cars.plate_number || 'N/A'} / ${record.cars.veh_make?.make || 'N/A'} / ${record.cars.veh_model?.model || 'N/A'}`
+                    : 'N/A';
+                const maintenanceType = record.maintenance_types?.name || 'N/A';
+                const maintenanceCategory = record.maintenance_types?.category || 'N/A';
+                const cost = record.cost !== null ? `AED ${parseFloat(record.cost).toFixed(2)}` : 'N/A';
+                const statusText = getStatusText(record.status);
+
+                row.innerHTML = `
+                    <td>${carInfo}</td>
+                    <td>${maintenanceType}</td>
+                    <td>${maintenanceCategory}</td>
+                    <td>${formatDate(record.scheduled_date)}</td>
+                    <td>${formatDate(record.completion_date)}</td>
+                    <td>${statusText}</td>
+                    <td>${record.odometer_km !== null ? record.odometer_km.toLocaleString() + ' KM' : 'N/A'}</td>
+                    <td>${record.next_due_km !== null ? record.next_due_km.toLocaleString() + ' KM' : 'N/A'}</td>
+                    <td>${formatDate(record.next_due_date)}</td>
+                    <td>${cost}</td>
+                    <td>${record.notes || 'N/A'}</td>
+                    <td>
+                        <button data-id="${record.veh_mai_id}" class="edit-maintenance-btn text-blue-600 hover:text-blue-800 transition-colors p-1 rounded-full">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                    </td>
+                `;
+                ui.maintenanceReportTbody.appendChild(row);
+            });
+
+            // Add event listeners to the new edit buttons
+            document.querySelectorAll('.edit-maintenance-btn').forEach(button => {
+                button.addEventListener('click', async (e) => {
+                    const recordId = e.currentTarget.dataset.id;
+                    const { data, error } = await supabaseClient
+                        .from('vehicle_maintenance')
+                        .select('*')
+                        .eq('veh_mai_id', recordId)
+                        .single();
+
+                    if (error) {
+                        console.error("Error fetching record for edit:", error);
+                        showCustomMessageBox("Error", `Failed to load record for editing: ${error.message}`);
+                        return;
+                    }
+                    openFormModal(true, data);
+                });
+            });
+        }
+
+        // --- Fetch KPI Data ---
+        async function fetchKpiData() {
+            // Show loaders
+            ui.scheduledKpi.innerHTML = '<div class="loader !w-6 !h-6 !border-2"></div>';
+            ui.inProgressKpi.innerHTML = '<div class="loader !w-6 !h-6 !border-2"></div>';
+            ui.completedKpi.innerHTML = '<div class="loader !w-6 !h-6 !border-2"></div>';
+            ui.totalCostKpi.innerHTML = '<div class="loader !w-6 !h-6 !border-2"></div>';
+
+            try {
+                const { data: maintenanceRecords, error } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .select('status, cost');
+
+                if (error) throw error;
+
+                let scheduledCount = 0;
+                let inProgressCount = 0;
+                let completedCount = 0;
+                let totalCost = 0;
+
+                maintenanceRecords.forEach(record => {
+                    switch (String(record.status)) {
+                        case '1':
+                            scheduledCount++;
+                            break;
+                        case '2':
+                            inProgressCount++;
+                            break;
+                        case '3':
+                            completedCount++;
+                            break;
+                        default:
+                            completedCount++;
+                            break;
+                    }
+                    totalCost += parseFloat(record.cost || 0);
+                });
+
+                ui.scheduledKpi.textContent = scheduledCount;
+                ui.inProgressKpi.textContent = inProgressCount;
+                ui.completedKpi.textContent = completedCount;
+                ui.totalCostKpi.textContent = `AED ${totalCost.toFixed(2)}`;
+
+            } catch (error) {
+                console.error("Error fetching KPI data:", error);
+                ui.scheduledKpi.textContent = 'Error';
+                ui.inProgressKpi.textContent = 'Error';
+                ui.completedKpi.textContent = 'Error';
+                ui.totalCostKpi.textContent = 'Error';
+                showCustomMessageBox("Error", `Failed to load KPI data: ${error.message}`);
+            } finally {
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+        }
+
+
+        // --- Add/Update Maintenance Record ---
+        ui.addMaintenanceForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setSubmitButtonState(true);
+
+            const recordData = {
+                car_id: ui.carSelect.value,
+                maintenance_type_id: ui.maintenanceTypeSelect.value,
+                scheduled_date: ui.scheduledDateInput.value || null,
+                completion_date: ui.completionDateInput.value,
+                status: ui.statusSelect.value,
+                odometer_km: ui.odometerKmInput.value ? parseInt(ui.odometerKmInput.value) : null,
+                next_due_km: ui.nextDueKmInput.value ? parseInt(ui.nextDueKmInput.value) : null,
+                next_due_date: ui.nextDueDateInput.value || null,
+                cost: ui.costInput.value ? parseFloat(ui.costInput.value) : null,
+                notes: ui.notesInput.value,
             };
 
             try {
-                if (currentEditMaintenanceId) {
-                    const { data, error } = await supabaseClient
+                if (currentEditingRecordId) {
+                    // Update existing record
+                    const { error } = await supabaseClient
                         .from('vehicle_maintenance')
-                        .update(maintenanceData)
-                        .eq('veh_mai_id', currentEditMaintenanceId);
-
+                        .update(recordData)
+                        .eq('veh_mai_id', currentEditingRecordId);
+                    
                     if (error) throw error;
-                    console.log("Maintenance record updated:", data);
                     showCustomMessageBox("Success", "Maintenance record updated successfully!");
                 } else {
-                    const { data, error } = await supabaseClient
+                    // Add new record
+                    const { error } = await supabaseClient
                         .from('vehicle_maintenance')
-                        .insert([maintenanceData]);
-
+                        .insert([recordData]);
+                    
                     if (error) throw error;
-                    console.log("Maintenance record inserted:", data);
-                    showCustomMessageBox("Success", "Maintenance record scheduled successfully!");
+                    showCustomMessageBox("Success", "Maintenance record added successfully!");
+                }
+                
+                // --- Update car status based on maintenance status ---
+                let carStatusToUpdate = null;
+                if (recordData.status === '2') { // In Progress
+                    carStatusToUpdate = 'Under Maintenance';
+                } else if (recordData.status === '3') { // Completed
+                    carStatusToUpdate = 'Available';
                 }
 
-                let newCarStatus;
-                if (maintenanceData.status === 'In Progress' || maintenanceData.status === 'Under Maintenance') {
-                    newCarStatus = 'Under Maintenance';
-                } else if (maintenanceData.status === 'Completed' || maintenanceData.status === 'Cancelled' || maintenanceData.status === 'Scheduled') {
-                    newCarStatus = 'Available';
-                } else {
-                    newCarStatus = 'Available';
+                if (carStatusToUpdate && recordData.car_id) {
+                    const { error: carUpdateError } = await supabaseClient
+                        .from('cars')
+                        .update({ status: carStatusToUpdate })
+                        .eq('id', recordData.car_id);
+                    
+                    if (carUpdateError) {
+                        console.error("Error updating car status:", carUpdateError);
+                        showCustomMessageBox("Warning", `Maintenance record saved, but failed to update car status: ${carUpdateError.message}`);
+                    }
                 }
 
-                console.log(`Attempting to update car status for car_id: ${maintenanceData.car_id} to '${newCarStatus}'`);
 
-                const { data: carUpdateData, error: carUpdateError } = await supabaseClient
-                    .from('cars')
-                    .update({ status: newCarStatus })
-                    .eq('id', maintenanceData.car_id)
-                    .select();
+                closeFormModal(); // Close the modal after success
+                fetchKpiData(); // Refresh KPIs
+                loadAllMaintenanceRecords(); // Refresh the report with potentially new/updated data
 
-                if (carUpdateError) {
-                    console.error("Error updating car status in 'cars' table:", carUpdateError.message, carUpdateError);
-                    showCustomMessageBox("Warning", "Could not update car's status in inventory. Please check RLS for 'cars' table.");
-                } else {
-                    console.log(`Car status for ${maintenanceData.car_id} updated to '${newCarStatus}' in 'cars' table. Response:`, carUpdateData);
-                }
-
-                ui.maintenanceModal.classList.add('hidden');
-                ui.maintenanceForm.reset();
-                fetchMaintenanceRecords();
             } catch (error) {
-                console.error("Error saving maintenance record:", error.message);
-                showCustomMessageBox("Error", "Error saving maintenance record: " + error.message);
+                console.error("Error saving maintenance record:", error);
+                showCustomMessageBox("Error", `Failed to save record: ${error.message}`);
+            } finally {
+                setSubmitButtonState(false);
             }
         });
 
-        async function deleteMaintenanceRecord(veh_mai_id) {
-            showCustomMessageBox("Confirm Deletion", "Are you sure you want to delete this maintenance record? <br><br> <button id='confirm-delete-btn' class='bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 mr-2'>Yes, Delete</button><button id='cancel-delete-btn' class='bg-gray-200 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-300'>Cancel</button>");
-
-            document.getElementById('confirm-delete-btn').onclick = async () => {
-                hideCustomMessageBox();
+        // --- Delete Maintenance Record (Placeholder - requires a confirmation modal) ---
+        // This function is not currently hooked up to any button in this specific UI,
+        // but it's kept for potential future use (e.g., if a delete button is added later).
+        async function confirmDeleteMaintenanceRecord(recordId) {
+            // In a real application, you would show a confirmation modal here
+            const confirmed = confirm("Are you sure you want to delete this maintenance record?");
+            if (confirmed) {
                 try {
-                    const { data, error } = await supabaseClient
+                    const { error } = await supabaseClient
                         .from('vehicle_maintenance')
                         .delete()
-                        .eq('veh_mai_id', veh_mai_id)
-                        .select('car_id');
-
+                        .eq('veh_mai_id', recordId);
+                    
                     if (error) throw error;
-                    console.log("Maintenance record successfully deleted!", data);
                     showCustomMessageBox("Success", "Maintenance record deleted successfully!");
-
-                    if (data && data.length > 0) {
-                        const deletedCarId = data[0].car_id;
-                        const { data: activeMaintenance, error: activeMaintenanceError } = await supabaseClient
-                            .from('vehicle_maintenance')
-                            .select('veh_mai_id')
-                            .eq('car_id', deletedCarId)
-                            .in('status', ['In Progress', 'Scheduled', 'Under Maintenance']);
-
-                        if (activeMaintenanceError) {
-                            console.error("Error checking for active maintenance records:", activeMaintenanceError.message, activeMaintenanceError);
-                        } else if (!activeMaintenance || activeMaintenance.length === 0) {
-                            console.log(`No other active maintenance records for car_id: ${deletedCarId}. Reverting car status to 'Available'.`);
-                            const { data: carRevertData, error: carRevertError } = await supabaseClient
-                                .from('cars')
-                                .update({ status: 'Available' })
-                                .eq('id', deletedCarId)
-                                .select();
-
-                            if (carRevertError) {
-                                console.error("Error reverting car status after maintenance deletion:", carRevertError.message, carRevertError);
-                                showCustomMessageBox("Warning", "Could not revert car's status to 'Available' after maintenance deletion. Check RLS for 'cars' table.");
-                            } else {
-                                console.log(`Car status for ${deletedCarId} reverted to 'Available'. Response:`, carRevertData);
-                            }
-                        }
-                    }
-
-                    fetchMaintenanceRecords();
+                    fetchKpiData(); // Refresh KPIs
+                    loadAllMaintenanceRecords(); // Refresh the report
                 } catch (error) {
-                    console.error("Error removing maintenance record: ", error.message);
-                    showCustomMessageBox("Error", "Error removing maintenance record: " + error.message);
+                    console.error("Error deleting maintenance record:", error);
+                    showCustomMessageBox("Error", `Failed to delete record: ${error.message}`);
                 }
-            };
-
-            document.getElementById('cancel-delete-btn').onclick = () => {
-                hideCustomMessageBox();
-            };
+            }
         }
-        
+
+        // --- Clear Filters Function ---
+        function clearAllFilters() {
+            ui.filterCarInfo.value = '';
+            ui.filterMaintenanceType.value = '';
+            ui.filterCategory.value = '';
+            ui.filterStatus.value = '';
+            ui.filterScheduledDateFrom.value = '';
+            ui.filterScheduledDateTo.value = '';
+            ui.filterCompletionDateFrom.value = '';
+            ui.filterCompletionDateTo.value = '';
+            ui.filterOdometerMin.value = '';
+            ui.filterOdometerMax.value = '';
+            ui.filterNextDueKmMin.value = '';
+            ui.filterNextDueKmMax.value = '';
+            ui.filterNextDueDateFrom.value = '';
+            ui.filterNextDueDateTo.value = '';
+            ui.filterCostMin.value = '';
+            ui.filterCostMax.value = '';
+            ui.filterNotes.value = '';
+            filterAndRenderMaintenanceReport(); // Re-apply filters (which are now all empty)
+        }
+
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', () => {
+            populateCarSelect();
+            populateMaintenanceTypeAndCategorySelect(); // Now also populates categories for filter
+            fetchKpiData();
+            loadAllMaintenanceRecords(); // This will trigger filterAndRenderMaintenanceReport
+        });
+
+        ui.addNewMaintenanceBtn.addEventListener('click', () => {
+            openFormModal(false); // Open in add mode
+        });
+
+        ui.clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+        // Add event listeners for all filter inputs/selects to trigger filtering
+        ui.filterCarInfo.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterMaintenanceType.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCategory.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterStatus.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterScheduledDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterScheduledDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCompletionDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCompletionDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterOdometerMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterOdometerMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueKmMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueKmMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterNextDueDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCostMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterCostMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNotes.addEventListener('input', filterAndRenderMaintenanceReport);
+
         // --- Initial Load ---
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchMaintenanceRecords();
-            ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        document.addEventListener('DOMContentLoaded', () => {
+            setTodayDate(); // Set default date for initial form state
+            populateCarSelect();
+            populateMaintenanceTypeAndCategorySelect(); // Populate all dropdowns including new filter ones
+            fetchKpiData();
+            loadAllMaintenanceRecords(); // Initial load and render of the report
         });
     </script>
 </body>

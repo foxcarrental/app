@@ -260,6 +260,14 @@
                 </div>
                 <div class="text-3xl text-amber-500"><i class="fas fa-hammer"></i></div>
             </div>
+            <!-- NEW KPI Card: Cars Overdue for Maintenance -->
+            <div class="kpi-card flex items-center justify-between" onclick="location.href='need_maintenance.html';">
+                <div>
+                    <p class="text-gray-500">Cars Overdue for Maintenance</p>
+                    <p id="cars-needing-maintenance" class="text-4xl font-extrabold text-gray-900">0</p>
+                </div>
+                <div class="text-3xl text-rose-500"><i class="fas fa-calendar-times"></i></div>
+            </div>
         </div>
 
         <!-- New sections: Recent Activity -->
@@ -321,6 +329,7 @@
             totalRevenue: document.getElementById('total-revenue'),
             totalProfit: document.getElementById('total-profit'),
             totalMaintenanceCost: document.getElementById('total-maintenance-cost'),
+            carsNeedingMaintenance: document.getElementById('cars-needing-maintenance'), // This is now 'Cars Overdue for Maintenance'
             lastUpdated: document.getElementById('last-updated'),
             refreshButton: document.getElementById('refresh-data'),
             userEmail: document.getElementById('user-email'),
@@ -350,7 +359,7 @@
                 // Fetch Cars data
                 const { data: cars, error: carsError } = await supabaseClient
                     .from('cars')
-                    .select('id, status, make_id, model_id, registration_expiry_date');
+                    .select('id, status, make_id, model_id, registration_expiry_date, odometer_km'); // Added odometer_km
 
                 if (carsError) throw carsError;
 
@@ -360,19 +369,23 @@
                 let maintenanceVehicles = cars.filter(car => car.status === 'Under Maintenance').length;
 
                 const today = new Date();
+                today.setHours(0,0,0,0); // Normalize today's date for consistent comparison
+
                 let expiredRegistrationVehicles = cars.filter(car => {
                     if (car.registration_expiry_date) {
                         const expiryDate = new Date(car.registration_expiry_date);
+                        expiryDate.setHours(0,0,0,0); // Normalize expiry date
                         return expiryDate < today;
                     }
                     return false;
                 }).length;
 
-                const oneMonthFromNow = new Date();
+                const oneMonthFromNow = new Date(today);
                 oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
                 let registrationExpiringSoonVehicles = cars.filter(car => {
                     if (car.registration_expiry_date) {
                         const expiryDate = new Date(car.registration_expiry_date);
+                        expiryDate.setHours(0,0,0,0); // Normalize expiry date
                         return expiryDate > today && expiryDate <= oneMonthFromNow;
                     }
                     return false;
@@ -433,17 +446,62 @@
                 const totalRevenue = payments.reduce((sum, payment) => sum + (payment.amount || 0), 0);
                 ui.totalRevenue.textContent = `AED ${totalRevenue.toFixed(2)}`;
 
-                // Fetch Vehicle Maintenance data for costs and recent activity
-                const { data: maintenanceHistory, error: maintenanceError } = await supabaseClient.from('vehicle_maintenance').select('*');
+                // Fetch Vehicle Maintenance data for costs and recent activity, AND for "Cars Overdue for Maintenance" KPI
+                const { data: maintenanceHistory, error: maintenanceError } = await supabaseClient.from('vehicle_maintenance').select('*, car_id');
                 if (maintenanceError) throw maintenanceError;
                 const totalMaintenanceCost = maintenanceHistory.reduce((sum, item) => sum + (item.cost || 0), 0);
                 ui.totalMaintenanceCost.textContent = `AED ${totalMaintenanceCost.toFixed(2)}`;
 
+                // Process maintenance history for recent activities
                 maintenanceHistory.forEach(maintenance => {
                     const car = carMap.get(maintenance.car_id);
                     const carName = car ? `${makeMap.get(car.make_id) || 'Unknown'} ${modelMap.get(car.model_id) || 'Model'}` : 'Unknown Car';
+                    
                     recentActivities.push({ type: 'maintenance', description: `${carName} sent for maintenance`, timestamp: maintenance.created_at, iconClass: 'purple' });
                 });
+
+                // --- Calculate "Cars Overdue for Maintenance" KPI ---
+                const carsOverdueMaintenanceSet = new Set();
+                const latestCompletedMaintenance = new Map();
+
+                // Group maintenance records by car_id to find the latest completed one for each car
+                // (Only interested in COMPLETED records for 'next due' calculation)
+                const completedMaintenanceRecords = maintenanceHistory.filter(record => String(record.status) === '3');
+                completedMaintenanceRecords.forEach(record => {
+                    const carId = record.car_id;
+                    const currentLatest = latestCompletedMaintenance.get(carId);
+                    if (!currentLatest || (record.completion_date && new Date(record.completion_date) > new Date(currentLatest.completion_date))) {
+                        latestCompletedMaintenance.set(carId, record);
+                    }
+                });
+
+                // Now iterate through all cars and check their latest completed maintenance status
+                cars.forEach(car => {
+                    const latestMaintenance = latestCompletedMaintenance.get(car.id);
+                    if (latestMaintenance) {
+                        const currentCarOdometer = car.odometer_km;
+                        const nextDueKm = latestMaintenance.next_due_km;
+                        const nextDueDate = latestMaintenance.next_due_date ? new Date(latestMaintenance.next_due_date) : null;
+                        
+                        let isOverdueByKm = false;
+                        if (currentCarOdometer !== null && nextDueKm !== null && currentCarOdometer >= nextDueKm) {
+                            isOverdueByKm = true;
+                        }
+
+                        let isOverdueByDate = false;
+                        if (nextDueDate) {
+                            nextDueDate.setHours(0,0,0,0); // Normalize next due date
+                            if (nextDueDate <= today) {
+                                isOverdueByDate = true;
+                            }
+                        }
+
+                        if (isOverdueByKm || isOverdueByDate) {
+                            carsOverdueMaintenanceSet.add(car.id);
+                        }
+                    }
+                });
+                ui.carsNeedingMaintenance.textContent = carsOverdueMaintenanceSet.size; // Update new KPI
 
                 // Fetch Traffic Fines data for KPIs and recent activity
                 const { data: trafficFines, error: finesError } = await supabaseClient.from('traffic_fines').select('*');

@@ -231,6 +231,7 @@
         let currentRentalRecord = null;
         let rentHistoryId = null;
         let paymentHistory = [];
+        let trafficFinesForCar = []; // Store fetched fines
 
         // --- Modal Logic ---
         function showCustomMessageBox(title, message) {
@@ -262,27 +263,39 @@
             }
 
             try {
-                // Fetch rental record and its payments in parallel
-                const [rentalRes, paymentsRes] = await Promise.all([
-                    supabaseClient
-                        .from('rent_history')
-                        .select('*, customers(first_name, last_name)')
-                        .eq('id', rentHistoryId)
-                        .single(),
-                    supabaseClient
-                        .from('payments')
-                        .select('*')
-                        .eq('rent_history_id', rentHistoryId)
-                        .order('payment_date', { ascending: false })
-                ]);
-
-                const { data: rentalData, error: rentalError } = rentalRes;
+                // Fetch rental record with car_id, from_date, end_date, AND car_repair
+                const { data: rentalData, error: rentalError } = await supabaseClient
+                    .from('rent_history')
+                    .select('*, customers(first_name, last_name), cars(id, plate_number), car_repair') // Added car_repair here
+                    .eq('id', rentHistoryId)
+                    .single();
                 if (rentalError) throw rentalError;
                 currentRentalRecord = rentalData;
 
-                const { data: paymentsData, error: paymentsError } = paymentsRes;
+                // Extract car_id and plate_number
+                const rentedCarPlateNumber = currentRentalRecord.cars ? currentRentalRecord.cars.plate_number : 'N/A';
+
+                // Fetch payments
+                const { data: paymentsData, error: paymentsError } = await supabaseClient
+                    .from('payments')
+                    .select('*')
+                    .eq('rent_history_id', rentHistoryId)
+                    .order('payment_date', { ascending: false });
                 if (paymentsError) throw paymentsError;
                 paymentHistory = paymentsData;
+
+                // Fetch traffic fines for the car
+                if (rentedCarPlateNumber !== 'N/A') {
+                    const { data: finesData, error: finesError } = await supabaseClient
+                        .from('traffic_fines')
+                        .select('*')
+                        .eq('plate_number', rentedCarPlateNumber);
+                    if (finesError) console.error("Error fetching traffic fines:", finesError); // Log but don't block
+                    trafficFinesForCar = finesData || [];
+                }
+
+                // Repair costs are now directly from currentRentalRecord.car_repair
+                // No need to fetch from maintenance_records here.
 
                 renderPageContent(currentRentalRecord, paymentHistory);
 
@@ -407,7 +420,7 @@
                         updated_at: new Date().toISOString()
                     })
                     .eq('id', rentHistoryId)
-                    .select('*, customers(first_name, last_name)')
+                    .select('*, customers(first_name, last_name), cars(id, plate_number), car_repair') // Re-select car_repair
                     .single();
                 
                 if (updateError) throw updateError;
@@ -465,6 +478,40 @@
             const customer = currentRentalRecord.customers || {};
             const customerName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'N/A';
             
+            // Calculate rental days and base rental amount
+            const startDate = new Date(currentRentalRecord.from_date);
+            const endDate = new Date(currentRentalRecord.end_date);
+            const timeDiff = endDate.getTime() - startDate.getTime();
+            // Ensure at least 1 day for rental, round up to full days
+            const rentalDays = Math.max(1, Math.ceil(timeDiff / (1000 * 60 * 60 * 24))); 
+            const dailyRate = parseFloat(currentRentalRecord.rental_price_per_day || 0);
+            const baseRentalAmount = dailyRate * rentalDays;
+
+            // Traffic Fines details
+            let trafficFinesHtml = '';
+            let totalFinesAmount = 0;
+            if (trafficFinesForCar.length > 0) {
+                trafficFinesForCar.forEach(fine => {
+                    const fineTotal = parseFloat(fine.total_amount || 0);
+                    totalFinesAmount += fineTotal;
+                    trafficFinesHtml += `
+                        <tr>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${fine.fine_number || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${formatDate(fine.fine_date)}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd;">${fine.plate_number || 'N/A'}</td>
+                            <td style="padding: 8px; border: 1px solid #ddd; text-align: right;">AED ${fineTotal.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                trafficFinesHtml = '<tr><td colspan="4" style="padding: 8px; border: 1px solid #ddd; text-align: center;">No traffic fines recorded for this vehicle.</td></tr>';
+            }
+
+            // Get repair cost from currentRentalRecord.car_repair
+            const repairCost = parseFloat(currentRentalRecord.car_repair || 0);
+
+
+            // Payment History details
             let paymentHistoryHtml = '';
             if (paymentHistory.length > 0) {
                 paymentHistory.forEach(p => {
@@ -492,7 +539,7 @@
                         .header p { margin: 2px 0; }
                         .details-section { display: flex; justify-content: space-between; margin-bottom: 20px; }
                         .details-section div { width: 48%; }
-                        h2 { color: #5680E9; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 0;}
+                        h2, h3 { color: #5680E9; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 20px; margin-bottom: 10px;}
                         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
                         th, td { padding: 12px; border: 1px solid #ddd; text-align: left; }
                         th { background-color: #f2f2f2; }
@@ -528,11 +575,39 @@
                             </div>
                         </div>
 
-                        <h3>Rental Summary</h3>
+                        <h3>Rental Details</h3>
                         <table class="summary-table">
-                            <tr><td>Total Rental Price</td><td>AED ${parseFloat(currentRentalRecord.total_price || 0).toFixed(2)}</td></tr>
-                            <tr><td>Amount Paid</td><td>AED ${parseFloat(currentRentalRecord.paid_amount || 0).toFixed(2)}</td></tr>
-                            <tr><td class="total-due">Balance Due</td><td class="total-due">AED ${parseFloat(currentRentalRecord.balance || 0).toFixed(2)}</td></tr>
+                            <tr><td>Daily Rental Rate</td><td>AED ${dailyRate.toFixed(2)}</td></tr>
+                            <tr><td>Rental Period</td><td>${rentalDays} Days (From ${formatDate(startDate.toISOString())} to ${formatDate(endDate.toISOString())})</td></tr>
+                            <tr><td>Base Rental Amount (${dailyRate.toFixed(2)} x ${rentalDays} Days)</td><td>AED ${baseRentalAmount.toFixed(2)}</td></tr>
+                            <tr><td>Vehicle Plate Number</td><td>${currentRentalRecord.cars ? currentRentalRecord.cars.plate_number : 'N/A'}</td></tr>
+                            <tr><td>Total Rental Price (as per agreement)</td><td>AED ${parseFloat(currentRentalRecord.total_price || 0).toFixed(2)}</td></tr>
+                        </table>
+
+                        <h3>Traffic Fines</h3>
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Fine #</th>
+                                    <th>Date</th>
+                                    <th>Plate #</th>
+                                    <th style="text-align: right;">Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${trafficFinesHtml}
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="3" style="text-align: right;">Total Fines:</th>
+                                    <th style="text-align: right;">AED ${totalFinesAmount.toFixed(2)}</th>
+                                </tr>
+                            </tfoot>
+                        </table>
+
+                        <h3>Repair Costs</h3>
+                        <table class="summary-table">
+                            <tr><td>Total Repair Costs for this Vehicle</td><td>AED ${repairCost.toFixed(2)}</td></tr>
                         </table>
 
                         <h3>Payment History</h3>
@@ -547,6 +622,16 @@
                             <tbody>
                                 ${paymentHistoryHtml}
                             </tbody>
+                        </table>
+
+                        <h3>Overall Summary</h3>
+                        <table class="summary-table">
+                            <tr><td>Total Rental Price</td><td>AED ${parseFloat(currentRentalRecord.total_price || 0).toFixed(2)}</td></tr>
+                            <tr><td>Total Fines</td><td>AED ${totalFinesAmount.toFixed(2)}</td></tr>
+                            <tr><td>Total Repair Costs</td><td>AED ${repairCost.toFixed(2)}</td></tr>
+                            <tr><td>Grand Total (Rental + Fines + Repairs)</td><td>AED ${(parseFloat(currentRentalRecord.total_price || 0) + totalFinesAmount + repairCost).toFixed(2)}</td></tr>
+                            <tr><td>Total Amount Paid</td><td>AED ${parseFloat(currentRentalRecord.paid_amount || 0).toFixed(2)}</td></tr>
+                            <tr><td class="total-due">Balance Due</td><td class="total-due">AED ${parseFloat(currentRentalRecord.balance || 0).toFixed(2)}</td></tr>
                         </table>
 
                         <div class="footer">
