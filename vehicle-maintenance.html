@@ -1,7 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <!-- Moved Supabase CDN here -->
 <script>
+    // Note: Supabase client initialization here is primarily for the iframe context for security reasons,
+    // though the main dashboard page should also handle authentication.
     const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
     const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
     const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -23,8 +26,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Supabase CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Supabase CDN is now moved above, so removed from here -->
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -289,6 +291,58 @@
             gap: 1rem;
             margin-top: 1rem;
         }
+
+        /* New styles for Maintenance Type Management Modal */
+        #maintenance-type-modal-content {
+            max-width: 800px; /* Adjust as needed */
+            max-height: 90vh;
+            overflow-y: auto;
+        }
+
+        #maintenance-type-table th, #maintenance-type-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+        #maintenance-type-table th {
+            background-color: #f8faff;
+            color: #5680E9;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+        }
+        #maintenance-type-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+        #maintenance-type-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+        #maintenance-type-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+
+        #add-edit-maintenance-type-form .form-field {
+            margin-bottom: 1rem;
+        }
+        #add-edit-maintenance-type-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #4b5563;
+        }
+        #add-edit-maintenance-type-form input[type="text"],
+        #add-edit-maintenance-type-form input[type="number"],
+        #add-edit-maintenance-type-form textarea,
+        #add-edit-maintenance-type-form select {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 1rem;
+        }
+        #add-edit-maintenance-type-form input[type="checkbox"] {
+            margin-right: 0.5rem;
+        }
     </style>
 </head>
 <body class="min-h-screen text-gray-800">
@@ -367,10 +421,13 @@
             </div>
         </div>
 
-        <!-- Button to open Add New Maintenance Record Form -->
-        <div class="mb-6 flex justify-end">
+        <!-- Buttons to open forms -->
+        <div class="mb-6 flex justify-end space-x-4">
             <button id="add-new-maintenance-btn" class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-all duration-200 flex items-center justify-center">
                 <i class="fas fa-plus mr-2"></i>Add New Maintenance
+            </button>
+            <button id="manage-maintenance-types-btn" class="bg-gray-700 text-white px-6 py-3 rounded-lg shadow-md hover:bg-gray-600 transition-all duration-200 flex items-center justify-center">
+                <i class="fas fa-cog mr-2"></i>Manage Maintenance Types
             </button>
         </div>
 
@@ -572,6 +629,81 @@
         </div>
     </div>
 
+    <!-- New: Maintenance Type Management Modal -->
+    <div id="maintenance-type-management-modal" class="modal hidden">
+        <div class="modal-content" id="maintenance-type-modal-content">
+            <button id="maintenance-type-modal-close-button" class="modal-close-button">&times;</button>
+            <h3 id="maintenance-type-modal-title" class="text-xl font-bold text-gray-800 mb-4">Manage Maintenance Types</h3>
+            
+            <div class="mb-4 flex justify-end">
+                <button id="add-new-maintenance-type-btn" class="bg-green-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-plus mr-2"></i>Add New Type
+                </button>
+            </div>
+
+            <!-- List of existing maintenance types -->
+            <div class="overflow-x-auto mb-6">
+                <table class="maintenance-table w-full">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Description</th>
+                            <th>Rec. KM</th>
+                            <th>Rec. Months</th>
+                            <th>Active</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenance-types-tbody">
+                        <!-- Maintenance types will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <hr class="my-6 border-gray-300">
+
+            <!-- Form for Add/Edit Maintenance Type -->
+            <h4 id="add-edit-type-form-title" class="text-lg font-bold text-gray-800 mb-4">Add New Maintenance Type</h4>
+            <form id="add-edit-maintenance-type-form">
+                <input type="hidden" id="maintenance-type-id">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="form-field">
+                        <label for="type-name">Name</label>
+                        <input type="text" id="type-name" required class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    </div>
+                    <div class="form-field">
+                        <label for="type-category">Category</label>
+                        <input type="text" id="type-category" required class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    </div>
+                    <div class="form-field md:col-span-2">
+                        <label for="type-description">Description</label>
+                        <textarea id="type-description" rows="2" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+                    </div>
+                    <div class="form-field">
+                        <label for="type-recommended-km">Recommended KM</label>
+                        <input type="number" id="type-recommended-km" min="0" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    </div>
+                    <div class="form-field">
+                        <label for="type-recommended-months">Recommended Months</label>
+                        <input type="number" id="type-recommended-months" min="0" class="block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    </div>
+                    <div class="form-field flex items-center md:col-span-2">
+                        <input type="checkbox" id="type-active" class="h-4 w-4 text-custom-blue-dark border-gray-300 rounded focus:ring-custom-blue-light">
+                        <label for="type-active" class="ml-2 mb-0">Active</label>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" id="cancel-type-form-button" class="bg-gray-300 text-gray-800 px-6 py-3 rounded-lg shadow-md hover:bg-gray-400 transition-all duration-200">Cancel</button>
+                    <button type="submit" id="submit-type-btn" class="bg-custom-blue-dark text-white px-6 py-3 rounded-lg shadow-md hover:bg-custom-blue-light transition-all duration-200 flex items-center justify-center">
+                        <span id="submit-type-btn-text">Add Type</span>
+                        <div id="submit-type-loader" class="loader !w-5 !h-5 !border-2 ml-2 hidden"></div>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
     <!-- Modal for notifications -->
     <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
@@ -652,17 +784,37 @@
             filterNotes: document.getElementById('filter-notes'),
             clearFiltersBtn: document.getElementById('clear-filters-btn'),
 
-
             // Notification Modal (for simple messages)
             notificationModal: document.getElementById('notification-modal'),
             notificationTitle: document.getElementById('notification-title'),
             notificationMessage: document.getElementById('notification-message'),
             notificationCloseButton: document.getElementById('notification-close-button'),
+
+            // New: Maintenance Type Management elements
+            manageMaintenanceTypesBtn: document.getElementById('manage-maintenance-types-btn'),
+            maintenanceTypeManagementModal: document.getElementById('maintenance-type-management-modal'),
+            maintenanceTypeModalCloseButton: document.getElementById('maintenance-type-modal-close-button'),
+            maintenanceTypesTbody: document.getElementById('maintenance-types-tbody'),
+            addNewMaintenanceTypeBtn: document.getElementById('add-new-maintenance-type-btn'), // Button inside type management modal to add new type
+            addEditTypeFormTitle: document.getElementById('add-edit-type-form-title'),
+            addEditMaintenanceTypeForm: document.getElementById('add-edit-maintenance-type-form'),
+            typeIdInput: document.getElementById('maintenance-type-id'),
+            typeNameInput: document.getElementById('type-name'),
+            typeCategoryInput: document.getElementById('type-category'),
+            typeDescriptionInput: document.getElementById('type-description'),
+            typeRecommendedKmInput: document.getElementById('type-recommended-km'),
+            typeRecommendedMonthsInput: document.getElementById('type-recommended-months'),
+            typeActiveCheckbox: document.getElementById('type-active'),
+            submitTypeBtn: document.getElementById('submit-type-btn'),
+            submitTypeBtnText: document.getElementById('submit-type-btn-text'),
+            submitTypeLoader: document.getElementById('submit-type-loader'),
+            cancelTypeFormButton: document.getElementById('cancel-type-form-button')
         };
 
         let carsLookup = []; 
         let maintenanceTypesLookup = []; 
-        let currentEditingRecordId = null; // Stores the ID of the record being edited
+        let currentEditingRecordId = null; // Stores the ID of the vehicle_maintenance record being edited
+        let currentEditingMaintenanceTypeId = null; // Stores the ID of the maintenance_type record being edited
         let allMaintenanceRecordsData = []; // Stores all fetched records for client-side filtering
 
         // --- Initial Setup ---
@@ -679,18 +831,63 @@
         }
 
         // --- Modal Logic (General Notification) ---
-        function showCustomMessageBox(title, message) {
+        // Refactored showCustomMessageBox to handle both simple messages and confirmations
+        function showCustomMessageBox(title, message, isConfirm = false, onConfirm = null) {
             ui.notificationTitle.textContent = title;
             ui.notificationMessage.textContent = message;
             ui.notificationModal.classList.remove('hidden');
+
+            // Clear previous event listener
+            ui.notificationCloseButton.removeEventListener('click', hideCustomMessageBox);
+            
+            if (isConfirm) {
+                ui.notificationCloseButton.textContent = "Confirm";
+                // Create a "Cancel" button for true confirmation
+                let cancelButton = document.createElement('button');
+                cancelButton.id = 'notification-cancel-button';
+                cancelButton.className = 'bg-gray-300 text-gray-800 px-6 py-2 rounded-lg hover:bg-gray-400 focus:outline-none focus:ring-2 focus:ring-gray-300 focus:ring-opacity-50 ml-3';
+                cancelButton.textContent = 'Cancel';
+
+                // Add cancel button if it doesn't exist
+                if (!document.getElementById('notification-cancel-button')) {
+                    ui.notificationCloseButton.parentNode.appendChild(cancelButton);
+                }
+
+                ui.notificationCloseButton.onclick = () => {
+                    hideCustomMessageBox();
+                    if (onConfirm) onConfirm(); // Execute confirmation action
+                };
+                cancelButton.onclick = hideCustomMessageBox; // Cancel button just hides modal
+
+            } else {
+                ui.notificationCloseButton.textContent = "OK";
+                // Remove the cancel button if it exists
+                const existingCancelButton = document.getElementById('notification-cancel-button');
+                if (existingCancelButton) {
+                    existingCancelButton.remove();
+                }
+                ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+                ui.notificationCloseButton.onclick = hideCustomMessageBox; // Simpler direct assignment
+            }
         }
 
-        ui.notificationCloseButton.addEventListener('click', () => {
-            ui.notificationModal.classList.add('hidden');
-        });
+        function hideCustomMessageBox() {
+             ui.notificationModal.classList.add('hidden');
+             // Ensure OK button text is reset
+             ui.notificationCloseButton.textContent = "OK"; 
+             // Remove any dynamically added cancel button
+             const existingCancelButton = document.getElementById('notification-cancel-button');
+             if (existingCancelButton) {
+                 existingCancelButton.remove();
+             }
+        }
 
-        // --- Modal Logic (Add/Edit Form Modal) ---
-        function openFormModal(isEditMode = false, recordData = null) {
+        // Initially attach a simple hide listener, will be overridden by showCustomMessageBox if isConfirm is true
+        ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+
+
+        // --- Modal Logic (Add/Edit Maintenance Form Modal) ---
+        function openMaintenanceFormModal(isEditMode = false, recordData = null) {
             ui.addMaintenanceForm.reset(); // Always reset form first
             currentEditingRecordId = null; // Assume add mode by default
 
@@ -726,7 +923,7 @@
             ui.maintenanceFormModal.classList.remove('hidden');
         }
 
-        function closeFormModal() {
+        function closeMaintenanceFormModal() {
             ui.maintenanceFormModal.classList.add('hidden');
             ui.addMaintenanceForm.reset(); // Reset form state
             currentEditingRecordId = null; // Clear editing ID
@@ -737,13 +934,13 @@
         }
 
         // Close modal when close button is clicked
-        ui.modalCloseButton.addEventListener('click', closeFormModal);
-        ui.cancelFormButton.addEventListener('click', closeFormModal);
+        ui.modalCloseButton.addEventListener('click', closeMaintenanceFormModal);
+        ui.cancelFormButton.addEventListener('click', closeMaintenanceFormModal);
 
         // Close modal when clicking outside the content
         ui.maintenanceFormModal.addEventListener('click', (e) => {
             if (e.target === ui.maintenanceFormModal) {
-                closeFormModal();
+                closeMaintenanceFormModal();
             }
         });
 
@@ -771,15 +968,27 @@
             }
         }
 
-        function setSubmitButtonState(isLoading) {
-            if (isLoading) {
-                ui.submitMaintenanceBtn.disabled = true;
-                ui.submitBtnText.classList.add('hidden');
-                ui.submitLoader.classList.remove('hidden');
-            } else {
-                ui.submitMaintenanceBtn.disabled = false;
-                ui.submitBtnText.classList.remove('hidden');
-                ui.submitLoader.classList.add('hidden');
+        function setSubmitButtonState(isLoading, buttonType = 'maintenance') {
+            if (buttonType === 'maintenance') {
+                if (isLoading) {
+                    ui.submitMaintenanceBtn.disabled = true;
+                    ui.submitBtnText.classList.add('hidden');
+                    ui.submitLoader.classList.remove('hidden');
+                } else {
+                    ui.submitMaintenanceBtn.disabled = false;
+                    ui.submitBtnText.classList.remove('hidden');
+                    ui.submitLoader.classList.add('hidden');
+                }
+            } else if (buttonType === 'maintenance-type') {
+                if (isLoading) {
+                    ui.submitTypeBtn.disabled = true;
+                    ui.submitTypeBtnText.classList.add('hidden');
+                    ui.submitTypeLoader.classList.remove('hidden');
+                } else {
+                    ui.submitTypeBtn.disabled = false;
+                    ui.submitTypeBtnText.classList.remove('hidden');
+                    ui.submitTypeLoader.classList.add('hidden');
+                }
             }
         }
 
@@ -1008,7 +1217,7 @@
                 }
 
                 // Maintenance Type Filter
-                if (filterMaintenanceTypeId && String(maintenanceType?.id) !== filterMaintenanceTypeId) {
+                if (filterMaintenanceTypeId && String(record.maintenance_type_id) !== filterMaintenanceTypeId) {
                     return false;
                 }
 
@@ -1133,7 +1342,7 @@
                         showCustomMessageBox("Error", `Failed to load record for editing: ${error.message}`);
                         return;
                     }
-                    openFormModal(true, data);
+                    openMaintenanceFormModal(true, data);
                 });
             });
         }
@@ -1170,7 +1379,7 @@
                             completedCount++;
                             break;
                         default:
-                            completedCount++;
+                            completedCount++; // Treat unknown as completed for KPI purposes
                             break;
                     }
                     totalCost += parseFloat(record.cost || 0);
@@ -1197,7 +1406,7 @@
         // --- Add/Update Maintenance Record ---
         ui.addMaintenanceForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            setSubmitButtonState(true);
+            setSubmitButtonState(true, 'maintenance');
 
             const recordData = {
                 car_id: ui.carSelect.value,
@@ -1253,7 +1462,7 @@
                 }
 
 
-                closeFormModal(); // Close the modal after success
+                closeMaintenanceFormModal(); // Close the modal after success
                 fetchKpiData(); // Refresh KPIs
                 loadAllMaintenanceRecords(); // Refresh the report with potentially new/updated data
 
@@ -1261,7 +1470,7 @@
                 console.error("Error saving maintenance record:", error);
                 showCustomMessageBox("Error", `Failed to save record: ${error.message}`);
             } finally {
-                setSubmitButtonState(false);
+                setSubmitButtonState(false, 'maintenance');
             }
         });
 
@@ -1270,8 +1479,7 @@
         // but it's kept for potential future use (e.g., if a delete button is added later).
         async function confirmDeleteMaintenanceRecord(recordId) {
             // In a real application, you would show a confirmation modal here
-            const confirmed = confirm("Are you sure you want to delete this maintenance record?");
-            if (confirmed) {
+            showCustomMessageBox("Confirm Deletion", "Are you sure you want to delete this maintenance record?", true, async () => {
                 try {
                     const { error } = await supabaseClient
                         .from('vehicle_maintenance')
@@ -1286,7 +1494,7 @@
                     console.error("Error deleting maintenance record:", error);
                     showCustomMessageBox("Error", `Failed to delete record: ${error.message}`);
                 }
-            }
+            });
         }
 
         // --- Clear Filters Function ---
@@ -1311,6 +1519,185 @@
             filterAndRenderMaintenanceReport(); // Re-apply filters (which are now all empty)
         }
 
+        // --- New: Maintenance Type Management Logic ---
+        function openMaintenanceTypeModal() {
+            ui.maintenanceTypeManagementModal.classList.remove('hidden');
+            loadMaintenanceTypesTable(); // Load types when modal opens
+            resetMaintenanceTypeForm(); // Reset the add/edit form within this modal
+        }
+
+        function closeMaintenanceTypeModal() {
+            ui.maintenanceTypeManagementModal.classList.add('hidden');
+        }
+
+        ui.manageMaintenanceTypesBtn.addEventListener('click', openMaintenanceTypeModal);
+        ui.maintenanceTypeModalCloseButton.addEventListener('click', closeMaintenanceTypeModal);
+        ui.maintenanceTypeManagementModal.addEventListener('click', (e) => {
+            if (e.target === ui.maintenanceTypeManagementModal) {
+                closeMaintenanceTypeModal();
+            }
+        });
+
+        function resetMaintenanceTypeForm() {
+            ui.addEditMaintenanceTypeForm.reset();
+            currentEditingMaintenanceTypeId = null;
+            ui.addEditTypeFormTitle.textContent = 'Add New Maintenance Type';
+            ui.submitTypeBtnText.textContent = 'Add Type';
+            ui.typeActiveCheckbox.checked = true; // Default to active for new types
+        }
+
+        ui.addNewMaintenanceTypeBtn.addEventListener('click', () => {
+            resetMaintenanceTypeForm(); // Ensures form is clear for new entry
+        });
+        ui.cancelTypeFormButton.addEventListener('click', resetMaintenanceTypeForm);
+
+        async function loadMaintenanceTypesTable() {
+            ui.maintenanceTypesTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4"><div class="loader inline-block !w-5 !h-5 !border-2"></div> Loading...</td></tr>';
+            try {
+                const { data, error } = await supabaseClient
+                    .from('maintenance_types')
+                    .select('*')
+                    .order('category', { ascending: true })
+                    .order('name', { ascending: true });
+
+                if (error) throw error;
+
+                ui.maintenanceTypesTbody.innerHTML = ''; // Clear existing rows
+                if (data.length === 0) {
+                    ui.maintenanceTypesTbody.innerHTML = '<tr><td colspan="6" class="text-center py-4 text-gray-500">No maintenance types found.</td></tr>';
+                    return;
+                }
+
+                data.forEach(type => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td>${type.name}</td>
+                        <td>${type.category || 'N/A'}</td>
+                        <td>${type.description || 'N/A'}</td>
+                        <td>${type.recommended_km || 'N/A'}</td>
+                        <td>${type.recommended_months || 'N/A'}</td>
+                        <td>${type.active ? '<i class="fas fa-check-circle text-green-500"></i>' : '<i class="fas fa-times-circle text-red-500"></i>'}</td>
+                        <td class="flex space-x-2">
+                            <button data-id="${type.id}" class="edit-type-btn text-blue-600 hover:text-blue-800 p-1 rounded-full" title="Edit Type">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <!-- Delete button removed as per user request -->
+                        </td>
+                    `;
+                    ui.maintenanceTypesTbody.appendChild(row);
+                });
+
+                // Add event listeners for edit buttons in the type table
+                document.querySelectorAll('.edit-type-btn').forEach(button => {
+                    button.addEventListener('click', (e) => {
+                        const typeId = e.currentTarget.dataset.id;
+                        const typeToEdit = data.find(t => String(t.id) === typeId);
+                        if (typeToEdit) {
+                            currentEditingMaintenanceTypeId = typeToEdit.id;
+                            ui.addEditTypeFormTitle.textContent = 'Edit Maintenance Type';
+                            ui.submitTypeBtnText.textContent = 'Update Type';
+                            ui.typeNameInput.value = typeToEdit.name;
+                            ui.typeCategoryInput.value = typeToEdit.category || '';
+                            ui.typeDescriptionInput.value = typeToEdit.description || '';
+                            ui.typeRecommendedKmInput.value = typeToEdit.recommended_km || '';
+                            ui.typeRecommendedMonthsInput.value = typeToEdit.recommended_months || '';
+                            ui.typeActiveCheckbox.checked = typeToEdit.active;
+                        }
+                    });
+                });
+
+                // Delete button event listener removed as per user request
+                // document.querySelectorAll('.delete-type-btn').forEach(button => {
+                //     button.addEventListener('click', (e) => {
+                //         const typeId = e.currentTarget.dataset.id;
+                //         confirmDeleteMaintenanceType(typeId);
+                //     });
+                // });
+
+            } catch (error) {
+                console.error("Error loading maintenance types table:", error);
+                ui.maintenanceTypesTbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-600">Failed to load types: ${error.message}</td></tr>`;
+            }
+        }
+
+        ui.addEditMaintenanceTypeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            setSubmitButtonState(true, 'maintenance-type');
+
+            const typeData = {
+                name: ui.typeNameInput.value,
+                category: ui.typeCategoryInput.value || null,
+                description: ui.typeDescriptionInput.value || null,
+                recommended_km: ui.typeRecommendedKmInput.value ? parseInt(ui.typeRecommendedKmInput.value) : null,
+                recommended_months: ui.typeRecommendedMonthsInput.value ? parseInt(ui.typeRecommendedMonthsInput.value) : null,
+                active: ui.typeActiveCheckbox.checked,
+            };
+
+            try {
+                if (currentEditingMaintenanceTypeId) {
+                    // Update existing type
+                    const { error } = await supabaseClient
+                        .from('maintenance_types')
+                        .update(typeData)
+                        .eq('id', currentEditingMaintenanceTypeId);
+                    
+                    if (error) throw error;
+                    showCustomMessageBox("Success", "Maintenance type updated successfully!");
+                } else {
+                    // Add new type
+                    const { error } = await supabaseClient
+                        .from('maintenance_types')
+                        .insert([typeData]);
+                    
+                    if (error) throw error;
+                    showCustomMessageBox("Success", "Maintenance type added successfully!");
+                }
+                
+                resetMaintenanceTypeForm(); // Clear the form
+                loadMaintenanceTypesTable(); // Refresh the list of types in the modal
+                populateMaintenanceTypeAndCategorySelect(); // Refresh dropdowns in main form
+                loadAllMaintenanceRecords(); // Refresh main report to reflect changes
+            } catch (error) {
+                console.error("Error saving maintenance type:", error);
+                showCustomMessageBox("Error", `Failed to save maintenance type: ${error.message}`);
+            } finally {
+                setSubmitButtonState(false, 'maintenance-type');
+            }
+        });
+
+        // The confirmDeleteMaintenanceType function is no longer called/needed since the button is removed.
+        // Keeping it for reference, but it's effectively inactive.
+        /*
+        async function confirmDeleteMaintenanceType(typeId) {
+            showCustomMessageBox("Confirm Deletion", "Are you sure you want to delete this maintenance type? This action cannot be undone.", true, async () => {
+                try {
+                    const { error } = await supabaseClient
+                        .from('maintenance_types')
+                        .delete()
+                        .eq('id', typeId);
+                    
+                    if (error) {
+                        if (error.code === '23503') { 
+                             showCustomMessageBox("Error", "Cannot delete this maintenance type because it is associated with existing vehicle maintenance records. Please remove associated records first.");
+                        } else {
+                            throw error; 
+                        }
+                    } else {
+                        showCustomMessageBox("Success", "Maintenance type deleted successfully!");
+                    }
+                    loadMaintenanceTypesTable(); 
+                    populateMaintenanceTypeAndCategorySelect(); 
+                    loadAllMaintenanceRecords(); 
+                } catch (error) {
+                    console.error("Error deleting maintenance type:", error);
+                    if (error.code !== '23503') {
+                        showCustomMessageBox("Error", `Failed to delete maintenance type: ${error.message}`);
+                    }
+                }
+            });
+        }
+        */
+
         // --- Event Listeners ---
         ui.refreshButton.addEventListener('click', () => {
             populateCarSelect();
@@ -1320,7 +1707,7 @@
         });
 
         ui.addNewMaintenanceBtn.addEventListener('click', () => {
-            openFormModal(false); // Open in add mode
+            openMaintenanceFormModal(false); // Open in add mode
         });
 
         ui.clearFiltersBtn.addEventListener('click', clearAllFilters);
@@ -1333,7 +1720,7 @@
         ui.filterScheduledDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
         ui.filterScheduledDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
         ui.filterCompletionDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
-        ui.filterCompletionDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCompletionDateTo.addEventListener('change', filterAndRenderMaintenanceReport); 
         ui.filterOdometerMin.addEventListener('input', filterAndRenderMaintenanceReport);
         ui.filterOdometerMax.addEventListener('input', filterAndRenderMaintenanceReport);
         ui.filterNextDueKmMin.addEventListener('input', filterAndRenderMaintenanceReport);

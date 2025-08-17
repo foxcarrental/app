@@ -203,10 +203,10 @@
         }
     </style>
 </head>
-<body class="sidebar-expanded"> <!-- Default to expanded, can change if needed -->
+<body class="sidebar-collapsed"> <!-- Changed default to collapsed -->
 
     <!-- Sidebar for Desktop -->
-    <aside id="desktop-sidebar" class="flex flex-col w-64 shadow-lg p-4 sidebar-scroll">
+    <aside id="desktop-sidebar" class="flex flex-col w-64 shadow-lg p-4 sidebar-scroll collapsed"> <!-- Added 'collapsed' class -->
         <div class="flex items-center p-4 mb-6 border-b sidebar-logo">
             <img src="https://yzwfldypkwqndxjchgit.supabase.co/storage/v1/object/public/public-logo//logo.JPG" alt="Fox Car Rental Logo" class="w-10 h-10 rounded-full mr-3 shrink-0">
             <h1 class="text-xl font-bold sidebar-title">Fox Car Rental</h1>
@@ -237,6 +237,12 @@
                 <li class="mb-2">
                     <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item" data-src="rent-history.html" data-tab-id="rent-history">
                         <i class="fas fa-history mr-3"></i> <span class="nav-text">Rent History</span>
+                    </a>
+                </li>
+                <!-- New Live Tracking Tab -->
+                <li class="mb-2">
+                    <a href="#" class="flex items-center p-3 rounded-lg text-gray-700 hover:bg-gray-100 transition-all duration-200 nav-item" data-src="live-tracking.html" data-tab-id="live-tracking">
+                        <i class="fas fa-map-marked-alt mr-3"></i> <span class="nav-text">Live Tracking</span>
                     </a>
                 </li>
                 <li class="mb-2">
@@ -288,10 +294,10 @@
         </nav>
         <div class="pt-4 border-t">
              <div class="flex items-center justify-end text-gray-500 mb-2 sidebar-pin-controls">
-                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden">
+                <button id="pin-sidebar-btn" title="Pin sidebar" class="p-2 rounded-full hover:bg-gray-200"> <!-- Show pin button -->
                     <i class="fas fa-chevron-right"></i>
                 </button>
-                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200">
+                <button id="unpin-sidebar-btn" title="Unpin sidebar" class="p-2 rounded-full hover:bg-gray-200 hidden"> <!-- Hide unpin button -->
                     <i class="fas fa-chevron-left"></i>
                 </button>
             </div>
@@ -339,10 +345,13 @@
         };
 
         // --- Sidebar State ---
-        let isSidebarPinned = true; // Default to expanded/pinned state
-        document.body.classList.add('sidebar-expanded');
-        ui.pinBtn.classList.add('hidden'); // Hide pin button as it's pinned by default
-        ui.unpinBtn.classList.remove('hidden'); // Show unpin button
+        let isSidebarPinned = false; // Changed to unpinned by default
+        // Initial state based on isSidebarPinned - adjusted for unpinned default
+        document.body.classList.add('sidebar-collapsed');
+        ui.desktopSidebar.classList.add('collapsed');
+        ui.pinBtn.classList.remove('hidden'); // Show pin button
+        ui.unpinBtn.classList.add('hidden'); // Hide unpin button
+
 
         // --- Modal Logic ---
         function showMessage(message, title = "Notification") {
@@ -358,21 +367,25 @@
         ui.notificationCloseButton.addEventListener('click', hideMessage);
 
         // --- Sidebar Pin/Unpin Logic ---
-        function setupDesktopSidebar() {
-            // Initial state based on isSidebarPinned
+        function applySidebarState() {
             if (isSidebarPinned) {
-                document.body.classList.add('sidebar-expanded');
                 document.body.classList.remove('sidebar-collapsed');
+                document.body.classList.add('sidebar-expanded');
                 ui.desktopSidebar.classList.remove('collapsed');
                 ui.pinBtn.classList.add('hidden');
                 ui.unpinBtn.classList.remove('hidden');
             } else {
-                document.body.classList.remove('sidebar-expanded');
                 document.body.classList.add('sidebar-collapsed');
+                document.body.classList.remove('sidebar-expanded');
                 ui.desktopSidebar.classList.add('collapsed');
                 ui.pinBtn.classList.remove('hidden');
                 ui.unpinBtn.classList.add('hidden');
             }
+        }
+
+        function setupDesktopSidebar() {
+            // Apply initial state based on isSidebarPinned
+            applySidebarState();
 
             ui.desktopSidebar.addEventListener('mouseenter', () => {
                 if (!isSidebarPinned) {
