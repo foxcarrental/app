@@ -1,0 +1,797 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer List - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Main dashboard background gradient - inherited from parent iframe for blending */
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* New keyframes for the light blue gradient animation */
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main content area - removed fixed positioning and background */
+        #main-content {
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* Ensure no left margin from potential sidebar rules */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
+        }
+
+        /* Top Header - removed fixed positioning and background for blending */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
+        }
+
+        /* Style for the search and filter panel */
+        /* Removed background and box-shadow to make it blend with the body background */
+        .filter-search-panel { /* Changed to class as per user request (semantic naming) */
+            background: transparent; /* Make the panel background transparent */
+            box-shadow: none; /* Remove shadow to blend it in */
+            border-radius: 1rem; /* Keep rounded corners for consistency */
+            padding: 1rem; /* Maintain padding for spacing */
+        }
+        
+        /* Apply light blue gradient to the actual input field inside the filter panel */
+        .filter-search-panel input {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite; /* Animated gradient */
+            color: #333; /* Ensure text is dark for readability */
+            border: 1px solid #d1d5db; /* Keep a subtle border */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem; /* Ensure good padding */
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .filter-search-panel input:focus {
+            border-color: #8860D0;
+            box-shadow: 0 0 0 3px rgba(136, 96, 208, 0.2);
+        }
+
+
+        /* Customer Card Styling */
+        .customer-card {
+            /* Applied the light blue gradient and animation */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .customer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+
+        /* Signature Pad specific styles */
+        #signatureCanvas {
+            border: 2px solid #cbd5e1; /* Light gray border */
+            border-radius: 8px; /* Rounded corners for the canvas */
+            background-color: #ffffff;
+            touch-action: none; /* Prevent scrolling/zooming on touch */
+            width: 100%; /* Make canvas responsive */
+            height: 150px; /* Fixed height for signature area */
+            max-width: 100%; /* Ensure it doesn't overflow */
+            margin-top: 10px;
+        }
+        .signature-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+        .btn-signature {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .btn-signature-clear {
+            background-color: #ef4444; /* Red 500 */
+            color: #ffffff;
+            border: 1px solid #ef4444;
+        }
+        .btn-signature-clear:hover {
+            background-color: #dc2626; /* Red 600 */
+        }
+        .btn-signature-save {
+            background-color: #22c55e; /* Green 500 */
+            color: #ffffff;
+            border: 1px solid #22c55e;
+        }
+        .btn-signature-save:hover {
+            background-color: #16a34a; /* Green 600 */
+        }
+        #signaturePreview {
+            max-width: 100%;
+            height: auto;
+            border: 1px dashed #9ca3af;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="mb-6 flex items-center justify-between">
+            <div class="flex items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Customer List</h2>
+                    <p class="text-sm text-gray-800 opacity-80">Manage your customer database</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <button id="add-customer-button" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200">
+                    <i class="fas fa-plus mr-2"></i>Add Customer
+                </button>
+            </div>
+        </header>
+
+        <!-- Error Message Display -->
+        <div id="app-error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 hidden" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span id="error-text" class="block sm:inline">Something went wrong.</span>
+        </div>
+
+        <!-- Search Section - now uses class filter-search-panel -->
+        <div class="filter-search-panel rounded-xl p-4 mb-6 flex items-center">
+            <div class="relative w-full">
+                <input type="text" id="search-input" placeholder="Search customers by name, email, phone, or license number..." class="w-full pl-10 pr-4 py-2">
+                <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+            </div>
+        </div>
+
+        <!-- Customer Cards Grid -->
+        <div id="customer-cards-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Customer cards will be dynamically loaded here -->
+            <div id="loading-message" class="col-span-full text-center text-gray-600">
+                Loading customers...
+            </div>
+            <p id="no-customers-message" class="col-span-full text-center text-gray-600 hidden">
+                <i class="fas fa-users-slash text-4xl text-gray-300 mb-2"></i><br>
+                No customers found. Add a new customer to get started!
+            </p>
+        </div>
+    </div>
+
+    <!-- Add/Edit Customer Modal -->
+    <div id="customer-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+            <h3 id="modal-title" class="text-2xl font-semibold text-gray-800 mb-4">Add New Customer</h3>
+            <form id="customer-form" class="space-y-4">
+                <div>
+                    <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                    <input type="text" id="first_name" name="first_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
+                </div>
+                <div>
+                    <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500" required>
+                </div>
+                <div>
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                    <input type="email" id="email" name="email" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="phone_number" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                    <input type="text" id="phone_number" name="phone_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="date_of_birth" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+                    <input type="date" id="date_of_birth" name="date_of_birth" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="driver_license_number" class="block text-sm font-medium text-gray-700">Driver License Number</label>
+                    <input type="text" id="driver_license_number" name="driver_license_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="driver_license_expiry_date" class="block text-sm font-medium text-gray-700">Driver License Expiry Date</label>
+                    <input type="date" id="driver_license_expiry_date" name="driver_license_expiry_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="address" class="block text-sm font-medium text-gray-700">Address</label>
+                    <textarea id="address" name="address" rows="2" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500"></textarea>
+                </div>
+                <div>
+                    <label for="city" class="block text-sm font-medium text-gray-700">City</label>
+                    <input type="text" id="city" name="city" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="country" class="block text-sm font-medium text-gray-700">Country</label>
+                    <input type="text" id="country" name="country" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="id_number" class="block text-sm font-medium text-gray-700">ID Number</label>
+                    <input type="text" id="id_number" name="id_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="nationality" class="block text-sm font-medium text-gray-700">Nationality</label>
+                    <input type="text" id="nationality" name="nationality" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+                <div>
+                    <label for="license_issued_by" class="block text-sm font-medium text-gray-700">License Issued By</label>
+                    <input type="text" id="license_issued_by" name="license_issued_by" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500">
+                </div>
+
+                <!-- Signature Pad Section -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Customer Signature</label>
+                    <canvas id="signatureCanvas" class="border border-gray-300 rounded-md w-full h-40"></canvas>
+                    <div class="signature-buttons">
+                        <button type="button" id="clearSignatureBtn" class="btn-signature btn-signature-clear">Clear</button>
+                        <button type="button" id="saveSignatureBtn" class="btn-signature btn-signature-save">Save</button>
+                    </div>
+                    <!-- Hidden input to store base64 signature string -->
+                    <input type="hidden" id="signatureData" name="signature">
+                    <img id="signaturePreview" src="#" alt="Signature Preview" class="mt-2 hidden">
+                </div>
+                <!-- End Signature Pad Section -->
+
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-customer-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-purple-600 text-white hover:bg-purple-700 transition-colors duration-200">Save Customer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Confirm Deletion</h3>
+            <p id="confirmation-message" class="text-gray-700 mb-6">Are you sure you want to delete this item?</p>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-confirm-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                <button type="button" id="confirm-delete-button" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Supabase Configuration ---
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Redirect if not logged in
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        }).catch(err => {
+            console.error("[Auth Error] Error checking session:", err);
+            // Optionally, display a user-friendly error about authentication
+        });
+
+        // --- DOM Elements ---
+        // Removed sidebar-related UI elements as per request.
+        // const ui = {
+        //     desktopSidebar: document.getElementById('desktop-sidebar'),
+        //     mainContent: document.getElementById('main-content'),
+        //     mainHeader: document.getElementById('main-header'),
+        //     pinBtn: document.getElementById('pin-sidebar-btn'),
+        //     unpinBtn: document.getElementById('unpin-sidebar-btn'),
+        //     logoutButtonDesktop: document.getElementById('logout-button-desktop'),
+        // };
+
+        const customerCardsGrid = document.getElementById('customer-cards-grid');
+        const loadingMessage = document.getElementById('loading-message');
+        const noCustomersMessage = document.getElementById('no-customers-message');
+        const addCustomerButton = document.getElementById('add-customer-button');
+        const customerModal = document.getElementById('customer-modal');
+        const modalTitle = document.getElementById('modal-title');
+        const customerForm = document.getElementById('customer-form');
+        const cancelCustomerButton = document.getElementById('cancel-customer-button');
+        const searchInput = document.getElementById('search-input');
+
+        const appErrorMessage = document.getElementById('app-error-message');
+        const errorText = document.getElementById('error-text');
+
+        const confirmationModal = document.getElementById('confirmation-modal');
+        const confirmationMessage = document.getElementById('confirmation-message');
+        const cancelConfirmButton = document.getElementById('cancel-confirm-button');
+        const confirmDeleteButton = document.getElementById('confirm-delete-button');
+
+        // Signature Pad Elements
+        const signatureCanvas = document.getElementById('signatureCanvas');
+        const signatureCtx = signatureCanvas.getContext('2d');
+        const clearSignatureBtn = document.getElementById('clearSignatureBtn');
+        const saveSignatureBtn = document.getElementById('saveSignatureBtn');
+        const signatureDataInput = document.getElementById('signatureData');
+        const signaturePreview = document.getElementById('signaturePreview');
+
+        let isDrawing = false;
+        let lastX = 0;
+        let lastY = 0;
+
+        let currentEditCustomerId = null;
+        let customerToDeleteId = null;
+        let allCustomersData = [];
+
+        // --- Sidebar State & Logic ---
+        // Removed all sidebar-related JS functions and variables as per request.
+
+        // --- Helper Functions ---
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
+            if (isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+        }
+
+        function renderCustomers(customers) {
+            customerCardsGrid.innerHTML = '';
+            appErrorMessage.classList.add('hidden');
+
+            if (customers.length === 0) {
+                noCustomersMessage.classList.remove('hidden');
+                return;
+            } else {
+                noCustomersMessage.classList.add('hidden');
+            }
+
+            customers.forEach(customer => {
+                const fullName = `${customer.first_name || ''} ${customer.last_name || ''}`.trim() || 'N/A';
+                const customerSince = formatDate(customer.created_at);
+                const dob = formatDate(customer.date_of_birth);
+                const licenseExpiry = formatDate(customer.driver_license_expiry_date);
+                const addressCityCountry = [customer.address, customer.city, customer.country].filter(Boolean).join(', ') || 'N/A';
+
+                const card = document.createElement('div');
+                card.className = `customer-card rounded-xl p-5 flex flex-col border-t-4 border-purple-500`; /* Using purple for consistency */
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900">${fullName}</h3>
+                        <div class="p-3 bg-purple-500 rounded-full text-white text-xl">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <div class="text-sm text-gray-600 space-y-1 flex-grow">
+                        <p>Customer since: ${customerSince}</p>
+                        <p><i class="fas fa-envelope mr-2"></i>${customer.email || 'N/A'}</p>
+                        <p><i class="fas fa-phone mr-2"></i>${customer.phone_number || 'N/A'}</p>
+                        <p><i class="fas fa-birthday-cake mr-2"></i>DOB: ${dob}</p>
+                        <p class="mt-2"><strong>License Number:</strong> ${customer.driver_license_number || 'N/A'}</p>
+                        <p><strong>License Expiry:</strong> <span class="text-green-600">${licenseExpiry}</span></p>
+                        <p class="mt-2">${addressCityCountry}</p>
+                        ${customer.signature ? `<div class="mt-4">
+                            <p class="text-sm font-medium text-gray-700 mb-1">Signature:</p>
+                            <img src="${customer.signature}" alt="Customer Signature" class="w-full h-24 object-contain border border-gray-200 rounded-md">
+                        </div>` : ''}
+                    </div>
+                    <div class="mt-4 flex justify-end space-x-2">
+                        <button data-id="${customer.id}" class="edit-btn text-purple-600 hover:text-purple-700 transition-colors duration-200 p-2 rounded-full">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button data-id="${customer.id}" class="delete-btn text-red-500 hover:text-red-600 transition-colors duration-200 p-2 rounded-full">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                `;
+                customerCardsGrid.appendChild(card);
+            });
+
+            document.querySelectorAll('.edit-btn').forEach(button => {
+                button.addEventListener('click', (e) => openEditModal(e.currentTarget.dataset.id));
+            });
+            document.querySelectorAll('.delete-btn').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    customerToDeleteId = e.currentTarget.dataset.id;
+                    confirmationMessage.textContent = `Are you sure you want to delete this customer?`;
+                    confirmationModal.classList.remove('hidden');
+                });
+            });
+        }
+
+        async function fetchCustomers() {
+            loadingMessage.classList.remove('hidden');
+            customerCardsGrid.innerHTML = '';
+            appErrorMessage.classList.add('hidden');
+            noCustomersMessage.classList.add('hidden');
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('*');
+
+                loadingMessage.classList.add('hidden');
+
+                if (error) throw error;
+                allCustomersData = data;
+                applySearch(allCustomersData);
+            } catch (error) {
+                console.error("Error fetching customers:", error);
+                errorText.textContent = `Failed to load customers: ${error.message}. Please check your Supabase configuration and network connection.`;
+                appErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        function applySearch(customersData) {
+            let filteredCustomers = [...customersData];
+            const searchTerm = searchInput.value.toLowerCase();
+
+            if (searchTerm) {
+                filteredCustomers = filteredCustomers.filter(customer =>
+                    (customer.first_name && customer.first_name.toLowerCase().includes(searchTerm)) ||
+                    (customer.last_name && customer.last_name.toLowerCase().includes(searchTerm)) ||
+                    (customer.email && customer.email.toLowerCase().includes(searchTerm)) ||
+                    (customer.phone_number && customer.phone_number.toLowerCase().includes(searchTerm)) ||
+                    (customer.driver_license_number && customer.driver_license_number.toLowerCase().includes(searchTerm))
+                );
+            }
+            renderCustomers(filteredCustomers);
+        }
+
+        searchInput.addEventListener('input', () => applySearch(allCustomersData));
+
+        addCustomerButton.addEventListener('click', () => {
+            modalTitle.textContent = 'Add New Customer';
+            customerForm.reset();
+            currentEditCustomerId = null;
+            clearSignaturePad(); // Clear signature pad for new customer
+            customerModal.classList.remove('hidden');
+        });
+
+        cancelCustomerButton.addEventListener('click', () => {
+            customerModal.classList.add('hidden');
+        });
+
+        customerModal.addEventListener('click', (e) => {
+            if (e.target === customerModal) {
+                customerModal.classList.add('hidden');
+            }
+        });
+
+        async function openEditModal(id) {
+            appErrorMessage.classList.add('hidden');
+            try {
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('*')
+                    .eq('id', id)
+                    .single();
+
+                if (error) throw error;
+
+                if (data) {
+                    modalTitle.textContent = 'Edit Customer';
+                    document.getElementById('first_name').value = data.first_name || '';
+                    document.getElementById('last_name').value = data.last_name || '';
+                    document.getElementById('email').value = data.email || '';
+                    document.getElementById('phone_number').value = data.phone_number || '';
+                    document.getElementById('date_of_birth').value = data.date_of_birth ? data.date_of_birth.split('T')[0] : '';
+                    document.getElementById('driver_license_number').value = data.driver_license_number || '';
+                    document.getElementById('driver_license_expiry_date').value = data.driver_license_expiry_date ? data.driver_license_expiry_date.split('T')[0] : '';
+                    document.getElementById('address').value = data.address || '';
+                    document.getElementById('city').value = data.city || '';
+                    document.getElementById('country').value = data.country || '';
+                    document.getElementById('id_number').value = data.id_number || '';
+                    document.getElementById('nationality').value = data.nationality || '';
+                    document.getElementById('license_issued_by').value = data.license_issued_by || '';
+
+                    // Load existing signature if available
+                    if (data.signature) {
+                        loadSignatureToCanvas(data.signature);
+                        signatureDataInput.value = data.signature; // Set hidden input value
+                    } else {
+                        clearSignaturePad(); // Clear if no existing signature
+                    }
+
+                    currentEditCustomerId = id;
+                    customerModal.classList.remove('hidden');
+                } else {
+                    console.error("No customer found with ID:", id);
+                    errorText.textContent = `No customer found with ID: ${id}`;
+                    appErrorMessage.classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error("Error fetching customer for edit:", error);
+                errorText.textContent = `Failed to load customer for editing: ${error.message}`;
+                appErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        customerForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            appErrorMessage.classList.add('hidden');
+
+            const formData = new FormData(customerForm);
+            const customerData = {
+                first_name: formData.get('first_name'),
+                last_name: formData.get('last_name'),
+                email: formData.get('email'),
+                phone_number: formData.get('phone_number'),
+                date_of_birth: formData.get('date_of_birth') || null,
+                driver_license_number: formData.get('driver_license_number'),
+                driver_license_expiry_date: formData.get('driver_license_expiry_date') || null,
+                address: formData.get('address'),
+                city: formData.get('city'),
+                country: formData.get('country'),
+                id_number: formData.get('id_number'),
+                nationality: formData.get('nationality'),
+                license_issued_by: formData.get('license_issued_by'),
+                signature: signatureDataInput.value || null, // Get signature from hidden input
+                created_at: currentEditCustomerId ? undefined : new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            };
+
+            try {
+                if (currentEditCustomerId) {
+                    delete customerData.id;
+                    const { data, error } = await supabaseClient
+                        .from('customers')
+                        .update(customerData)
+                        .eq('id', currentEditCustomerId);
+
+                    if (error) throw error;
+                    // Replace alert with a custom message box or toast notification
+                    showCustomMessage("Customer updated successfully!", "success");
+                } else {
+                    const { data, error } = await supabaseClient
+                        .from('customers')
+                        .insert([customerData]);
+
+                    if (error) throw error;
+                    // Replace alert with a custom message box or toast notification
+                    showCustomMessage("Customer added successfully!", "success");
+                }
+                customerModal.classList.add('hidden');
+                customerForm.reset();
+                clearSignaturePad(); // Clear signature pad after successful save
+                fetchCustomers();
+            } catch (error) {
+                console.error("Error saving customer:", error.message);
+                errorText.textContent = `Error saving customer: ${error.message}`;
+                appErrorMessage.classList.remove('hidden');
+            }
+        });
+
+        cancelConfirmButton.addEventListener('click', () => {
+            confirmationModal.classList.add('hidden');
+            customerToDeleteId = null;
+        });
+
+        confirmDeleteButton.addEventListener('click', async () => {
+            confirmationModal.classList.add('hidden');
+            if (customerToDeleteId) {
+                try {
+                    const { error } = await supabaseClient
+                        .from('customers')
+                        .delete()
+                        .eq('id', customerToDeleteId);
+
+                    if (error) throw error;
+                    // Replace alert with a custom message box or toast notification
+                    showCustomMessage("Customer successfully deleted!", "success");
+                    fetchCustomers();
+                } catch (error) {
+                    console.error("Error removing customer: ", error.message);
+                    errorText.textContent = `Error removing customer: ${error.message}`;
+                    appErrorMessage.classList.remove('hidden');
+                } finally {
+                    customerToDeleteId = null;
+                }
+            }
+        });
+
+        // --- Custom Message Box (replacing alert) ---
+        function showCustomMessage(message, type = "info") {
+            const messageBox = document.createElement('div');
+            messageBox.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white z-50`;
+            if (type === "success") {
+                messageBox.classList.add('bg-green-500');
+            } else if (type === "error") {
+                messageBox.classList.add('bg-red-500');
+            } else {
+                messageBox.classList.add('bg-blue-500');
+            }
+            messageBox.textContent = message;
+            document.body.appendChild(messageBox);
+
+            setTimeout(() => {
+                messageBox.remove();
+            }, 3000); // Message disappears after 3 seconds
+        }
+
+        // --- Signature Pad Logic ---
+        function setupSignaturePad() {
+            // Set canvas dimensions to match its display size for sharp drawing
+            const rect = signatureCanvas.getBoundingClientRect();
+            signatureCanvas.width = rect.width;
+            signatureCanvas.height = rect.height;
+
+            signatureCtx.lineWidth = 2; // Line thickness
+            signatureCtx.lineCap = 'round'; // Rounded line caps
+            signatureCtx.strokeStyle = '#1a202c'; // Dark color for signature (gray-900)
+            signatureCtx.fillStyle = '#ffffff'; // Fill with white to ensure transparent areas are white
+            signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height); // Fill background white
+        }
+
+        function draw(x, y) {
+            if (!isDrawing) return;
+
+            signatureCtx.beginPath();
+            signatureCtx.moveTo(lastX, lastY);
+            signatureCtx.lineTo(x, y);
+            signatureCtx.stroke();
+
+            lastX = x;
+            lastY = y;
+        }
+
+        function getMousePos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.clientX - rect.left,
+                y: evt.clientY - rect.top
+            };
+        }
+
+        function getTouchPos(canvas, evt) {
+            const rect = canvas.getBoundingClientRect();
+            return {
+                x: evt.touches[0].clientX - rect.left,
+                y: evt.touches[0].clientY - rect.top
+            };
+        }
+
+        signatureCanvas.addEventListener('mousedown', (e) => {
+            isDrawing = true;
+            const pos = getMousePos(signatureCanvas, e);
+            lastX = pos.x;
+            lastY = pos.y;
+        });
+
+        signatureCanvas.addEventListener('mousemove', (e) => {
+            draw(getMousePos(signatureCanvas, e).x, getMousePos(signatureCanvas, e).y);
+        });
+
+        signatureCanvas.addEventListener('mouseup', () => {
+            isDrawing = false;
+        });
+
+        signatureCanvas.addEventListener('mouseout', () => {
+            isDrawing = false;
+        });
+
+        signatureCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent scrolling/zooming
+            isDrawing = true;
+            const pos = getTouchPos(signatureCanvas, e);
+            lastX = pos.x;
+            lastY = pos.y;
+        }, { passive: false });
+
+        signatureCanvas.addEventListener('touchmove', (e) => {
+            e.preventDefault(); // Prevent scrolling/zooming
+            draw(getTouchPos(signatureCanvas, e).x, getTouchPos(signatureCanvas, e).y);
+        }, { passive: false });
+
+        signatureCanvas.addEventListener('touchend', () => {
+            isDrawing = false;
+        });
+
+        clearSignatureBtn.addEventListener('click', () => {
+            clearSignaturePad();
+        });
+
+        saveSignatureBtn.addEventListener('click', () => {
+            // Convert canvas content to a base64 encoded PNG image
+            const dataURL = signatureCanvas.toDataURL('image/png');
+            signatureDataInput.value = dataURL; // Store in hidden input
+            signaturePreview.src = dataURL;
+            signaturePreview.classList.remove('hidden');
+            showCustomMessage("Signature captured!", "success");
+        });
+
+        function clearSignaturePad() {
+            signatureCtx.clearRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            signatureCtx.fillStyle = '#ffffff'; // Ensure background is white after clearing
+            signatureCtx.fillRect(0, 0, signatureCanvas.width, signatureCanvas.height);
+            signatureDataInput.value = ''; // Clear hidden input
+            signaturePreview.src = '#';
+            signaturePreview.classList.add('hidden');
+        }
+
+        function loadSignatureToCanvas(base64Image) {
+            clearSignaturePad(); // Clear current canvas first
+            const img = new Image();
+            img.onload = () => {
+                // Draw the image onto the canvas, scaling it to fit
+                const aspectRatio = img.width / img.height;
+                let drawWidth = signatureCanvas.width;
+                let drawHeight = signatureCanvas.width / aspectRatio;
+
+                if (drawHeight > signatureCanvas.height) {
+                    drawHeight = signatureCanvas.height;
+                    drawWidth = signatureCanvas.height * aspectRatio;
+                }
+
+                const xOffset = (signatureCanvas.width - drawWidth) / 2;
+                const yOffset = (signatureCanvas.height - drawHeight) / 2;
+
+                signatureCtx.drawImage(img, xOffset, yOffset, drawWidth, drawHeight);
+                signaturePreview.src = base64Image;
+                signaturePreview.classList.remove('hidden');
+            };
+            img.src = base64Image;
+        }
+
+        // Ensure signature pad is set up when modal is shown
+        customerModal.addEventListener('transitionend', (event) => {
+            // Check if the modal is now visible (e.g., after the 'hidden' class is removed)
+            if (!customerModal.classList.contains('hidden') && event.propertyName === 'opacity') {
+                setupSignaturePad();
+            }
+        });
+        // Also call setup when the modal is initially opened (e.g., by clicking add/edit button)
+        addCustomerButton.addEventListener('click', () => {
+             setupSignaturePad();
+        });
+
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // No need for setupDesktopSidebar() here as this page no longer controls it.
+            fetchCustomers(); // Fetch data on initial load
+        });
+    </script>
+</body>
+</html>

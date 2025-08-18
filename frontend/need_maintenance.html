@@ -1,0 +1,897 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cars Needing Maintenance - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+
+        /* Main content area */
+        #main-content {
+            padding: 1rem;
+            margin-left: 0;
+            padding-top: 1rem;
+        }
+
+        /* Top Header */
+        #main-header {
+            position: static;
+            background-color: transparent;
+            box-shadow: none;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        /* Panel background with gradient */
+        .panel-bg {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Table specific styles */
+        .maintenance-table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        .maintenance-table th, .maintenance-table td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        .maintenance-table th {
+            background-color: #f8faff;
+            color: #5680E9;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+        }
+
+        .maintenance-table tbody tr:hover {
+            background-color: #f0f4f8;
+        }
+        
+        .maintenance-table tbody tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        .maintenance-table tbody tr:nth-child(even) {
+            background-color: #f7fafc;
+        }
+
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #8860D0;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Status Badge Colors */
+        .status-badge {
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px; /* Ensure consistent width for badges */
+            text-transform: capitalize; /* Capitalize the first letter of status */
+        }
+
+        .status-badge.scheduled { background-color: #e4d7f7; color: #8860D0; } /* Light purple */
+        .status-badge.in-progress { background-color: #ffe08a; color: #FFD200; } /* Yellow */
+        .status-badge.completed { background-color: #d1fae5; color: #28a745; } /* Green */
+        .status-badge.unknown { background-color: #e5e7eb; color: #4b5563; } /* Gray */
+
+        /* Added for the new calculated status column */
+        .status-indicator.needs-maintenance-km,
+        .status-indicator.needs-maintenance-date,
+        .status-indicator.needs-maintenance-kmd {
+            font-weight: 700;
+            color: #dc2626; /* Red */
+        }
+        .status-indicator.km-remaining {
+            color: #4b5563; /* Dark gray */
+        }
+        .status-indicator.na-data-missing {
+            color: #9ca3af; /* Light gray */
+        }
+
+        /* Filter styles */
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            background-color: #f8fafc;
+            padding: 1.5rem;
+            border-radius: 1rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .filter-grid label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #4b5563;
+            margin-bottom: 0.25rem;
+            display: block;
+        }
+        .filter-grid input,
+        .filter-grid select {
+            width: 100%;
+            padding: 0.5rem;
+            border: 1px solid #d1d5db;
+            border-radius: 0.5rem;
+            font-size: 0.9rem;
+            color: #333;
+            background-color: white;
+        }
+        .filter-grid input:focus,
+        .filter-grid select:focus {
+            border-color: #5680E9;
+            box-shadow: 0 0 0 2px rgba(86, 128, 233, 0.2);
+            outline: none;
+        }
+        .filter-actions {
+            grid-column: 1 / -1; /* Span all columns */
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
+
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+            <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Cars Needing Maintenance Report</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="refresh-data" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                    <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                </div>
+                <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
+        </header>
+
+        <!-- Cars Needing Maintenance Report Section -->
+        <div class="panel-bg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">All Maintenance Records</h3>
+            
+            <!-- Filter Section -->
+            <div class="filter-grid">
+                <div>
+                    <label for="filter-car-info">Car (Plate / Make / Model)</label>
+                    <input type="text" id="filter-car-info" placeholder="Search car info">
+                </div>
+                <div>
+                    <label for="filter-maintenance-type">Maintenance Type</label>
+                    <select id="filter-maintenance-type" name="maintenance_type_id">
+                        <option value="">All Types</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                 <div>
+                    <label for="filter-category">Category</label>
+                    <select id="filter-category" name="category">
+                        <option value="">All Categories</option>
+                        <!-- Options populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-status">Status</label>
+                    <select id="filter-status" name="status">
+                        <option value="">All Statuses</option>
+                        <option value="1">Scheduled</option>
+                        <option value="2">In Progress</option>
+                        <option value="3">Completed</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="filter-scheduled-date-from">Scheduled Date From</label>
+                    <input type="date" id="filter-scheduled-date-from">
+                </div>
+                <div>
+                    <label for="filter-scheduled-date-to">Scheduled Date To</label>
+                    <input type="date" id="filter-scheduled-date-to">
+                </div>
+                <div>
+                    <label for="filter-completion-date-from">Completion Date From</label>
+                    <input type="date" id="filter-completion-date-from">
+                </div>
+                <div>
+                    <label for="filter-completion-date-to">Completion Date To</label>
+                    <input type="date" id="filter-completion-date-to">
+                </div>
+                <div>
+                    <label for="filter-odometer-min">Odometer (Min KM)</label>
+                    <input type="number" id="filter-odometer-min" placeholder="Min KM">
+                </div>
+                <div>
+                    <label for="filter-odometer-max">Odometer (Max KM)</label>
+                    <input type="number" id="filter-odometer-max" placeholder="Max KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-km-min">Next Due KM (Min)</label>
+                    <input type="number" id="filter-next-due-km-min" placeholder="Min KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-km-max">Next Due KM (Max)</label>
+                    <input type="number" id="filter-next-due-km-max" placeholder="Max KM">
+                </div>
+                <div>
+                    <label for="filter-next-due-date-from">Next Due Date From</label>
+                    <input type="date" id="filter-next-due-date-from">
+                </div>
+                <div>
+                    <label for="filter-next-due-date-to">Next Due Date To</label>
+                    <input type="date" id="filter-next-due-date-to">
+                </div>
+                <div>
+                    <label for="filter-cost-min">Cost (Min AED)</label>
+                    <input type="number" id="filter-cost-min" placeholder="Min AED" step="0.01">
+                </div>
+                <div>
+                    <label for="filter-cost-max">Cost (Max AED)</label>
+                    <input type="number" id="filter-cost-max" placeholder="Max AED" step="0.01">
+                </div>
+                <div>
+                    <label for="filter-next-maint-status">Next Maint. Status</label>
+                    <input type="text" id="filter-next-maint-status" placeholder="e.g., Car Needs Maintenance">
+                </div>
+                <div>
+                    <label for="filter-next-due-date-status">Next Due Date Status</label>
+                    <input type="text" id="filter-next-due-date-status" placeholder="e.g., Days Remaining">
+                </div>
+                <div class="lg:col-span-1">
+                    <label for="filter-notes">Notes</label>
+                    <input type="text" id="filter-notes" placeholder="Search notes">
+                </div>
+                <div class="filter-actions">
+                    <button id="clear-filters-btn" class="bg-gray-500 text-white px-4 py-2 rounded-lg shadow-md hover:bg-gray-600 transition-colors duration-200 flex items-center">
+                        <i class="fas fa-times mr-2"></i>Clear Filters
+                    </button>
+                </div>
+            </div>
+
+            <div id="report-loading-indicator" class="text-center py-8">
+                <div class="loader inline-block"></div>
+                <p class="mt-4 text-gray-600">Loading maintenance records...</p>
+            </div>
+            <div id="report-error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 hidden" role="alert">
+                <strong class="font-bold">Error!</strong>
+                <span id="report-error-text" class="block sm:inline">Failed to load maintenance records.</span>
+            </div>
+            <div id="no-report-data-message" class="text-center text-gray-600 py-8 hidden">
+                <i class="fas fa-file-alt text-4xl text-gray-300 mb-2"></i><br>
+                <p>No maintenance records available for the report.</p>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="maintenance-table">
+                    <thead>
+                        <tr>
+                            <th>Car (Plate # / Make / Model)</th>
+                            <th>Maintenance Type</th>
+                            <th>Category</th>
+                            <th>Scheduled Date</th>
+                            <th>Completion Date</th>
+                            <th>Status</th>
+                            <th>Current Odometer (KM)</th>
+                            <th>Next Due KM</th>
+                            <th>Next Due Date</th>
+                            <th>Next Maint. Status</th>
+                            <th>Next Due Date Status</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody id="maintenance-report-tbody">
+                        <!-- Report rows will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-custom-blue-dark text-white px-6 py-2 rounded-lg hover:bg-custom-blue-light focus:outline-none focus:ring-2 focus:ring-custom-blue-light focus:ring-opacity-50">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // DOM Elements
+        const ui = {
+            lastUpdated: document.getElementById('last-updated'),
+            refreshButton: document.getElementById('refresh-data'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+
+            // Report elements
+            reportLoadingIndicator: document.getElementById('report-loading-indicator'),
+            reportErrorMessage: document.getElementById('report-error-message'),
+            reportErrorText: document.getElementById('report-error-text'),
+            noReportDataMessage: document.getElementById('no-report-data-message'),
+            maintenanceReportTbody: document.getElementById('maintenance-report-tbody'),
+
+            // Filter elements
+            filterCarInfo: document.getElementById('filter-car-info'),
+            filterMaintenanceType: document.getElementById('filter-maintenance-type'),
+            filterCategory: document.getElementById('filter-category'),
+            filterStatus: document.getElementById('filter-status'),
+            filterScheduledDateFrom: document.getElementById('filter-scheduled-date-from'),
+            filterScheduledDateTo: document.getElementById('filter-scheduled-date-to'),
+            filterCompletionDateFrom: document.getElementById('filter-completion-date-from'),
+            filterCompletionDateTo: document.getElementById('filter-completion-date-to'),
+            filterOdometerMin: document.getElementById('filter-odometer-min'),
+            filterOdometerMax: document.getElementById('filter-odometer-max'),
+            filterNextDueKmMin: document.getElementById('filter-next-due-km-min'),
+            filterNextDueKmMax: document.getElementById('filter-next-due-km-max'),
+            filterNextDueDateFrom: document.getElementById('filter-next-due-date-from'),
+            filterNextDueDateTo: document.getElementById('filter-next-due-date-to'),
+            filterCostMin: document.getElementById('filter-cost-min'),
+            filterCostMax: document.getElementById('filter-cost-max'),
+            filterNextMaintStatus: document.getElementById('filter-next-maint-status'),
+            filterNextDueDateStatus: document.getElementById('filter-next-due-date-status'),
+            filterNotes: document.getElementById('filter-notes'),
+            clearFiltersBtn: document.getElementById('clear-filters-btn'),
+
+            // Notification Modal
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+        };
+
+        let carsLookup = []; // Stores car data including odometer_km
+        let maintenanceTypesLookup = []; // Stores maintenance type data including recommended_km and recommended_months
+        let allMaintenanceRecordsRaw = []; // Stores all fetched raw maintenance records
+
+        // --- Initial Setup ---
+        ui.userEmail.textContent = "admin@foxcarrental.com";
+        ui.userIdDisplay.classList.add('hidden'); // Hide userId for now, if not used
+
+        // --- Modal Logic ---
+        function showCustomMessageBox(title, message) {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+
+        ui.notificationCloseButton.addEventListener('click', () => {
+            ui.notificationModal.classList.add('hidden');
+        });
+
+        // --- Helper Functions ---
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
+            if (isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        }
+        
+        // Helper to get raw days difference (positive for future, negative for past)
+        function getRawDaysDifference(dateString) {
+            if (!dateString) return null;
+            const targetDate = new Date(dateString);
+            targetDate.setHours(0, 0, 0, 0); // Normalize to start of day
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize to start of day
+            const diffTime = targetDate.getTime() - today.getTime();
+            return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        }
+
+        // Helper to get status text from numerical value
+        function getStatusText(statusValue) {
+            switch (String(statusValue)) {
+                case '1': return 'Scheduled';
+                case '2': return 'In Progress';
+                case '3': return 'Completed';
+                default: return 'Unknown';
+            }
+        }
+
+        // Helper to parse date string to Date object, returns null if invalid
+        function parseDate(dateString) {
+            if (!dateString) return null;
+            const date = new Date(dateString);
+            date.setHours(0, 0, 0, 0); // Normalize to start of day for accurate range comparison
+            return isNaN(date.getTime()) ? null : date;
+        }
+
+        // --- Populate Filter Dropdowns (Maintenance Type and Category) ---
+        async function populateFilterDropdowns() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('maintenance_types')
+                    .select('id, name, category')
+                    .eq('active', true)
+                    .order('category', { ascending: true })
+                    .order('name', { ascending: true });
+                if (error) throw error;
+                maintenanceTypesLookup = data;
+
+                // Populate filter-maintenance-type
+                ui.filterMaintenanceType.innerHTML = '<option value="">All Types</option>';
+                maintenanceTypesLookup.forEach(type => {
+                    const option = document.createElement('option');
+                    option.value = type.id;
+                    option.textContent = type.name;
+                    ui.filterMaintenanceType.appendChild(option);
+                });
+
+                // Populate filter-category
+                const categories = new Set();
+                maintenanceTypesLookup.forEach(type => {
+                    if (type.category) categories.add(type.category);
+                });
+                ui.filterCategory.innerHTML = '<option value="">All Categories</option>';
+                Array.from(categories).sort().forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = category;
+                    ui.filterCategory.appendChild(option);
+                });
+
+            } catch (error) {
+                console.error("Error populating filter dropdowns:", error);
+                showCustomMessageBox("Error", "Failed to load filter options.");
+            }
+        }
+
+        // --- Fetch All Maintenance Records and Prepare for Display/Filtering ---
+        async function fetchAllMaintenanceRecords() {
+            ui.reportLoadingIndicator.classList.remove('hidden');
+            ui.reportErrorMessage.classList.add('hidden');
+            ui.noReportDataMessage.classList.add('hidden');
+            ui.maintenanceReportTbody.innerHTML = '';
+
+            try {
+                // 1. Fetch all cars with their current odometer and display details
+                const { data: fullCarsData, error: fullCarsError } = await supabaseClient
+                    .from('cars')
+                    .select('id, plate_number, odometer_km, veh_make(make), veh_model(model)');
+                if (fullCarsError) throw fullCarsError;
+                const fullCarDetailsMap = new Map(fullCarsData.map(car => [car.id, car]));
+
+                // 2. Fetch all maintenance records
+                const { data: allRecords, error: maintenanceError } = await supabaseClient
+                    .from('vehicle_maintenance')
+                    .select(`
+                        veh_mai_id,
+                        car_id,
+                        maintenance_type_id,
+                        scheduled_date,
+                        completion_date,
+                        status,
+                        odometer_km, 
+                        next_due_km,
+                        next_due_date,
+                        cost,
+                        notes,
+                        cars (plate_number, veh_make(make), veh_model(model)),
+                        maintenance_types (name, category)
+                    `)
+                    .order('completion_date', { ascending: false, nullsFirst: false }) // Primary sort
+                    .order('scheduled_date', { ascending: false, nullsFirst: false }) // Secondary sort
+                    .order('veh_mai_id', { ascending: false }); // Tie-breaker
+
+                if (maintenanceError) throw maintenanceError;
+
+                // Process records to add calculated statuses
+                allMaintenanceRecordsRaw = allRecords.map(record => {
+                    const carDetails = fullCarDetailsMap.get(record.car_id);
+                    
+                    const currentCarOdometer = carDetails?.odometer_km;
+                    const nextDueKmFromRecord = record.next_due_km;
+                    const nextDueDateFromRecord = record.next_due_date;
+
+                    let nextMaintenanceOverallStatusText = "N/A";
+                    let nextDueDateStatusText = "N/A (Date Data Missing)";
+
+                    // Calculate Next Maint. Status (KM part)
+                    if (nextDueKmFromRecord !== null && currentCarOdometer !== null) {
+                        const kmRemainingCalculated = nextDueKmFromRecord - currentCarOdometer;
+                        if (kmRemainingCalculated <= 0) {
+                            nextMaintenanceOverallStatusText = "Car Needs Maintenance (KM)";
+                        } else {
+                            nextMaintenanceOverallStatusText = `${kmRemainingCalculated.toLocaleString()} KM Remaining`;
+                        }
+                    } else {
+                        nextMaintenanceOverallStatusText = "N/A (KM Data Missing)";
+                    }
+
+                    // Calculate Next Due Date Status and update overall status if needed
+                    if (nextDueDateFromRecord) {
+                        const dueDate = parseDate(nextDueDateFromRecord);
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+
+                        const rawDaysDiff = getRawDaysDifference(nextDueDateFromRecord);
+
+                        if (dueDate <= today) {
+                            nextDueDateStatusText = "Car Needs Maintenance (Date)";
+                            // Update overall status if overdue by date
+                            if (nextMaintenanceOverallStatusText.includes("KM Remaining") || nextMaintenanceOverallStatusText === "N/A (KM Data Missing)") {
+                                nextMaintenanceOverallStatusText = "Car Needs Maintenance (KM & Date)";
+                            } else if (nextMaintenanceOverallStatusText === "N/A") {
+                                nextMaintenanceOverallStatusText = "Car Needs Maintenance (Date)";
+                            }
+                        } else {
+                            nextDueDateStatusText = `${rawDaysDiff.toLocaleString()} Days Remaining`;
+                        }
+                    } else {
+                        if (nextMaintenanceOverallStatusText === "N/A") {
+                            nextMaintenanceOverallStatusText = "N/A (KM & Date Data Missing)";
+                        } else if (nextMaintenanceOverallStatusText === "N/A (KM Data Missing)") {
+                            nextMaintenanceOverallStatusText = "N/A (KM & Date Data Missing)";
+                        }
+                    }
+
+                    return {
+                        ...record,
+                        car_details: carDetails, // Add full car details for filtering
+                        next_maintenance_calculated_status: nextMaintenanceOverallStatusText,
+                        next_due_date_calculated_status: nextDueDateStatusText,
+                        // Add flattened fields for easier filtering
+                        car_info_search: `${carDetails?.plate_number || ''} ${carDetails?.veh_make?.make || ''} ${carDetails?.veh_model?.model || ''}`.toLowerCase(),
+                        maintenance_type_name: record.maintenance_types?.name || '',
+                        maintenance_type_category: record.maintenance_types?.category || '',
+                        notes_search: (record.notes || '').toLowerCase(),
+                    };
+                });
+
+                filterAndRenderMaintenanceReport(); // Render with current filters
+
+            } catch (error) {
+                console.error("Error loading maintenance report:", error);
+                ui.reportLoadingIndicator.classList.add('hidden');
+                ui.reportErrorText.textContent = `Failed to load maintenance report: ${error.message}`;
+                ui.reportErrorMessage.classList.remove('hidden');
+                ui.noReportDataMessage.classList.add('hidden');
+            } finally {
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+            }
+        }
+
+        // --- Filter and Render Maintenance Report ---
+        function filterAndRenderMaintenanceReport() {
+            ui.maintenanceReportTbody.innerHTML = ''; // Clear table before rendering
+            ui.reportLoadingIndicator.classList.add('hidden'); // Ensure loader is hidden
+            ui.reportErrorMessage.classList.add('hidden'); // Ensure error message is hidden
+
+            let filteredRecords = [...allMaintenanceRecordsRaw];
+
+            const filterCarInfo = ui.filterCarInfo.value.toLowerCase();
+            const filterMaintenanceTypeId = ui.filterMaintenanceType.value;
+            const filterCategory = ui.filterCategory.value;
+            const filterStatus = ui.filterStatus.value;
+            const filterScheduledDateFrom = parseDate(ui.filterScheduledDateFrom.value);
+            const filterScheduledDateTo = parseDate(ui.filterScheduledDateTo.value);
+            const filterCompletionDateFrom = parseDate(ui.filterCompletionDateFrom.value);
+            const filterCompletionDateTo = parseDate(ui.filterCompletionDateTo.value);
+            const filterOdometerMin = ui.filterOdometerMin.value ? parseFloat(ui.filterOdometerMin.value) : null;
+            const filterOdometerMax = ui.filterOdometerMax.value ? parseFloat(ui.filterOdometerMax.value) : null;
+            const filterNextDueKmMin = ui.filterNextDueKmMin.value ? parseFloat(ui.filterNextDueKmMin.value) : null;
+            const filterNextDueKmMax = ui.filterNextDueKmMax.value ? parseFloat(ui.filterNextDueKmMax.value) : null;
+            const filterNextDueDateFrom = parseDate(ui.filterNextDueDateFrom.value);
+            const filterNextDueDateTo = parseDate(ui.filterNextDueDateTo.value);
+            const filterCostMin = ui.filterCostMin.value ? parseFloat(ui.filterCostMin.value) : null;
+            const filterCostMax = ui.filterCostMax.value ? parseFloat(ui.filterCostMax.value) : null;
+            const filterNextMaintStatus = ui.filterNextMaintStatus.value.toLowerCase();
+            const filterNextDueDateStatus = ui.filterNextDueDateStatus.value.toLowerCase();
+            const filterNotes = ui.filterNotes.value.toLowerCase();
+
+
+            filteredRecords = filteredRecords.filter(record => {
+                // Car Info Filter
+                if (filterCarInfo && !record.car_info_search.includes(filterCarInfo)) {
+                    return false;
+                }
+
+                // Maintenance Type Filter
+                if (filterMaintenanceTypeId && String(record.maintenance_type_id) !== filterMaintenanceTypeId) {
+                    return false;
+                }
+
+                // Category Filter
+                if (filterCategory && record.maintenance_type_category !== filterCategory) {
+                    return false;
+                }
+
+                // Status Filter
+                if (filterStatus && String(record.status) !== filterStatus) {
+                    return false;
+                }
+
+                // Scheduled Date Filters
+                const recordScheduledDate = parseDate(record.scheduled_date);
+                if (filterScheduledDateFrom && (!recordScheduledDate || recordScheduledDate < filterScheduledDateFrom)) {
+                    return false;
+                }
+                if (filterScheduledDateTo && (!recordScheduledDate || recordScheduledDate > filterScheduledDateTo)) {
+                    return false;
+                }
+
+                // Completion Date Filters
+                const recordCompletionDate = parseDate(record.completion_date);
+                if (filterCompletionDateFrom && (!recordCompletionDate || recordCompletionDate < filterCompletionDateFrom)) {
+                    return false;
+                }
+                if (filterCompletionDateTo && (!recordCompletionDate || recordCompletionDate > filterCompletionDateTo)) {
+                    return false;
+                }
+
+                // Odometer KM Filters
+                if (filterOdometerMin !== null && (record.odometer_km === null || record.odometer_km < filterOdometerMin)) {
+                    return false;
+                }
+                if (filterOdometerMax !== null && (record.odometer_km === null || record.odometer_km > filterOdometerMax)) {
+                    return false;
+                }
+
+                // Next Due KM Filters
+                if (filterNextDueKmMin !== null && (record.next_due_km === null || record.next_due_km < filterNextDueKmMin)) {
+                    return false;
+                }
+                if (filterNextDueKmMax !== null && (record.next_due_km === null || record.next_due_km > filterNextDueKmMax)) {
+                    return false;
+                }
+
+                // Next Due Date Filters
+                const recordNextDueDate = parseDate(record.next_due_date);
+                if (filterNextDueDateFrom && (!recordNextDueDate || recordNextDueDate < filterNextDueDateFrom)) {
+                    return false;
+                }
+                if (filterNextDueDateTo && (!recordNextDueDate || recordNextDueDate > filterNextDueDateTo)) {
+                    return false;
+                }
+
+                // Cost Filters
+                if (filterCostMin !== null && (record.cost === null || record.cost < filterCostMin)) {
+                    return false;
+                }
+                if (filterCostMax !== null && (record.cost === null || record.cost > filterCostMax)) {
+                    return false;
+                }
+
+                // Next Maint. Status Filter
+                if (filterNextMaintStatus && !record.next_maintenance_calculated_status.toLowerCase().includes(filterNextMaintStatus)) {
+                    return false;
+                }
+
+                // Next Due Date Status Filter
+                if (filterNextDueDateStatus && !record.next_due_date_calculated_status.toLowerCase().includes(filterNextDueDateStatus)) {
+                    return false;
+                }
+
+                // Notes Filter
+                if (filterNotes && !record.notes_search.includes(filterNotes)) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            if (filteredRecords.length === 0) {
+                ui.noReportDataMessage.classList.remove('hidden');
+            } else {
+                ui.noReportDataMessage.classList.add('hidden');
+            }
+
+            filteredRecords.forEach((record) => {
+                const row = document.createElement('tr');
+                const carInfo = record.car_details
+                    ? `${record.car_details.plate_number || 'N/A'} / ${record.car_details.veh_make?.make || 'N/A'} / ${record.car_details.veh_model?.model || 'N/A'}`
+                    : 'N/A';
+                const maintenanceType = record.maintenance_types?.name || 'N/A';
+                const maintenanceCategory = record.maintenance_types?.category || 'N/A';
+                const cost = record.cost !== null ? `AED ${parseFloat(record.cost).toFixed(2)}` : 'N/A';
+                const statusText = getStatusText(record.status);
+                
+                // Current Odometer from the cars table
+                const currentCarOdometerDisplay = record.car_details?.odometer_km !== null ? record.car_details.odometer_km.toLocaleString() + ' KM' : 'N/A';
+
+                // Apply specific class for styling the existing combined status
+                let overallCalculatedStatusClass = 'status-indicator ';
+                if (record.next_maintenance_calculated_status.includes("Car Needs Maintenance (KM & Date)")) {
+                    overallCalculatedStatusClass += 'needs-maintenance-kmd';
+                } else if (record.next_maintenance_calculated_status.includes("Car Needs Maintenance (KM)")) {
+                    overallCalculatedStatusClass += 'needs-maintenance-km';
+                } else if (record.next_maintenance_calculated_status.includes("Car Needs Maintenance (Date)")) {
+                    overallCalculatedStatusClass += 'needs-maintenance-date';
+                } else if (record.next_maintenance_calculated_status.includes("KM Remaining")) {
+                    overallCalculatedStatusClass += 'km-remaining';
+                } else {
+                    overallCalculatedStatusClass += 'na-data-missing';
+                }
+
+                // Apply specific class for styling the NEW date-specific status
+                let dateCalculatedStatusClass = 'status-indicator ';
+                if (record.next_due_date_calculated_status.includes("Car Needs Maintenance (Date)")) {
+                    dateCalculatedStatusClass += 'needs-maintenance-date';
+                } else if (record.next_due_date_calculated_status.includes("Days Remaining")) {
+                    dateCalculatedStatusClass += 'km-remaining'; // Reuse km-remaining for generic good status
+                } else {
+                    dateCalculatedStatusClass += 'na-data-missing';
+                }
+
+                row.innerHTML = `
+                    <td>${carInfo}</td>
+                    <td>${maintenanceType}</td>
+                    <td>${maintenanceCategory}</td>
+                    <td>${formatDate(record.scheduled_date)}</td>
+                    <td>${formatDate(record.completion_date)}</td>
+                    <td><span class="status-badge ${statusText.toLowerCase().replace(' ', '-')}">${statusText}</span></td>
+                    <td>${currentCarOdometerDisplay}</td>
+                    <td>${record.next_due_km !== null ? record.next_due_km.toLocaleString() + ' KM' : 'N/A'}</td>
+                    <td>${formatDate(record.next_due_date)}</td>
+                    <td><span class="${overallCalculatedStatusClass}">${record.next_maintenance_calculated_status}</span></td>
+                    <td><span class="${dateCalculatedStatusClass}">${record.next_due_date_calculated_status}</span></td>
+                    <td>${record.notes || 'N/A'}</td>
+                `;
+                ui.maintenanceReportTbody.appendChild(row);
+            });
+        }
+
+        // --- Clear Filters Function ---
+        function clearAllFilters() {
+            ui.filterCarInfo.value = '';
+            ui.filterMaintenanceType.value = '';
+            ui.filterCategory.value = '';
+            ui.filterStatus.value = '';
+            ui.filterScheduledDateFrom.value = '';
+            ui.filterScheduledDateTo.value = '';
+            ui.filterCompletionDateFrom.value = '';
+            ui.filterCompletionDateTo.value = '';
+            ui.filterOdometerMin.value = '';
+            ui.filterOdometerMax.value = '';
+            ui.filterNextDueKmMin.value = '';
+            ui.filterNextDueKmMax.value = '';
+            ui.filterNextDueDateFrom.value = '';
+            ui.filterNextDueDateTo.value = '';
+            ui.filterCostMin.value = '';
+            ui.filterCostMax.value = '';
+            ui.filterNextMaintStatus.value = '';
+            ui.filterNextDueDateStatus.value = '';
+            ui.filterNotes.value = '';
+            filterAndRenderMaintenanceReport(); // Re-apply filters (which are now all empty)
+        }
+
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', () => {
+            fetchAllMaintenanceRecords(); // Refetch all data
+            // Populate filter dropdowns again in case data changed (e.g., new types added)
+            populateFilterDropdowns(); 
+            clearAllFilters(); // Clear filters on refresh
+        });
+
+        ui.clearFiltersBtn.addEventListener('click', clearAllFilters);
+
+        // Add event listeners for all filter inputs/selects to trigger filtering
+        ui.filterCarInfo.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterMaintenanceType.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCategory.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterStatus.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterScheduledDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterScheduledDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCompletionDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCompletionDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterOdometerMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterOdometerMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueKmMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueKmMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueDateFrom.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterNextDueDateTo.addEventListener('change', filterAndRenderMaintenanceReport);
+        ui.filterCostMin.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterCostMax.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextMaintStatus.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNextDueDateStatus.addEventListener('input', filterAndRenderMaintenanceReport);
+        ui.filterNotes.addEventListener('input', filterAndRenderMaintenanceReport);
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateFilterDropdowns(); // Populate filter dropdowns first
+            fetchAllMaintenanceRecords(); // Then fetch and display all records
+        });
+    </script>
+</body>
+</html>

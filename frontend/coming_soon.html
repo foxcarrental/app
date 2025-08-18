@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coming Soon - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles for the background gradient, matching the admin panel */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
+            display: flex; /* Use flexbox to center content */
+            justify-content: center; /* Center horizontally */
+            align-items: center; /* Center vertically */
+            text-align: center; /* Center text within the content */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Styles for the coming soon container */
+        .coming-soon-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white background */
+            padding: 4rem 2rem;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2); /* Stronger shadow */
+            max-width: 600px;
+            width: 90%;
+            transform: translateY(-20px); /* Lift slightly for a subtle effect */
+            animation: fadeInScale 1s ease-out forwards; /* Add fade-in and scale animation */
+        }
+
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.9);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Specific text styling */
+        .coming-soon-title {
+            font-size: 3rem; /* Larger font size */
+            font-weight: 800; /* Extra bold */
+            color: #5680E9; /* A vibrant blue from your theme */
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .coming-soon-message {
+            font-size: 1.25rem; /* Slightly larger message */
+            color: #4a5568; /* Darker gray for readability */
+            line-height: 1.6;
+        }
+
+        /* Simple button for potential return to dashboard */
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 2rem;
+            padding: 0.8rem 1.8rem;
+            background-color: #8860D0; /* Purple from your theme */
+            color: white;
+            border-radius: 0.75rem; /* Rounded button */
+            font-weight: 600;
+            text-decoration: none;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .back-button:hover {
+            background-color: #7B50C0; /* Slightly darker purple on hover */
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="coming-soon-container">
+        <h1 class="coming-soon-title">Coming Soon!</h1>
+        <p class="coming-soon-message">
+            We're working hard to bring you exciting new features and reports.
+            This page will be live with new content very soon.
+            Stay tuned for updates!
+        </p>
+    </div>
+
+</body>
+</html>

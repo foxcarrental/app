@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car GPS Tracking</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Applied the background gradient from the main layout */
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed;
+            color: #333; /* Ensure text is visible on the gradient */
+            display: flex; /* Keep for centering content if needed */
+            justify-content: center;
+            align-items: flex-start; /* Aligns content to the top */
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px; /* Padding around the dashboard container */
+            box-sizing: border-box;
+            overflow-y: auto; /* Allow scrolling for the body if container exceeds viewport */
+            position: relative;
+            overflow-x: hidden; /* Prevent horizontal scrollbar from gradient */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* New keyframes for the light blue gradient animation, re-using for consistency */
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main container layout */
+        .dashboard-container {
+            flex-direction: column;
+            width: 100%;
+            max-width: 1600px;
+            /* Removed background, border-radius, shadow, and padding to 'hide' the panel styling */
+            max-height: calc(100vh - 40px); /* 100vh minus 20px top/bottom padding on body */
+            overflow-y: auto; /* Enable vertical scrolling for the container */
+        }
+
+        /* Header styles */
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        .dashboard-header h1 {
+            font-size: 1.875rem; /* text-3xl */
+            font-weight: 700; /* font-bold */
+            color: #1a202c; /* gray-900 */
+            display: flex;
+            flex-direction: column; /* Stack title and subtitle */
+            align-items: flex-start;
+        }
+        .dashboard-header h1 .subtitle {
+            font-size: 0.9rem;
+            font-weight: 400;
+            color: #64748b; /* slate-500 */
+            margin-top: 4px;
+        }
+        .dashboard-header .icon-location {
+            color: #3b82f6; /* blue-500 */
+            margin-right: 12px;
+            font-size: 1.5rem;
+        }
+        .dashboard-header .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+        .dashboard-header .action-buttons button {
+            background-color: #3b82f6; /* blue-500 */
+            color: #ffffff;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .dashboard-header .action-buttons button:hover {
+            background-color: #2563eb; /* blue-600 */
+        }
+        .dashboard-header .action-buttons button.active {
+            background-color: #2563eb; /* Darker blue for active */
+        }
+        .dashboard-header .action-buttons button i {
+            margin-right: 8px;
+        }
+        .dashboard-header .refresh-button {
+             background-color: #f0f4f8; /* Light background for refresh */
+             color: #3b82f6; /* Blue text */
+             box-shadow: none; /* No shadow */
+        }
+        .dashboard-header .refresh-button:hover {
+            background-color: #e2e8f0; /* Slightly darker on hover */
+        }
+
+
+        /* Search and Filter bar */
+        .search-filter-bar {
+            display: flex;
+            align-items: center;
+            /* Changed background to light blue gradient and added animation */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 8px 16px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+        .search-filter-bar input {
+            flex-grow: 1;
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px 12px;
+            font-size: 1rem;
+            color: #4a5568;
+        }
+        .search-filter-bar .search-icon,
+        .search-filter-bar .filter-icon {
+            color: #a0aec0; /* gray-400 */
+            margin-right: 12px;
+        }
+        .search-filter-bar select {
+            border: none;
+            outline: none;
+            background: transparent;
+            padding: 8px 12px;
+            font-size: 1rem;
+            color: #4a5568;
+            appearance: none; /* Remove default arrow */
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%20viewBox%3D%220%200%20292.4%20292.4%22%3E%3Cpath%3D%22M287%20197.6l-14%2014c-2.4%202.4-5.5%203.6-8.7%203.6s-6.3-1.2-8.7-3.6L146.2%2099.6%2042.8%20202.4c-2.4%202.4-5.5%203.6-8.7%203.6s-6.3-1.2-8.7-3.6l-14-14c-4.8-4.8-4.8-12.5%200-17.3L130%2075.6c4.8-4.8%2012.5-4.8%2017.3%200L287%20180.3c4.8%204.8%204.8%2012.5%200%2017.3z%22%2F%3E%3C%2Fsvg%3E');
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            background-size: 12px;
+            padding-right: 30px; /* Space for the custom arrow */
+        }
+
+        /* Fleet Overview KPIs */
+        .fleet-overview {
+            /* Changed background to light blue gradient and added animation */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            border-radius: 8px;
+            padding: 16px;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            margin-bottom: 24px;
+        }
+        .fleet-overview h2 {
+            font-size: 1.125rem; /* text-lg */
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 12px;
+        }
+        .kpi-item {
+            display: inline-flex;
+            align-items: center;
+            padding: 6px 12px;
+            border-radius: 9999px; /* Full pill shape */
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-right: 12px;
+        }
+        .kpi-item.available {
+            background-color: #d1fae5; /* green-100 */
+            color: #059669; /* green-700 */
+        }
+        .kpi-item.rented {
+            background-color: #fffacd; /* yellow-100 */
+            color: #d97706; /* yellow-700 */
+        }
+        .kpi-item.maintenance {
+            background-color: #fee2e2; /* red-100 */
+            color: #dc2626; /* red-700 */
+        }
+
+        /* Main content area: Map + Car Details */
+        .content-area {
+            display: flex;
+            flex-direction: column; /* Default to column on small screens */
+            gap: 24px;
+        }
+
+        @media (min-width: 1024px) { /* lg breakpoint for split view */
+            .content-area.split-view {
+                flex-direction: row; /* Row on larger screens for split */
+            }
+        }
+
+        /* Map Area */
+        .map-area {
+            flex-grow: 1;
+            /* background-color: #e0f2f7; /* Light blue background for map */
+            border-radius: 8px;
+            position: relative;
+            min-height: 500px; /* Increased height for better map view */
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+            display: block; /* Important for Leaflet to render */
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            min-height: 500px; /* Ensure map has a minimum height */
+            border-radius: 8px;
+        }
+
+        /* Overlay for loading on map */
+        .loader-overlay {
+            position: absolute;
+            inset: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            z-index: 1000; /* Higher z-index to be on top of map */
+            border-radius: 8px;
+        }
+
+        /* Custom marker styles for Leaflet */
+        .custom-marker {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 3px solid;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s, border-color 0.2s;
+        }
+
+        .custom-marker i {
+            font-size: 1.2rem;
+        }
+
+        .custom-marker.available {
+            border-color: #10b981; /* Green */
+            color: #10b981;
+        }
+
+        .custom-marker.rented {
+            border-color: #f59e0b; /* Yellow/Orange */
+            color: #f59e0b;
+        }
+
+        .custom-marker.maintenance {
+            border-color: #ef4444; /* Red */
+            color: #ef4444;
+        }
+
+        .custom-marker.active {
+            transform: scale(1.2); /* Scale up when active */
+            z-index: 1000; /* Ensure active marker is on top */
+        }
+
+        /* Car Info Details (right sidebar) */
+        .car-details-sidebar {
+            background-color: #ffffff;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            min-width: 320px; /* Wider for details */
+            flex-shrink: 0;
+            max-height: 700px; /* Limit height for scrolling */
+            overflow-y: auto; /* Enable scrolling for details */
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .car-detail-card {
+            background-color: #f8fafd; /* Lighter background for individual car detail cards */
+            border-radius: 8px;
+            padding: 16px;
+            border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer; /* Make cards clickable */
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .car-detail-card:hover {
+            background-color: #eef1f5;
+            border-color: #cdd6e0;
+        }
+        .car-detail-card.active {
+            border-color: #3b82f6; /* Blue border when active */
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3); /* Blue ring when active */
+        }
+
+        .car-detail-card .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .car-detail-card .header h3 {
+            font-size: 1.25rem; /* text-xl */
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .car-detail-card .header .status-tag {
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 9999px;
+        }
+        .car-detail-card .header .status-tag.available { background-color: #d1fae5; color: #059669; }
+        .car-detail-card .header .status-tag.rented { background-color: #fffacd; color: #d97706; }
+        .car-detail-card .header .status-tag.maintenance { background-color: #fee2e2; color: #dc2626; }
+
+        .car-detail-card .info-row {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            color: #4a5568;
+            margin-bottom: 6px;
+        }
+        .car-detail-card .info-row i {
+            margin-right: 8px;
+            color: #a0aec0; /* gray-400 */
+        }
+        .car-detail-card .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+        .car-detail-card .meta-item {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            font-size: 0.875rem;
+            color: #4a5568;
+        }
+        .car-detail-card .meta-item i {
+            font-size: 1.25rem; /* text-xl */
+            color: #3b82f6; /* blue-500 */
+            margin-bottom: 4px;
+        }
+        .car-detail-card .meta-item span {
+            font-weight: 600;
+            color: #1a202c;
+            margin-top: 4px;
+        }
+        .car-detail-card .rented-by {
+            margin-top: 12px;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+        .car-detail-card .rented-by span {
+            font-weight: 600;
+            color: #1a202c;
+        }
+
+
+        /* Loader styles */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3b82f6; /* Blue spinner */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1023px) { /* Adjust for smaller screens */
+            .dashboard-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            .dashboard-header h1 {
+                margin-bottom: 12px;
+            }
+            .dashboard-header .action-buttons {
+                width: 100%;
+                justify-content: space-around;
+            }
+            .search-filter-bar {
+                flex-wrap: wrap;
+            }
+            .search-filter-bar input,
+            .search-filter-bar select {
+                width: 100%;
+                margin-bottom: 8px;
+            }
+            .content-area {
+                flex-direction: column; /* Always column on small screens */
+            }
+            #map {
+                min-height: 300px;
+            }
+            .car-details-sidebar {
+                min-width: unset; /* Remove min-width on small screens */
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <h1>
+                <div class="flex items-center">
+                    <i class="fas fa-map-marker-alt icon-location"></i> Car GPS Tracking
+                </div>
+                <span class="subtitle">Real-time monitoring of your fleet vehicles</span>
+            </h1>
+            <div class="action-buttons">
+                <button id="split-view-btn" class="active">
+                    <i class="fas fa-th-large"></i> Split
+                </button>
+                <button id="map-view-btn">
+                    <i class="fas fa-map-marked-alt"></i> Map
+                </button>
+                <button id="list-view-btn">
+                    <i class="fas fa-list"></i> List
+                </button>
+                <button id="refresh-button" class="refresh-button">
+                    <i class="fas fa-sync-alt"></i> Refresh
+                </button>
+            </div>
+        </header>
+
+        <!-- Search and Filter Bar -->
+        <div class="search-filter-bar">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" id="search-input" placeholder="Search by car name or plate number...">
+            <i class="fas fa-filter filter-icon ml-auto"></i>
+            <select id="status-filter" class="ml-2">
+                <option value="all">All Status</option>
+                <option value="available">Available</option>
+                <option value="rented">Rented</option>
+                <option value="maintenance">Maintenance</option>
+            </select>
+        </div>
+
+        <!-- Fleet Overview KPIs -->
+        <div class="fleet-overview">
+            <h2>Fleet Overview</h2>
+            <div class="flex flex-wrap gap-4">
+                <span id="kpi-available" class="kpi-item available">Available: <span class="kpi-value">0</span></span>
+                <span id="kpi-rented" class="kpi-item rented">Rented: <span class="kpi-value">0</span></span>
+                <span id="kpi-maintenance" class="kpi-item maintenance">Maintenance: <span class="kpi-value">0</span></span>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="content-area split-view" id="content-area">
+            <!-- Map Area -->
+            <main class="map-area" id="map-area">
+                <div id="map"></div>
+                <div id="map-loading-indicator" class="loader-overlay hidden">
+                    <div class="loader"></div>
+                    <p class="mt-4 text-gray-600">Loading map data...</p>
+                </div>
+            </main>
+
+            <!-- Car Info Details Sidebar (replaces old info card and car list) -->
+            <aside class="car-details-sidebar" id="car-details-sidebar">
+                <div id="car-details-loading-indicator" class="text-center py-8 hidden">
+                    <div class="loader inline-block"></div>
+                    <p class="mt-4 text-gray-600">Loading car details...</p>
+                </div>
+                <div id="no-car-selected-message" class="text-center text-gray-500 py-8">
+                    <i class="fas fa-info-circle text-4xl text-gray-300 mb-2"></i><br>
+                    <p>Select a car from the list or map to view details.</p>
+                </div>
+                <!-- Individual car detail cards will be dynamically loaded here -->
+            </aside>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- Supabase Authentication Check and Redirection ---
+        async function checkAuthAndLoadApp() {
+            const { data: { session }, error } = await supabaseClient.auth.getSession();
+
+            if (error) {
+                console.error("Error fetching Supabase session:", error.message);
+                // In case of an error, assume not authenticated and redirect
+                if (!window.location.pathname.endsWith('/login.html')) {
+                    window.location.href = 'login.html';
+                }
+                return;
+            }
+
+            if (!session) {
+                console.log("No active Supabase session found. Redirecting to login.html");
+                if (!window.location.pathname.endsWith('/login.html')) {
+                    window.location.href = 'login.html';
+                }
+            } else {
+                console.log("User is authenticated via Supabase session.");
+                // User is authenticated, proceed with loading the app content
+                // Remove the 'loading-initial' class from body to display content
+                const loadingOverlay = document.createElement('style');
+                loadingOverlay.innerHTML = `
+                    body.loading-initial::before,
+                    body.loading-initial::after {
+                        display: none !important;
+                    }
+                `;
+                document.head.appendChild(loadingOverlay);
+
+                initMap(); // Initialize map
+                fetchCarData(); // Fetch car data
+            }
+        }
+
+        // Add a class to body initially to show a loading state with a visual overlay
+        document.body.classList.add('loading-initial');
+        const initialLoadingStyle = document.createElement('style');
+        initialLoadingStyle.id = 'initial-loading-style';
+        initialLoadingStyle.innerHTML = `
+            body.loading-initial {
+                overflow: hidden; /* Prevent scrolling during loading */
+            }
+            body.loading-initial::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(255, 255, 255, 0.9);
+                z-index: 9999;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                backdrop-filter: blur(5px);
+            }
+            body.loading-initial::after {
+                content: 'Loading application...';
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                z-index: 10000;
+                font-size: 1.5rem;
+                color: #3b82f6;
+                font-weight: bold;
+            }
+        `;
+        document.head.appendChild(initialLoadingStyle);
+
+
+        // DOM Elements
+        const ui = {
+            refreshButton: document.getElementById('refresh-button'),
+            searchInput: document.getElementById('search-input'),
+            statusFilter: document.getElementById('status-filter'),
+            
+            fleetOverviewAvailable: document.querySelector('#kpi-available .kpi-value'),
+            fleetOverviewRented: document.querySelector('#kpi-rented .kpi-value'),
+            fleetOverviewMaintenance: document.querySelector('#kpi-maintenance .kpi-value'),
+
+            contentArea: document.getElementById('content-area'),
+            mapArea: document.getElementById('map-area'),
+            mapLoadingIndicator: document.getElementById('map-loading-indicator'),
+            carDetailsSidebar: document.getElementById('car-details-sidebar'),
+            carDetailsLoadingIndicator: document.getElementById('car-details-loading-indicator'),
+            noCarSelectedMessage: document.getElementById('no-car-selected-message'),
+
+            splitViewBtn: document.getElementById('split-view-btn'),
+            mapViewBtn: document.getElementById('map-view-btn'),
+            listViewBtn: document.getElementById('list-view-btn'),
+        };
+
+        let allCarsData = []; // To store all car data for filtering
+        let map; // Leaflet map instance
+        let markers = {}; // Object to store our markers by car ID
+        let currentView = 'split'; // 'split', 'map', or 'list'
+
+        // --- Initialize the map ---
+        function initMap() {
+            // Check if map already initialized
+            if (map) {
+                map.remove(); // Remove existing map instance
+            }
+            // Default to UAE coordinates
+            map = L.map('map').setView([25.2048, 55.2708], 12); // Centered on UAE with zoom level 12
+            
+            // Add tile layer (OpenStreetMap)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            }).addTo(map);
+        }
+
+        // --- Helper Functions ---
+        function formatLastUpdated(timestamp) {
+            if (!timestamp) return 'N/A';
+            const now = new Date();
+            const then = new Date(timestamp);
+            const diffMinutes = Math.round((now - then) / (1000 * 60));
+            if (diffMinutes === 0) return 'just now';
+            if (diffMinutes < 60) return `${diffMinutes}m ago`;
+            if (diffMinutes < 1440) return `${Math.round(diffMinutes / 60)}h ago`;
+            return `${Math.round(diffMinutes / 1440)}d ago`;
+        }
+
+        function getStatusColorClass(status) {
+            switch (status) {
+                case 'available': return 'available';
+                case 'rented': return 'rented';
+                case 'maintenance': return 'maintenance';
+                default: return '';
+            }
+        }
+
+        // --- Fetch Car Data from Supabase ---
+        async function fetchCarData() {
+            ui.mapLoadingIndicator.classList.remove('hidden');
+            ui.carDetailsSidebar.innerHTML = ''; // Clear existing car details
+            ui.carDetailsLoadingIndicator.classList.remove('hidden');
+
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cars')
+                    .select(`
+                        id,
+                        plate_number,
+                        year,
+                        current_speed_mph,
+                        last_updated,
+                        fuel,
+                        battery_level_percent,
+                        status,
+                        latitude,
+                        longitude,
+                        veh_make(make),
+                        veh_model(model),
+                        rent_history(customer_id, customers(first_name, last_name))
+                    `);
+                if (error) throw error;
+                allCarsData = data;
+                console.log("Fetched car data:", allCarsData); // Log fetched data for debugging
+                renderDashboard();
+            } catch (error) {
+                console.error("Error fetching car data:", error);
+                ui.mapLoadingIndicator.querySelector('p').textContent = `Failed to load map data: ${error.message}`;
+                ui.carDetailsLoadingIndicator.querySelector('p').textContent = `Failed to load car details: ${error.message}`;
+            } finally {
+                ui.mapLoadingIndicator.classList.add('hidden');
+                ui.carDetailsLoadingIndicator.classList.add('hidden');
+            }
+        }
+
+        // --- Render Dashboard based on current view and filters ---
+        function renderDashboard() {
+            filterAndRenderCars();
+            updateFleetOverviewKpis();
+            updateViewLayout();
+        }
+
+        // --- Filter and Render Cars (for both map and list views) ---
+        function filterAndRenderCars() {
+            // Clear existing markers from the map
+            Object.values(markers).forEach(marker => {
+                map.removeLayer(marker);
+            });
+            markers = {}; // Reset markers object
+
+            ui.carDetailsSidebar.innerHTML = ''; // Clear car details sidebar
+            ui.noCarSelectedMessage.classList.add('hidden'); // Hide "no car selected" message by default
+
+            const searchTerm = ui.searchInput.value.toLowerCase();
+            const filterStatus = ui.statusFilter.value;
+
+            const filteredCars = allCarsData.filter(car => {
+                const carName = `${car.veh_make?.make || ''} ${car.veh_model?.model || ''}`.toLowerCase();
+                const plateNumber = (car.plate_number || '').toLowerCase();
+                const matchesSearch = carName.includes(searchTerm) || plateNumber.includes(searchTerm);
+                const matchesStatus = filterStatus === 'all' || (car.status && car.status.toLowerCase() === filterStatus); // Added toLowerCase()
+                return matchesSearch && matchesStatus;
+            });
+
+            if (filteredCars.length === 0) {
+                ui.noCarSelectedMessage.classList.remove('hidden');
+                ui.carDetailsSidebar.appendChild(ui.noCarSelectedMessage);
+            }
+
+
+            filteredCars.forEach(car => {
+                // Only render GPS points on map if latitude and longitude exist
+                if (car.latitude !== null && car.longitude !== null) {
+                    const statusClass = getStatusColorClass(car.status);
+                    const iconType = car.status === 'maintenance' ? 'wrench' : 'car';
+                    
+                    // Create a custom HTML marker
+                    const markerHtml = `
+                        <div class="custom-marker ${statusClass}" data-car-id="${car.id}">
+                            <i class="fas fa-${iconType}"></i>
+                        </div>
+                    `;
+                    
+                    // Create a custom icon
+                    const customIcon = L.divIcon({
+                        html: markerHtml,
+                        className: '', // We don't need Leaflet's default icon class
+                        iconSize: [40, 40],
+                        iconAnchor: [20, 20] // Center the icon
+                    });
+                    
+                    // Create the marker
+                    const marker = L.marker([car.latitude, car.longitude], {
+                        icon: customIcon
+                    }).addTo(map);
+                    
+                    // Store reference to the marker
+                    markers[car.id] = marker;
+                    
+                    // Add popup with car info
+                    const carName = `${car.veh_make?.make || 'Unknown'} ${car.veh_model?.model || 'Model'}`;
+                    const speedValue = car.current_speed_mph !== null ? `${(car.current_speed_mph * 1.60934).toFixed(0)} km/h` : 'N/A';
+                    const fuelValue = car.fuel !== null ? `${car.fuel}%` : 'N/A';
+                    const batteryValue = car.battery_level_percent !== null ? `${car.battery_level_percent}%` : 'N/A';
+                    const lastUpdatedText = formatLastUpdated(car.last_updated);
+                    
+                    let rentedByText = 'N/A';
+                    if (car.status === 'rented' && car.rent_history && car.rent_history.length > 0) {
+                        const activeRental = car.rent_history.find(rh => rh.customer_id !== null);
+                        if (activeRental && activeRental.customers) {
+                            rentedByText = `${activeRental.customers.first_name} ${activeRental.customers.last_name}`;
+                        }
+                    }
+                    
+                    const popupContent = `
+                        <div style="min-width: 200px; font-family: 'Inter', sans-serif;">
+                            <h3 style="margin: 0 0 5px 0; font-weight: bold; font-size: 1.1em;">${carName}</h3>
+                            <p style="margin: 0 0 5px 0; color: #666; font-size: 0.9em;">${car.plate_number || 'N/A'}</p>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px; margin-bottom: 5px; font-size: 0.85em;">
+                                <div><small style="color: #888;">Speed:</small><br><strong>${speedValue}</strong></div>
+                                <div><small style="color: #888;">Fuel:</small><br><strong>${fuelValue}</strong></div>
+                                <div><small style="color: #888;">Battery:</small><br><strong>${batteryValue}</strong></div>
+                                <div><small style="color: #888;">Last Update:</small><br><strong>${lastUpdatedText}</strong></div>
+                            </div>
+                            ${car.status === 'rented' ? `<p style="margin: 5px 0 0 0; font-size: 0.85em;"><small style="color: #888;">Rented by:</small><br><strong>${rentedByText}</strong></p>` : ''}
+                        </div>
+                    `;
+                    
+                    marker.bindPopup(popupContent);
+
+                    // Add click listener to the marker to highlight car details
+                    marker.on('click', () => displayCarDetails(car.id));
+                }
+
+                // Render car detail card in sidebar (for split and list views)
+                // This part needs to ensure cards are created only once per car for the current view
+                if (currentView === 'split' || currentView === 'list') {
+                    const carDetailCard = createCarDetailCard(car);
+                    ui.carDetailsSidebar.appendChild(carDetailCard);
+                }
+            });
+
+            // If we have cars with locations, fit the map to show all of them
+            if (filteredCars.length > 0) {
+                const bounds = L.latLngBounds(filteredCars.filter(car => car.latitude && car.longitude).map(car => [car.latitude, car.longitude]));
+                if (bounds.isValid()) { // Only fit if bounds are valid (i.e., there are valid coordinates)
+                    map.fitBounds(bounds, { padding: [50, 50] });
+                }
+            } else {
+                // If no filtered cars, reset map view to default UAE coordinates
+                map.setView([25.2048, 55.2708], 12);
+            }
+
+            // After rendering, if there are cars, automatically select the first one if no car is selected
+            // or if the previously selected car is no longer in the filtered list.
+            const selectedCarId = ui.carDetailsSidebar.querySelector('.car-detail-card.active')?.dataset.carId;
+            if (filteredCars.length > 0) {
+                if (!selectedCarId || !filteredCars.some(car => String(car.id) === selectedCarId)) {
+                    // If no car was selected or the previously selected car is no longer in the filtered list,
+                    // select the first car in the filtered list.
+                    displayCarDetails(filteredCars[0].id);
+                } else {
+                    // Re-apply active class if the selected car is still in the filtered list
+                    displayCarDetails(parseInt(selectedCarId));
+                }
+            } else {
+                // If no cars after filtering, ensure no car is "selected"
+                displayCarDetails(null);
+            }
+        }
+
+        // --- Create a Car Detail Card HTML Element ---
+        function createCarDetailCard(car) {
+            const card = document.createElement('div');
+            card.className = `car-detail-card`;
+            card.dataset.carId = car.id; // Store car ID
+            
+            const carName = `${car.veh_make?.make || 'Unknown'} ${car.veh_model?.model || 'Model'}`;
+            const statusClass = getStatusColorClass(car.status);
+            const speedValue = car.current_speed_mph !== null ? `${(car.current_speed_mph * 1.60934).toFixed(0)} km/h` : 'N/A'; // Convert mph to kph
+            const fuelValue = car.fuel !== null ? `${car.fuel}%` : 'N/A'; // Use 'car.fuel' now
+            const batteryValue = car.battery_level_percent !== null ? `${car.battery_level_percent}%` : 'N/A';
+            const lastUpdatedText = formatLastUpdated(car.last_updated);
+
+            let rentedByText = 'N/A';
+            if (car.status === 'rented' && car.rent_history && car.rent_history.length > 0) {
+                // Find the latest active rental if multiple exist
+                const activeRental = car.rent_history.find(rh => rh.customer_id !== null); // More robust check if actual_return_date is null
+                if (activeRental && activeRental.customers) {
+                    rentedByText = `${activeRental.customers.first_name} ${activeRental.customers.last_name}`;
+                }
+            }
+
+
+            card.innerHTML = `
+                <div class="header">
+                    <h3>${carName}</h3>
+                    <span class="status-tag ${statusClass}">${car.status || 'N/A'}</span>
+                </div>
+                <p class="text-gray-600 text-sm mb-2">${car.year || 'N/A'} ${car.veh_model?.model || 'Model'} · ${car.plate_number || 'N/A'}</p>
+                <div class="meta-grid">
+                    <div class="meta-item">
+                        <i class="fas fa-tachometer-alt"></i>
+                        <span>Speed</span>
+                        <strong>${speedValue}</strong>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-gas-pump"></i>
+                        <span>Fuel</span>
+                        <strong>${fuelValue}</strong>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-battery-full"></i>
+                        <span>Battery</span>
+                        <strong>${batteryValue}</strong>
+                    </div>
+                    <div class="meta-item">
+                        <i class="fas fa-clock"></i>
+                        <span>Last Update</span>
+                        <strong>${lastUpdatedText}</strong>
+                    </div>
+                </div>
+                ${car.status === 'rented' ? `<p class="rented-by">Rented by: <span>${rentedByText}</span></p>` : ''}
+            `;
+
+            card.addEventListener('click', () => displayCarDetails(car.id));
+            return card;
+        }
+
+        // --- Display Details for a Single Car ---
+        function displayCarDetails(carId) {
+            // Remove active class from all cards and gps points
+            document.querySelectorAll('.car-detail-card').forEach(card => card.classList.remove('active'));
+            // Remove active class from all custom markers (these are divs within the map, not Leaflet markers directly)
+            document.querySelectorAll('.custom-marker').forEach(iconDiv => iconDiv.classList.remove('active'));
+
+
+            if (carId !== null) {
+                const selectedCarElement = ui.carDetailsSidebar.querySelector(`.car-detail-card[data-car-id="${carId}"]`);
+                if (selectedCarElement) {
+                    selectedCarElement.classList.add('active');
+                    // Optional: Scroll to the selected car in list view if many items
+                    if (currentView === 'list' || currentView === 'split') {
+                        selectedCarElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    }
+                }
+
+                // Also highlight the corresponding marker on the map
+                const selectedGpsIconDiv = map.getContainer().querySelector(`.custom-marker[data-car-id="${carId}"]`);
+                if (selectedGpsIconDiv) {
+                    selectedGpsIconDiv.classList.add('active');
+                    // Open the popup if the marker exists and is not already open
+                    const marker = markers[carId];
+                    if (marker && !marker.isPopupOpen()) {
+                        marker.openPopup();
+                    }
+                }
+            }
+        }
+
+        // --- Update Fleet Overview KPIs ---
+        function updateFleetOverviewKpis() {
+            // Ensure allCarsData is an array and contains objects
+            if (!Array.isArray(allCarsData)) {
+                console.warn("allCarsData is not an array or is null/undefined.");
+                ui.fleetOverviewAvailable.textContent = 0;
+                ui.fleetOverviewRented.textContent = 0;
+                ui.fleetOverviewMaintenance.textContent = 0;
+                return;
+            }
+            const availableCount = allCarsData.filter(car => car.status && car.status.toLowerCase() === 'available').length;
+            const rentedCount = allCarsData.filter(car => car.status && car.status.toLowerCase() === 'rented').length;
+            const maintenanceCount = allCarsData.filter(car => car.status && car.status.toLowerCase() === 'maintenance').length;
+
+            ui.fleetOverviewAvailable.textContent = availableCount;
+            ui.fleetOverviewRented.textContent = rentedCount;
+            ui.fleetOverviewMaintenance.textContent = maintenanceCount;
+        }
+
+        // --- View Layout Switching ---
+        function updateViewLayout() {
+            // Remove all view classes first
+            ui.contentArea.classList.remove('split-view', 'map-only-view', 'list-only-view');
+            
+            // Set new view class
+            if (currentView === 'split') {
+                ui.contentArea.classList.add('split-view');
+                ui.mapArea.classList.remove('hidden');
+                ui.carDetailsSidebar.classList.remove('hidden');
+            } else if (currentView === 'map') {
+                ui.contentArea.classList.add('map-only-view');
+                ui.mapArea.classList.remove('hidden');
+                ui.carDetailsSidebar.classList.add('hidden');
+            } else if (currentView === 'list') {
+                ui.contentArea.classList.add('list-only-view');
+                ui.mapArea.classList.add('hidden');
+                ui.carDetailsSidebar.classList.remove('hidden');
+            }
+
+            // Update active state of view buttons
+            ui.splitViewBtn.classList.remove('active');
+            ui.mapViewBtn.classList.remove('active');
+            ui.listViewBtn.classList.remove('active');
+
+            if (currentView === 'split') ui.splitViewBtn.classList.add('active');
+            else if (currentView === 'map') ui.mapViewBtn.classList.add('active');
+            else if (currentView === 'list') ui.listViewBtn.classList.add('active');
+
+            // Re-render cars to apply new view specific rendering (e.g., hiding/showing details sidebar)
+            filterAndRenderCars();
+
+            // Invalidate map size after layout change to ensure it renders correctly
+            if (map && !ui.mapArea.classList.contains('hidden')) {
+                map.invalidateSize();
+            }
+        }
+
+        // --- Event Listeners ---
+        ui.refreshButton.addEventListener('click', fetchCarData);
+        ui.searchInput.addEventListener('input', renderDashboard); // Re-render everything on search
+        ui.statusFilter.addEventListener('change', renderDashboard); // Re-render everything on filter
+
+        ui.splitViewBtn.addEventListener('click', () => { currentView = 'split'; updateViewLayout(); });
+        ui.mapViewBtn.addEventListener('click', () => { currentView = 'map'; updateViewLayout(); });
+        ui.listViewBtn.addEventListener('click', () => { currentView = 'list'; updateViewLayout(); });
+
+        // Initial data load and authentication check when the DOM content is fully loaded
+        document.addEventListener('DOMContentLoaded', checkAuthAndLoadApp);
+    </script>
+</body>
+</html>

@@ -1,0 +1,2208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rent History - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Main dashboard background gradient - inherited from parent iframe for blending */
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* New keyframes for the light blue gradient animation */
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Main content area - removed fixed positioning and background */
+        #main-content {
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* Ensure no left margin from potential sidebar rules */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
+            background: transparent; /* Make the panel background transparent */
+            box-shadow: none; /* Remove shadow to blend it in */
+        }
+
+        /* Top Header - removed fixed positioning and background for blending */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
+        }
+
+        /* Style for the filters panel (renamed from search section to be more generic) */
+        .filters-panel {
+            background: transparent; /* Make the panel background transparent */
+            box-shadow: none; /* Remove shadow to blend it in */
+            border-radius: 1rem; /* Keep rounded corners for consistency */
+            padding: 1rem; /* Maintain padding for spacing */
+        }
+        
+        /* Apply light blue gradient to the actual input and select fields inside the filter panel */
+        .filters-panel input,
+        .filters-panel select {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite; /* Animated gradient */
+            color: #333; /* Ensure text is dark for readability */
+            border: 1px solid #d1d5db; /* Keep a subtle border */
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem; /* Ensure good padding */
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .filters-panel input:focus,
+        .filters-panel select:focus {
+            border-color: #8860D0;
+            box-shadow: 0 0 0 3px rgba(136, 96, 208, 0.2);
+        }
+
+        /* Rent Record Card Styling */
+        .rent-record-card {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .rent-record-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+
+        /* Color definitions for consistency with dashboard */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+
+        /* Signature Pad specific styles - kept for completeness in modals */
+        #signatureCanvas {
+            border: 2px solid #cbd5e1; /* Light gray border */
+            border-radius: 8px; /* Rounded corners for the canvas */
+            background-color: #ffffff;
+            touch-action: none; /* Prevent scrolling/zooming on touch */
+            width: 100%; /* Make canvas responsive */
+            height: 150px; /* Fixed height for signature area */
+            max-width: 100%; /* Ensure it doesn't overflow */
+            margin-top: 10px;
+        }
+        .signature-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            justify-content: flex-end;
+        }
+        .btn-signature {
+            padding: 8px 15px;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease-in-out;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        .btn-signature-clear {
+            background-color: #ef4444; /* Red 500 */
+            color: #ffffff;
+            border: 1px solid #ef4444;
+        }
+        .btn-signature-clear:hover {
+            background-color: #dc2626; /* Red 600 */
+        }
+        .btn-signature-save {
+            background-color: #22c55e; /* Green 500 */
+            color: #ffffff;
+            border: 1px solid #22c55e;
+        }
+        .btn-signature-save:hover {
+            background-color: #16a34a; /* Green 600 */
+        }
+        #signaturePreview {
+            max-width: 100%;
+            height: auto;
+            border: 1px dashed #9ca3af;
+            border-radius: 8px;
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-gray-800">
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="mb-6 flex items-center justify-between">
+            <div class="flex items-center">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800">Rent History</h2>
+                    <p class="text-sm text-gray-800 opacity-80">View and manage all rental records</p>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <!-- Removed Add Rent Record button as per previous implementation logic -->
+            </div>
+        </header>
+
+        <!-- Error Message Display -->
+        <div id="app-error-message" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-xl relative mb-4 hidden" role="alert">
+            <strong class="font-bold">Error!</strong>
+            <span id="error-text" class="block sm:inline">Something went wrong.</span>
+        </div>
+
+        <!-- Filters Section - now uses class filters-panel -->
+        <div class="filters-panel rounded-xl p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div class="relative">
+                <select id="status-filter" class="w-full pl-4 pr-10 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+                    <option value="All">All Status</option>
+                    <option value="Active">Active</option>
+                    <option value="Completed">Completed</option>
+                    <option value="Cancelled">Cancelled</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            </div>
+            <div class="relative">
+                <select id="payment-status-filter" class="w-full pl-4 pr-10 py-2 rounded-lg appearance-none focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+                    <option value="All">All Payment Status</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Partially Paid">Partially Paid</option>
+                    <option value="Unpaid">Unpaid</option>
+                </select>
+                <i class="fas fa-chevron-down absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+            </div>
+            <div>
+                <input type="text" id="car-plate-filter" placeholder="Filter by Car Plate" class="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+            </div>
+            <div>
+                <input type="text" id="customer-filter" placeholder="Filter by Customer Name/Phone" class="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+            </div>
+            <!-- New: Filter by Agreement Number -->
+            <div>
+                <input type="text" id="agreement-number-filter" placeholder="Filter by Agreement Number" class="w-full px-4 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-custom-blue-light">
+            </div>
+        </div>
+
+        <!-- Rent History List -->
+        <div id="rent-history-list" class="space-y-4">
+            <!-- Rent history items will be dynamically loaded here -->
+            <div id="loading-message" class="col-span-full text-center text-gray-600">
+                Loading rent history...
+            </div>
+            <p id="no-records-message" class="col-span-full text-center text-gray-600 hidden">
+                <i class="fas fa-clipboard-list text-4xl text-gray-300 mb-2"></i><br>
+                No rent history records found.
+            </p>
+        </div>
+    </div>
+
+    <!-- Edit Rent Record Modal -->
+    <div id="rent-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-lg max-h-[90vh] overflow-y-auto">
+            <h3 id="modal-title" class="text-2xl font-semibold text-gray-800 mb-4">Edit Rent Record</h3>
+            <form id="rent-form" class="space-y-4">
+                <div>
+                    <label for="agreement_number" class="block text-sm font-medium text-gray-700">Agreement Number</label>
+                    <input type="text" id="agreement_number" name="agreement_number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                </div>
+                <div>
+                    <label for="car_search_input" class="block text-sm font-medium text-gray-700">Search Vehicle</label>
+                    <input type="text" id="car_search_input" placeholder="Search by plate number, make, or model" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="car_id" class="block text-sm font-medium text-gray-700">Vehicle</label>
+                    <select id="car_id" name="car_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                        <option value="">Loading vehicles...</option>
+                    </select>
+                    <p id="car-select-error" class="text-red-500 text-sm mt-1 hidden">Failed to load vehicles. Please check your Supabase setup.</p>
+                </div>
+
+                <div>
+                    <label for="customer_search_input" class="block text-sm font-medium text-gray-700">Search Customer</label>
+                    <input type="text" id="customer_search_input" placeholder="Search by name or phone number" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="customer_id" class="block text-sm font-medium text-gray-700">Customer</label>
+                    <select id="customer_id" name="customer_id" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                        <option value="">Loading customers...</option>
+                    </select>
+                    <p id="customer-select-error" class="text-red-500 text-sm mt-1 hidden">Failed to load customers. Please check your Supabase setup.</p>
+                </div>
+
+                <div>
+                    <label for="from_date" class="block text-sm font-medium text-gray-700">From Date</label>
+                    <input type="date" id="from_date" name="from_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                </div>
+                <div>
+                    <label for="end_date" class="block text-sm font-medium text-gray-700">End Date</label>
+                    <input type="date" id="end_date" name="end_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light" required>
+                </div>
+                <div>
+                    <label for="actual_return_date" class="block text-sm font-medium text-gray-700">Actual Return Date (Optional)</label>
+                    <input type="date" id="actual_return_date" name="actual_return_date" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                    <p id="actual-return-date-error" class="text-red-500 text-sm mt-1 hidden">Actual Return Date is required when status is Completed.</p>
+                </div>
+                <div>
+                    <label for="rented_days" class="block text-sm font-medium text-gray-700">Rented Days</label>
+                    <input type="number" id="rented_days" name="rented_days" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                </div>
+                <div>
+                    <label for="initial_odometer_km" class="block text-sm font-medium text-gray-700">Initial Odometer (KM)</label>
+                    <input type="number" id="initial_odometer_km" name="initial_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="final_odometer_km" class="block text-sm font-medium text-gray-700">Final Odometer (KM) (Optional)</label>
+                    <input type="number" id="final_odometer_km" name="final_odometer_km" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="rental_price_per_day" class="block text-sm font-medium text-gray-700">Rental Price Per Day (AED)</label>
+                    <input type="number" id="rental_price_per_day" name="rental_price_per_day" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="total_price" class="block text-sm font-medium text-gray-700">Total Price (AED)</label>
+                    <input type="number" id="total_price" name="total_price" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                </div>
+                <div>
+                    <label for="paid_amount" class="block text-sm font-medium text-gray-700">Paid Amount (AED)</label>
+                    <input type="number" id="paid_amount" name="paid_amount" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="balance" class="block text-sm font-medium text-gray-700">Balance (AED)</label>
+                    <input type="number" id="balance" name="balance" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                </div>
+                <div>
+                    <label for="payment_status" class="block text-sm font-medium text-gray-700">Payment Status</label>
+                    <select id="payment_status" name="payment_status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                        <option value="Paid">Paid</option>
+                        <option value="Partially Paid">Partially Paid</option>
+                        <option value="Unpaid">Unpaid</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="status" class="block text-sm font-medium text-gray-700">Rental Status</label>
+                    <select id="status" name="status" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="flex items-end space-x-2">
+                    <div class="flex-grow">
+                        <label for="traffic_fines" class="block text-sm font-medium text-gray-700">Traffic Fines (AED)</label>
+                        <input type="number" id="traffic_fines" name="traffic_fines" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 bg-gray-100" readonly>
+                    </div>
+                    <button type="button" id="show-fines-btn" class="px-3 py-2 rounded-lg bg-custom-cyan text-white hover:bg-custom-cyan/80 transition-colors duration-200">
+                        <i class="fas fa-list-alt mr-1"></i> Show Fines
+                    </button>
+                </div>
+                <div>
+                    <label for="car_repair" class="block text-sm font-medium text-gray-700">Car Repair Cost (AED)</label>
+                    <input type="number" id="car_repair" name="car_repair" step="0.01" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light">
+                </div>
+                <div>
+                    <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+                    <textarea id="notes" name="notes" rows="3" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-custom-blue-light focus:border-custom-blue-light"></textarea>
+                </div>
+                <div class="flex justify-end space-x-3">
+                    <button type="button" id="cancel-rent-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-custom-blue-dark text-white hover:bg-custom-blue-light transition-colors duration-200">Save Record</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- New: Fines Details Modal -->
+    <div id="fines-details-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-2xl">
+            <h3 class="text-2xl font-semibold text-gray-800 mb-4">Traffic Fines Details</h3>
+            <div id="fines-list-container" class="max-h-96 overflow-y-auto">
+                <!-- Fines table will be inserted here -->
+            </div>
+            <div class="flex justify-end mt-6">
+                <button type="button" id="close-fines-modal-btn" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal (for future use, e.g., deleting records) -->
+    <div id="confirmation-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-lg p-6 w-11/12 max-w-sm">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Confirm Action</h3>
+            <p id="confirmation-message" class="text-gray-700 mb-6">Are you sure you want to proceed with this action?</p>
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancel-confirm-button" class="px-4 py-2 rounded-lg bg-gray-200 text-gray-700 hover:bg-gray-300 transition-colors duration-200">Cancel</button>
+                <button type="button" id="confirm-action-button" class="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors duration-200">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-custom-blue-dark text-white px-6 py-2 rounded-lg hover:bg-custom-blue-light focus:outline-none focus:ring-2 focus:ring-custom-blue-light focus:ring-opacity-50">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Redirect if not logged in
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                window.location.href = 'login.html'; // Redirect to login page
+            }
+        });
+
+        // --- Internationalization (i18n) Mock-up ---
+        // This is a simplified translation object. In a real app, you'd load translations dynamically.
+        const translations = {
+            en: {
+                // General
+                n_a: 'N/A',
+                daysPrint: 'Days',
+                phoneLabelPrint: 'Phone',
+                cityLabel: 'City',
+                agreementNumberPrint: 'Agreement No.', // Added translation
+
+                // Agreement Header
+                carRentalAgreementPrint: 'CAR RENTAL AGREEMENT',
+
+                // Vehicle Details Section
+                vehicleDetailsPrint: 'VEHICLE DETAILS',
+                vehRegNoPrint: 'Vehicle Reg. No.',
+                vehicleTypePrint: 'Vehicle Type',
+                yearMadePrint: 'Year Made',
+                colourPrint: 'Colour',
+                foxCarsRentalPrint: 'FOX CARS RENTAL',
+
+                // Hirer Details Section
+                hirerDetailsPrint: 'HIRER DETAILS',
+                hirerNamePrint: 'Hirer Name',
+                nationalityPrint: 'Nationality',
+                idNumPrint: 'ID No.',
+                contactNoPrint: 'Contact No.',
+                addressPrint: 'Address',
+                licenceNoPrint: 'Licence No.',
+                licExpiryDatePrint: 'Lic. Expiry Date',
+                licIssuedByPrint: 'Lic. Issued By',
+
+                // Rental Charge Section
+                rentalChargePrint: 'RENTAL CHARGE',
+                summerDatePrint: 'Date',
+                timePrint: 'Time',
+                kiloMeterPrint: 'Kilometer',
+                conditionVehPrint: 'Condition of Vehicle',
+                vehOutPrint: 'Vehicle Out',
+                vehInPrint: 'Vehicle In',
+                rentalPricePerDayLabel: 'Rental Price Per Day',
+                rentPeriodPrint: 'Rent Period',
+                totalPriceLabel: 'Total Price',
+                paidAmountLabel: 'Paid Amount',
+                balanceDueLabel: 'Balance Due',
+                trafficFinesLabel: 'Traffic Fines',
+                carRepairLabel: 'Car Repair',
+                daysNotInAgreementLabel: 'Days Not in Agreement', // Added new translation
+                totalFinesLabel: 'Total Fines', // New translation
+
+                // Disclaimer Section
+                disclaimerTitle: 'DISCLAIMER',
+                disclaimer1: 'The company is not responsible for any traffic fines or accidents.',
+                disclaimer2: 'The hirer is responsible for all damages to the vehicle during the rental period.',
+                disclaimer3: 'Any delay in returning the vehicle will result in additional charges.',
+                disclaimer4: 'The vehicle must be returned with the same fuel level as received.',
+
+                // Main Conditions Section
+                mainConditionsTitle: 'MAIN CONDITIONS',
+                mainCondition1: 'The hirer must be over 21 years old and hold a valid driving license.',
+                mainCondition2: 'The vehicle is provided for personal use only and cannot be used for commercial purposes.',
+                mainCondition3: 'Smoking is strictly prohibited inside the vehicle.',
+                mainCondition4: 'Any unauthorized modifications to the vehicle are strictly forbidden.',
+                mainCondition5: 'The hirer is responsible for all parking fees and tolls.',
+                mainCondition6: 'In case of breakdown, contact the company immediately.',
+                mainCondition7: 'The vehicle is insured, but an excess fee may apply in case of an accident.',
+                mainCondition8: 'The company reserves the right to terminate the agreement at any time.',
+
+                // Rental Terms Section
+                rentalTermsTitle: 'RENTAL TERMS & CONDITIONS',
+                rentalTerm1: 'Vehicle Delivery and Return: The vehicle will be delivered to the hirer at the agreed location and time. The hirer must return the vehicle to the agreed location and time, in the same condition as received, normal wear and tear excepted.',
+                rentalTerm2: 'Rental Period: The rental period is specified in the agreement. Any extension must be approved by the company in advance and may incur additional charges.',
+                rentalTerm3: 'Rental Charges: The hirer agrees to pay the rental charges, including daily rates, mileage charges (if applicable), and any additional services or fees as specified in the agreement.',
+                rentalTerm4: 'Fuel Policy: The vehicle is provided with a certain level of fuel. The hirer is responsible for returning the vehicle with the same fuel level. Otherwise, a refueling charge will apply, in addition to the cost of the missing fuel.',
+                rentalTerm4a: 'Full to Full: Return with a full tank, or pay for refueling service plus fuel cost.',
+                rentalTerm4b: 'Same to Same: Return with the same fuel level as received, or pay for missing fuel plus service fee.',
+                rentalTerm4c: 'Pre-purchase Fuel: Option to buy a full tank at pickup and return empty.',
+                rentalTerm4d: 'Empty to Empty: Return empty, no refunds for unused fuel.',
+                rentalTerm4e: 'Electric Vehicles: Return with a specified charge level, or incur charging fees.',
+                rentalTerm4f: 'Hybrid Vehicles: Follow specific fuel/charge guidelines.',
+                rentalTerm4g: 'Fuel Type: Use only the specified fuel type for the vehicle.',
+                rentalTerm5: 'Maintenance and Condition: The hirer agrees to maintain the vehicle in good condition and to perform routine checks (e.g., tire pressure, oil level). Any mechanical issues must be reported to the company immediately.',
+                rentalTerm5a: 'Regular Checks: Hirer responsible for checking fluid levels, tire pressure, and lights.',
+                rentalTerm5b: 'Reporting Issues: Any mechanical issues or warning lights must be reported immediately.',
+                rentalTerm5c: 'Cleaning: Vehicle should be returned in a reasonably clean condition. Excessive dirtiness may incur cleaning fees.',
+                rentalTerm6: 'Traffic Violations and Fines: The hirer is solely responsible for all traffic violations, fines, and penalties incurred during the rental period. The company reserves the right to charge the hirer for any such fines plus an administrative fee.',
+                rentalTerm6a: 'Direct Responsibility: Hirer is responsible for all fines, tolls, and parking tickets.',
+                rentalTerm7: 'Accidents and Damages: In the event of an accident or damage to the vehicle, the hirer must immediately notify the company and the police. The hirer is responsible for the deductible amount as per the insurance policy.',
+                rentalTerm7a: 'Immediate Notification: Report accidents to company and police immediately.',
+                rentalTerm7b: 'Insurance Deductible: Hirer responsible for insurance excess/deductible.',
+                rentalTerm7c: 'Third-Party Claims: Hirer must cooperate with insurance investigations.',
+                rentalTerm8: 'Insurance Coverage: The vehicle is insured as per local laws. Additional insurance coverage may be available at an extra cost.',
+                rentalTerm9: 'Prohibited Uses: The vehicle shall not be used for racing, towing, illegal activities, or transporting hazardous materials. It shall not be driven by unauthorized drivers.',
+                rentalTerm10: 'Geographical Restrictions: The vehicle may only be driven within the specified geographical area (e.g., within UAE). Driving outside this area may void the insurance and incur penalties.',
+                rentalTerm11: 'Early Return/Late Return: Early returns do not guarantee a refund for unused rental days. Late returns without prior approval will incur additional daily charges.',
+                rentalTerm12: 'Cancellation Policy: Cancellation terms and fees are specified at the time of booking. Refer to your booking confirmation for details.',
+                rentalTerm13: 'Security Deposit: A security deposit is required at the time of rental to cover potential damages, fines, or additional charges. The deposit will be refunded after the vehicle is returned and inspected, typically within a few business days.',
+                rentalTerm14: 'Personal Belongings: The company is not responsible for any personal belongings left in the vehicle after return.',
+                rentalTerm15: 'Force Majeure: The company shall not be liable for any failure or delay in performance due to circumstances beyond its reasonable control, including but not limited to natural disasters, acts of government, or strikes.',
+                rentalTerm16: 'Governing Law: This agreement shall be governed by and construed in accordance with the laws of the United Arab Emirates.',
+                rentalTerm17: 'Dispute Resolution: Any disputes arising from this agreement shall be resolved through amicable negotiation. If a resolution cannot be reached, the dispute shall be submitted to the competent courts in Ajman, UAE.',
+                rentalTerm18: 'Severability: If any provision of this agreement is found to be unenforceable or invalid, the remaining provisions shall remain in full force and effect.',
+                rentalTerm19: 'Entire Agreement: This agreement constitutes the entire understanding between the parties and supersedes all prior agreements and understandings, whether written or oral.',
+                rentalTerm20: 'Amendments: Any amendments to this agreement must be in writing and signed by both parties.',
+                rentalTerm21: 'Indemnification: The hirer agrees to indemnify and hold harmless the company from any claims, damages, or liabilities arising from the hirer\'s use of the vehicle.',
+                rentalTerm22: 'Vehicle Inspection: The hirer acknowledges that they have inspected the vehicle at the time of pickup and found it to be in good condition, as documented in the vehicle inspection report.',
+                rentalTerm23: 'Mileage Limit: A daily or total mileage limit may apply. Exceeding this limit will incur additional charges as specified in the agreement.',
+                rentalTerm24: 'Roadside Assistance: Basic roadside assistance is included. For specific services or extended coverage, refer to additional options.',
+                rentalTerm25: 'Child Seats: Child seats are available upon request and may incur an additional fee. Proper installation is the hirer\'s responsibility.',
+                rentalTerm26: 'GPS/Navigation: GPS devices are available for rent. The hirer is responsible for their care and return.',
+                rentalTerm27: 'Additional Drivers: Additional drivers must be registered with the company and meet the same eligibility criteria as the primary hirer. An additional fee may apply.',
+                rentalTerm28: 'Smoking Policy: Smoking is strictly prohibited in all vehicles. A cleaning fee will be charged for any evidence of smoking.',
+
+                // Signatures
+                hirerSignature: 'Hirer Signature',
+                sponsorSignature: 'Sponsor Signature (if applicable)',
+                officeInchargeSignature: 'Office Incharge Signature'
+            }
+        };
+
+        const currentLang = 'en'; // Default language
+
+        function getTranslation(key) {
+            return translations[currentLang][key] || key; // Fallback to key if translation not found
+        }
+
+        // DOM Elements
+        const ui = {
+            // Removed sidebar-related UI elements as per request.
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            // Rent History Specific
+            rentHistoryList: document.getElementById('rent-history-list'),
+            loadingMessage: document.getElementById('loading-message'),
+            noRecordsMessage: document.getElementById('no-records-message'),
+            statusFilter: document.getElementById('status-filter'),
+            paymentStatusFilter: document.getElementById('payment-status-filter'),
+            carPlateFilter: document.getElementById('car-plate-filter'),
+            customerFilter: document.getElementById('customer-filter'),
+            agreementNumberFilter: document.getElementById('agreement-number-filter'), // New: Agreement number filter
+            appErrorMessage: document.getElementById('app-error-message'),
+            errorText: document.getElementById('error-text'),
+            rentModal: document.getElementById('rent-modal'),
+            rentForm: document.getElementById('rent-form'),
+            cancelRentButton: document.getElementById('cancel-rent-button'),
+            agreementNumberInput: document.getElementById('agreement_number'), // Added agreement number input
+            carSearchInput: document.getElementById('car_search_input'),
+            customerSearchInput: document.getElementById('customer_search_input'),
+            carIdSelect: document.getElementById('car_id'),
+            carSelectError: document.getElementById('car-select-error'),
+            customerIdSelect: document.getElementById('customer_id'),
+            customerSelectError: document.getElementById('customer-select-error'),
+            fromDateInput: document.getElementById('from_date'),
+            endDateInput: document.getElementById('end_date'),
+            actualReturnDateInput: document.getElementById('actual_return_date'),
+            actualReturnDateError: document.getElementById('actual-return-date-error'), // Added for validation message
+            rentedDaysInput: document.getElementById('rented_days'),
+            initialOdometerInput: document.getElementById('initial_odometer_km'),
+            finalOdometerInput: document.getElementById('final_odometer_km'),
+            rentalPricePerDayInput: document.getElementById('rental_price_per_day'),
+            totalPriceInput: document.getElementById('total_price'),
+            paidAmountInput: document.getElementById('paid_amount'),
+            balanceInput: document.getElementById('balance'),
+            paymentStatusSelect: document.getElementById('payment_status'),
+            rentalStatusSelect: document.getElementById('status'),
+            trafficFinesInput: document.getElementById('traffic_fines'),
+            carRepairInput: document.getElementById('car_repair'),
+            notesInput: document.getElementById('notes'),
+            confirmationModal: document.getElementById('confirmation-modal'),
+            confirmationMessage: document.getElementById('confirmation-message'),
+            cancelConfirmButton: document.getElementById('cancel-confirm-button'),
+            confirmActionButton: document.getElementById('confirm-action-button'),
+            // New UI elements for fines modal
+            showFinesBtn: document.getElementById('show-fines-btn'),
+            finesDetailsModal: document.getElementById('fines-details-modal'),
+            finesListContainer: document.getElementById('fines-list-container'),
+            closeFinesModalBtn: document.getElementById('close-fines-modal-btn')
+        };
+
+
+        // --- Sidebar State ---
+        // Removed all sidebar-related JS functions and variables as per request.
+        // Supabase anonymous key does not provide a user ID in the same way Firebase does,
+        // so we'll just use a placeholder or remove the display if not relevant.
+        // For now, setting a default email and hiding the user ID display.
+        // ui.userEmail.textContent = "admin@foxcarrental.com"; // User email not directly used in this page now
+        // ui.userIdDisplay.classList.add('hidden'); // User ID not directly used in this page now
+
+
+        // Global variables
+        let allRentHistoryData = [];
+        let activeRentHistoryViewData = []; // To store data from active_rent_history_view
+        let allTrafficFines = []; // New: To store all traffic fines
+        let allCarsData = []; // To store all vehicles for dropdown
+        let allCustomersData = []; // To store all customers for dropdown
+        let currentEditRecordId = null; // To store the ID of the record being edited
+
+        // Office Incharge details for printing
+        const OFFICE_INCHARGE_ID = '441d9674-4a1a-4141-8791-3703ed06853f'; // The specific UUID for the office incharge
+        let officeInchargeDetails = null; // To store the fetched details of the office incharge
+
+        // --- Modal Logic ---
+        function showCustomMessageBox(title, message) {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+
+        function hideCustomMessageBox() {
+            ui.notificationModal.classList.add('hidden');
+        }
+
+        ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+
+        // --- Helper Functions ---
+
+        // Function to format date for display
+        function formatDate(dateString) {
+            if (!dateString) return 'N/A';
+            // Handle both date-only strings and full ISO strings
+            const date = new Date(dateString.includes('T') ? dateString : dateString + 'T00:00:00Z');
+            // Check for invalid date
+            if (isNaN(date.getTime())) return 'N/A';
+            return date.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: 'numeric' });
+        }
+
+        // Function to get status badge color
+        function getStatusBadgeColor(status) {
+            switch (status) {
+                case 'Active': return 'bg-blue-500';
+                case 'Completed': return 'bg-green-500';
+                case 'Cancelled': return 'bg-red-500';
+                default: return 'bg-gray-500';
+            }
+        }
+
+        // Function to get payment status badge color
+        function getPaymentStatusBadgeColor(paymentStatus) {
+            switch (paymentStatus) {
+                case 'Paid': return 'bg-green-500';
+                case 'Partially Paid': return 'bg-yellow-500';
+                case 'Unpaid': return 'bg-red-500';
+                default: return 'bg-gray-500';
+            }
+        }
+
+        // Helper to populate select dropdowns
+        function populateSelect(selectElement, data, textKey, valueKey, selectedValue = null) {
+            selectElement.innerHTML = '<option value="">Select...</option>'; // Clear existing options
+            if (selectElement === ui.carIdSelect) ui.carSelectError.classList.add('hidden');
+            if (selectElement === ui.customerIdSelect) ui.customerSelectError.classList.add('hidden');
+
+            if (!data || data.length === 0) {
+                const noOption = document.createElement('option');
+                noOption.value = "";
+                noOption.textContent = `No ${textKey.replace('_', ' ')}s found`;
+                noOption.disabled = true;
+                selectElement.appendChild(noOption);
+                return;
+            }
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item[valueKey];
+                option.textContent = item[textKey];
+                if (selectedValue !== null && String(item[valueKey]) === String(selectedValue)) {
+                    option.selected = true;
+                }
+                selectElement.appendChild(option);
+            });
+        }
+
+        // --- Fetching Data for Dropdowns ---
+        async function fetchAllCarsForDropdown() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('cars')
+                    .select('id, plate_number, veh_make (make), veh_model (model)');
+                if (error) throw error;
+                allCarsData = data.map(car => ({
+                    id: car.id,
+                    text: `${car.veh_make?.make || 'N/A'} ${car.veh_model?.model || 'N/A'} (${car.plate_number || 'N/A'})`,
+                    plate_number: car.plate_number,
+                    make: car.veh_make?.make,
+                    model: car.veh_model?.model
+                }));
+                populateSelect(ui.carIdSelect, allCarsData, 'text', 'id');
+            }
+            catch (error) {
+                console.error("Error fetching cars for dropdown:", error.message);
+                ui.carSelectError.textContent = `Error loading vehicles: ${error.message}`;
+                ui.carSelectError.classList.remove('hidden');
+                ui.carIdSelect.innerHTML = '<option value="">Error loading vehicles</option>';
+            }
+        }
+
+        async function fetchAllCustomersForDropdown() {
+            try {
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('id, first_name, last_name, phone_number');
+                if (error) throw error;
+                allCustomersData = data.map(customer => ({
+                    id: customer.id,
+                    text: `${customer.first_name || ''} ${customer.last_name || ''} (${customer.phone_number || 'N/A'})`.trim(),
+                    first_name: customer.first_name,
+                    last_name: customer.last_name,
+                    phone_number: customer.phone_number
+                }));
+                populateSelect(ui.customerIdSelect, allCustomersData, 'text', 'id');
+            }
+            catch (error) {
+                console.error("Error fetching customers for dropdown:", error.message);
+                ui.customerSelectError.textContent = `Error loading customers: ${error.message}`;
+                ui.customerSelectError.classList.remove('hidden');
+                ui.customerIdSelect.innerHTML = '<option value="">Error loading customers</option>';
+            }
+        }
+
+        // Filter dropdowns based on search input
+        ui.carSearchInput.addEventListener('input', () => {
+            const searchTerm = ui.carSearchInput.value.toLowerCase();
+            const filtered = allCarsData.filter(car =>
+                car.text.toLowerCase().includes(searchTerm) ||
+                (car.plate_number && car.plate_number.toLowerCase().includes(searchTerm)) ||
+                (car.make && car.make.toLowerCase().includes(searchTerm)) ||
+                (car.model && car.model.toLowerCase().includes(searchTerm))
+            );
+            populateSelect(ui.carIdSelect, filtered, 'text', 'id', ui.carIdSelect.value); // Keep selected value if it's in filtered list
+        });
+
+        ui.customerSearchInput.addEventListener('input', () => {
+            const searchTerm = ui.customerSearchInput.value.toLowerCase();
+            const filtered = allCustomersData.filter(customer =>
+                customer.text.toLowerCase().includes(searchTerm) ||
+                (customer.first_name && customer.first_name.toLowerCase().includes(searchTerm)) ||
+                (customer.last_name && customer.last_name.toLowerCase().includes(searchTerm)) ||
+                (customer.phone_number && customer.phone_number.toLowerCase().includes(searchTerm))
+            );
+            populateSelect(ui.customerIdSelect, filtered, 'text', 'id', ui.customerIdSelect.value); // Keep selected value if it's in filtered list
+        });
+
+
+        // --- Calculation Logic for Rented Days, Total Price, Balance ---
+        // New function to manage rental status based on return date
+        function updateRentalStatusBasedOnReturnDate() {
+            const rentalStatusOptions = ui.rentalStatusSelect.options;
+            const hasReturnDate = !!ui.actualReturnDateInput.value;
+
+            if (hasReturnDate) {
+                ui.rentalStatusSelect.value = 'Completed';
+                for (let i = 0; i < rentalStatusOptions.length; i++) {
+                    rentalStatusOptions[i].disabled = rentalStatusOptions[i].value !== 'Completed';
+                }
+            } else {
+                // If no return date, re-enable all options
+                for (let i = 0; i < rentalStatusOptions.length; i++) {
+                    rentalStatusOptions[i].disabled = false;
+                }
+            }
+        }
+        
+        function calculateRentedDays() {
+            const fromDateStr = ui.fromDateInput.value;
+            const endDateStr = ui.endDateInput.value;
+            const actualReturnDateStr = ui.actualReturnDateInput.value;
+            let rentedDays = 0;
+
+            if (fromDateStr) {
+                const start = new Date(fromDateStr);
+                let effectiveEnd = null;
+
+                // Prioritize actual_return_date if provided and valid
+                if (actualReturnDateStr) {
+                    effectiveEnd = new Date(actualReturnDateStr);
+                } else if (endDateStr) {
+                    effectiveEnd = new Date(endDateStr);
+                }
+
+                if (effectiveEnd) {
+                    // Calculate difference in milliseconds, ensuring it's always positive
+                    const diffTime = Math.abs(effectiveEnd.getTime() - start.getTime());
+
+                    // If the dates are identical (0 milliseconds difference), it's 1 day
+                    if (diffTime === 0) {
+                        rentedDays = 1;
+                    } else {
+                        // For any other difference, calculate days and round up.
+                        rentedDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                    }
+                }
+            }
+            ui.rentedDaysInput.value = rentedDays;
+            calculateTotalPriceAndBalance(); // Recalculate total price and balance
+        }
+
+        function calculateTotalPriceAndBalance() {
+            const rentedDays = parseFloat(ui.rentedDaysInput.value) || 0;
+            const rentalPricePerDay = parseFloat(ui.rentalPricePerDayInput.value) || 0;
+            const paidAmount = parseFloat(ui.paidAmountInput.value) || 0;
+            const trafficFines = parseFloat(ui.trafficFinesInput.value) || 0;
+            const carRepair = parseFloat(ui.carRepairInput.value) || 0;
+
+            const calculatedTotalPrice = (rentedDays * rentalPricePerDay) + trafficFines + carRepair;
+            ui.totalPriceInput.value = calculatedTotalPrice.toFixed(2);
+
+            const calculatedBalance = calculatedTotalPrice - paidAmount;
+            ui.balanceInput.value = calculatedBalance.toFixed(2);
+
+            const paidOption = ui.paymentStatusSelect.querySelector('option[value="Paid"]');
+
+            // 1. Manage the disabled state of the 'Paid' option
+            if (calculatedBalance > 0) {
+                paidOption.disabled = true;
+            } else {
+                paidOption.disabled = false;
+            }
+
+            // 2. Set the select value based on the new balance, respecting the disabled state
+            if (calculatedBalance <= 0) {
+                ui.paymentStatusSelect.value = 'Paid';
+            } else if (paidAmount > 0) { // balance > 0 and some payment was made
+                ui.paymentStatusSelect.value = 'Partially Paid';
+            } else { // balance > 0 and no payment was made
+                ui.paymentStatusSelect.value = 'Unpaid';
+            }
+        }
+
+        // Add event listeners for calculations
+        ui.fromDateInput.addEventListener('change', calculateRentedDays);
+        ui.endDateInput.addEventListener('change', calculateRentedDays);
+        
+        // New listener for actual return date to update status and rented days
+        ui.actualReturnDateInput.addEventListener('change', () => {
+            calculateRentedDays();
+            updateRentalStatusBasedOnReturnDate();
+        });
+
+        ui.rentalPricePerDayInput.addEventListener('input', calculateTotalPriceAndBalance);
+        ui.paidAmountInput.addEventListener('input', calculateTotalPriceAndBalance);
+        // trafficFinesInput is now readonly, so no need for an input listener
+        ui.carRepairInput.addEventListener('input', calculateTotalPriceAndBalance);
+
+
+        // --- Rendering Function ---
+        function renderRentHistory(rentals) {
+            ui.rentHistoryList.innerHTML = ''; // Clear existing items
+            ui.appErrorMessage.classList.add('hidden'); // Hide any previous app errors
+
+            if (rentals.length === 0) {
+                ui.noRecordsMessage.classList.remove('hidden'); // Show no records message
+                return;
+            } else {
+                ui.noRecordsMessage.classList.add('hidden'); // Hide no records message
+            }
+
+            rentals.forEach(rental => {
+                const carInfo = rental.cars || {}; // Joined car data
+                const customerInfo = rental.customers || {}; // Joined customer data
+                const makeInfo = carInfo.veh_make || {}; // Joined make data
+                const modelInfo = carInfo.veh_model || {}; // Joined model data
+
+                // Use the actual make and model names for display
+                const carDisplay = `${makeInfo.make || 'N/A'} ${modelInfo.model || 'N/A'} (${carInfo.plate_number || 'N/A'})`;
+                // Use the correct column names from the 'customers' table for display
+                const customerDisplay = `${customerInfo.first_name || ''} ${customerInfo.last_name || ''}`.trim() || 'N/A';
+                const customerPhone = customerInfo.phone_number || 'N/A';
+
+                const fromDate = formatDate(rental.from_date);
+                const endDate = formatDate(rental.end_date);
+                const actualReturnDate = rental.actual_return_date ? ` (Returned: ${formatDate(rental.actual_return_date)})` : '';
+
+                const trafficFines = parseFloat(rental.traffic_fines || 0);
+                const carRepair = parseFloat(rental.car_repair || 0);
+
+                // Calculate Days Not in Agreement
+                let daysNotInAgreement = 0;
+                const expectedEndDate = rental.end_date ? new Date(rental.end_date) : null;
+                const actualReturn = rental.actual_return_date ? new Date(rental.actual_return_date) : null;
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
+
+                if (expectedEndDate) {
+                    expectedEndDate.setHours(0, 0, 0, 0); // Normalize expected end date
+
+                    if (actualReturn) {
+                        actualReturn.setHours(0, 0, 0, 0); // Normalize actual return date
+                        if (actualReturn > expectedEndDate) {
+                            daysNotInAgreement = Math.ceil((actualReturn - expectedEndDate) / (1000 * 60 * 60 * 24));
+                        }
+                    } else if (rental.status === 'Active' && today > expectedEndDate) {
+                        // If car is active and past due date
+                        daysNotInAgreement = Math.ceil((today - expectedEndDate) / (1000 * 60 * 60 * 24));
+                    }
+                }
+
+                // Determine which total_price and balance to display
+                let displayTotalPrice = parseFloat(rental.total_price || 0).toFixed(2);
+                let displayBalance = parseFloat(rental.balance || 0).toFixed(2);
+                let displayRentedDays = rental.rented_days !== null ? rental.rented_days : getTranslation('n_a');
+
+
+                if (rental.status === 'Active') {
+                    const activeViewRecord = activeRentHistoryViewData.find(item => item.id === rental.id);
+                    if (activeViewRecord) {
+                        if (activeViewRecord.total_price_calculated !== undefined) {
+                            displayTotalPrice = parseFloat(activeViewRecord.total_price_calculated).toFixed(2);
+                        }
+                        if (activeViewRecord.balance_due !== undefined) {
+                            displayBalance = parseFloat(activeViewRecord.balance_due).toFixed(2);
+                        }
+                        if (activeViewRecord.total_days_so_far !== undefined) {
+                            displayRentedDays = activeViewRecord.total_days_so_far;
+                        }
+                    }
+                }
+
+                // **CORRECTED: Calculate Total Fines for the rental period**
+                const carPlateNumber = carInfo.plate_number;
+                let totalFinesForPeriod = 0;
+
+                if (carPlateNumber && allTrafficFines.length > 0) {
+                    // Get the start date of the rental. It's a timestamp with timezone.
+                    const rentalStart = new Date(rental.from_date);
+                    // Set to the beginning of that day in UTC.
+                    rentalStart.setUTCHours(0, 0, 0, 0);
+
+                    // Determine the end date. Use actual return date if available, otherwise today.
+                    const rentalEnd = rental.actual_return_date ? new Date(rental.actual_return_date) : new Date();
+                    // Set to the end of that day in UTC.
+                    rentalEnd.setUTCHours(23, 59, 59, 999);
+
+                    const relevantFines = allTrafficFines.filter(fine => {
+                        // Ensure the fine has the necessary data
+                        if (fine.plate_number !== carPlateNumber || !fine.fine_date) {
+                            return false;
+                        }
+
+                        // The fine_date is a 'date' type, so it comes as 'YYYY-MM-DD'.
+                        // new Date('YYYY-MM-DD') creates a date at midnight UTC. This is what we want.
+                        const fineDate = new Date(fine.fine_date);
+
+                        // Compare the timestamps.
+                        return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
+                    });
+
+                    if (relevantFines.length > 0) {
+                        totalFinesForPeriod = relevantFines.reduce((sum, fine) => sum + (parseFloat(fine.total_amount) || 0), 0);
+                    }
+                }
+                // **END CORRECTION**
+
+                // --- NEW: Calculate Total KM Driven ---
+                let totalKMDriven = 'N/A';
+                if (rental.initial_odometer_km != null && rental.final_odometer_km != null && rental.final_odometer_km > rental.initial_odometer_km) {
+                    totalKMDriven = (rental.final_odometer_km - rental.initial_odometer_km).toLocaleString();
+                }
+                // --- END NEW ---
+
+                // --- EDIT: Add Payment Button Logic ---
+                // The button is now always shown.
+                const addPaymentButtonHtml = `
+                    <a href="customer-payment.html?id=${rental.id}" class="add-payment-btn mt-2 bg-green-500 text-white hover:bg-green-600 transition-colors duration-200 px-3 py-1 rounded-lg text-center">
+                        <i class="fas fa-money-bill-wave mr-1"></i> Add Payment
+                    </a>
+                `;
+                // --- END EDIT ---
+
+
+                const item = document.createElement('div');
+                // Added rent-record-card class for light blue gradient
+                item.className = `rent-record-card p-5 flex flex-col md:flex-row items-start md:items-center justify-between space-y-4 md:space-y-0 md:space-x-4 border-l-4 ${getStatusBadgeColor(rental.status).replace('bg', 'border')}`;
+                item.innerHTML = `
+                    <div class="flex-1 space-y-2 w-full md:w-auto">
+                        <div class="flex items-center text-lg font-semibold text-gray-900">
+                            <i class="fas fa-file-contract mr-2 text-custom-blue-dark"></i>
+                            ${rental.agreement_number || getTranslation('n_a')}
+                        </div>
+                        <div class="flex items-center text-lg font-semibold text-gray-900">
+                            <i class="fas fa-car mr-2 text-custom-blue-dark"></i>
+                            ${carDisplay}
+                        </div>
+                        <div class="flex items-center text-gray-700 text-sm">
+                            <i class="fas fa-user mr-2 text-custom-blue-dark"></i>
+                            ${customerDisplay} (<a href="tel:${customerPhone}" class="text-custom-blue-dark hover:underline">${customerPhone}</a>)
+                        </div>
+                        <div class="flex items-center text-gray-700 text-sm">
+                            <i class="fas fa-calendar-alt mr-2 text-custom-blue-dark"></i>
+                            ${fromDate} - ${endDate}${actualReturnDate}
+                        </div>
+                    </div>
+
+                    <div class="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-2 text-sm w-full md:w-auto">
+                        <div>
+                            <p class="text-gray-600">Days</p>
+                            <p class="font-semibold text-gray-900">${displayRentedDays}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Total Price</p>
+                            <p class="font-semibold text-gray-900">AED ${displayTotalPrice}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Paid Amount</p>
+                            <p class="font-semibold text-green-600">AED ${parseFloat(rental.paid_amount || 0).toFixed(2)}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Balance</p>
+                            <p class="font-semibold text-red-600">AED ${displayBalance}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">${getTranslation('daysNotInAgreementLabel')}</p>
+                            <p class="font-semibold text-orange-600">${daysNotInAgreement > 0 ? daysNotInAgreement : '0'} ${getTranslation('daysPrint')}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">Total KM Driven</p>
+                            <p class="font-semibold text-gray-900">${totalKMDriven === 'N/A' ? 'N/A' : `${totalKMDriven} km`}</p>
+                        </div>
+                        <div>
+                            <p class="text-gray-600">${getTranslation('totalFinesLabel')}</p>
+                            <p class="font-semibold text-red-700">AED ${totalFinesForPeriod.toFixed(2)}</p>
+                        </div>
+                        ${trafficFines > 0 || carRepair > 0 ? `
+                            <div class="col-span-2 lg:col-span-4 text-xs text-gray-500 mt-2">
+                                ${trafficFines > 0 ? `<p>Agreement Fines: AED ${trafficFines.toFixed(2)}</p>` : ''}
+                                ${carRepair > 0 ? `<p>Car Repair: AED ${carRepair.toFixed(2)}</p>` : ''}
+                            </div>
+                        ` : ''}
+                    </div>
+
+                    <div class="flex flex-col items-end space-y-2 w-full md:w-auto">
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold text-white ${getStatusBadgeColor(rental.status)}">
+                            ${rental.status || 'N/A'}
+                        </span>
+                        <span class="px-3 py-1 rounded-full text-xs font-semibold text-white ${getPaymentStatusBadgeColor(rental.payment_status)}">
+                            ${rental.payment_status || 'N/A'}
+                        </span>
+                        <button data-id="${rental.id}" class="edit-record-btn text-custom-blue-dark hover:text-custom-blue-dark/80 transition-colors duration-200 px-3 py-1 rounded-lg border border-custom-blue-dark">
+                            Edit Record
+                        </button>
+                        <button data-id="${rental.id}" class="print-agreement-btn bg-custom-purple text-white hover:bg-custom-purple/80 transition-colors duration-200 px-3 py-1 rounded-lg">
+                            <i class="fas fa-print mr-1"></i> Print Agreement
+                        </button>
+                        ${addPaymentButtonHtml}
+                    </div>
+                `;
+                ui.rentHistoryList.appendChild(item);
+            });
+
+            // Add event listeners for edit buttons
+            document.querySelectorAll('.edit-record-btn').forEach(button => {
+                button.addEventListener('click', (e) => openEditRentModal(e.currentTarget.dataset.id));
+            });
+
+            // Add event listeners for print buttons
+            document.querySelectorAll('.print-agreement-btn').forEach(button => {
+                button.addEventListener('click', (e) => printRentalAgreement(e.currentTarget.dataset.id));
+            });
+        }
+
+        // Fetch rent history from Supabase with joins
+        async function fetchRentHistory() {
+            ui.loadingMessage.classList.remove('hidden');
+            ui.rentHistoryList.innerHTML = ''; // Clear existing items
+            ui.appErrorMessage.classList.add('hidden'); // Hide any previous errors
+            ui.noRecordsMessage.classList.add('hidden'); // Hide no records message initially
+
+            console.log("Attempting to fetch rent history...");
+            try {
+                // Fetch all data in parallel for efficiency
+                const [
+                    { data: rentHistoryData, error: rentHistoryError },
+                    { data: activeViewData, error: activeViewError },
+                    { data: finesData, error: finesError }
+                ] = await Promise.all([
+                    supabaseClient.from('rent_history').select(`
+                        *,
+                        cars (
+                            plate_number, year, color, odometer_km,
+                            veh_make (make),
+                            veh_model (model)
+                        ),
+                        customers (id, first_name, last_name, email, phone_number, address, city, driver_license_number, driver_license_expiry_date, date_of_birth, id_number, nationality, license_issued_by, signature)
+                    `),
+                    supabaseClient.from('active_rent_history_view').select('id, total_price_calculated, balance_due, total_days_so_far'),
+                    supabaseClient.from('traffic_fines').select('fine_number, plate_number, fine_date, total_amount') // New: Fetch fine_number and all fines
+                ]);
+
+                if (rentHistoryError) throw rentHistoryError;
+                if (activeViewError) console.warn("Warning: Could not fetch from active_rent_history_view:", activeViewError.message);
+                if (finesError) console.error("Error fetching traffic fines:", finesError.message);
+                
+                allRentHistoryData = rentHistoryData;
+                activeRentHistoryViewData = activeViewData || [];
+                allTrafficFines = finesData || []; // New: Store traffic fines data
+
+                ui.loadingMessage.classList.add('hidden'); // Always hide loading message when fetch is done
+
+                console.log("Rent history fetched successfully:", allRentHistoryData);
+                console.log("Active rent history view fetched:", activeRentHistoryViewData);
+                console.log("Traffic fines fetched successfully:", allTrafficFines); // New: Log fines data
+
+                applyFilters(allRentHistoryData); // Apply filters after fetching
+            }
+            catch (error) {
+                console.error("An unexpected error occurred during fetchRentHistory:", error);
+                ui.loadingMessage.classList.add('hidden');
+                ui.errorText.textContent = `An unexpected error occurred: ${error.message}`;
+                ui.appErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        // Function to apply filters
+        function applyFilters(rentalsData) {
+            let filteredRentals = [...rentalsData]; // Create a mutable copy
+
+            const selectedStatus = ui.statusFilter.value;
+            const selectedPaymentStatus = ui.paymentStatusFilter.value;
+            const carPlateSearchTerm = ui.carPlateFilter.value.toLowerCase(); // New filter value
+            const customerSearchTerm = ui.customerFilter.value.toLowerCase(); // New filter value
+            const agreementNumberSearchTerm = ui.agreementNumberFilter.value.toLowerCase(); // New: Agreement number filter value
+
+            if (selectedStatus !== 'All') {
+                filteredRentals = filteredRentals.filter(rental => rental.status === selectedStatus);
+            }
+
+            if (selectedPaymentStatus !== 'All') {
+                filteredRentals = filteredRentals.filter(rental => rental.payment_status === selectedPaymentStatus);
+            }
+
+            // Apply car plate filter
+            if (carPlateSearchTerm) {
+                filteredRentals = filteredRentals.filter(rental =>
+                    rental.cars && rental.cars.plate_number && rental.cars.plate_number.toLowerCase().includes(carPlateSearchTerm)
+                );
+            }
+
+            // Apply customer filter (by first name, last name, or phone number)
+            if (customerSearchTerm) {
+                filteredRentals = filteredRentals.filter(rental =>
+                    rental.customers && (
+                        (rental.customers.first_name && rental.customers.first_name.toLowerCase().includes(customerSearchTerm)) ||
+                        (rental.customers.last_name && rental.customers.last_name.toLowerCase().includes(customerSearchTerm)) ||
+                        (rental.customers.phone_number && rental.customers.phone_number.toLowerCase().includes(customerSearchTerm))
+                    )
+                );
+            }
+
+            // New: Apply agreement number filter
+            if (agreementNumberSearchTerm) {
+                filteredRentals = filteredRentals.filter(rental =>
+                    rental.agreement_number && String(rental.agreement_number).toLowerCase().includes(agreementNumberSearchTerm)
+                );
+            }
+
+            renderRentHistory(filteredRentals);
+        }
+
+        // Event listeners for filters
+        ui.statusFilter.addEventListener('change', () => applyFilters(allRentHistoryData));
+        ui.paymentStatusFilter.addEventListener('change', () => applyFilters(allRentHistoryData));
+        ui.carPlateFilter.addEventListener('input', () => applyFilters(allRentHistoryData)); // New listener
+        ui.customerFilter.addEventListener('input', () => applyFilters(allRentHistoryData)); // New listener
+        ui.agreementNumberFilter.addEventListener('input', () => applyFilters(allRentHistoryData)); // New: Agreement number filter listener
+
+        // Initial fetch when the page loads
+        fetchRentHistory();
+
+        // --- Edit Rent Modal Logic ---
+
+        // Function to reset the edit modal fields to their default (editable) state
+        function resetEditModalFields() {
+            // Re-enable fields and make them writable
+            ui.agreementNumberInput.readOnly = false;
+            ui.carSearchInput.disabled = false;
+            ui.carIdSelect.disabled = false;
+            ui.customerSearchInput.disabled = false;
+            ui.customerIdSelect.disabled = false;
+            ui.initialOdometerInput.readOnly = false;
+            ui.rentalPricePerDayInput.readOnly = false;
+            ui.paidAmountInput.readOnly = false;
+
+            // Remove visual styling for disabled/readonly fields
+            const fieldsToReset = [
+                ui.agreementNumberInput, ui.carSearchInput, ui.carIdSelect, 
+                ui.customerSearchInput, ui.customerIdSelect, ui.initialOdometerInput, 
+                ui.rentalPricePerDayInput, ui.paidAmountInput
+            ];
+            fieldsToReset.forEach(field => field.classList.remove('bg-gray-100'));
+
+            // Show search input fields again
+            document.querySelector('label[for="car_search_input"]').parentElement.classList.remove('hidden');
+            document.querySelector('label[for="customer_search_input"]').parentElement.classList.remove('hidden');
+
+            // Remove validation error styling
+            ui.finalOdometerInput.classList.remove('border-red-500');
+        }
+
+        // Open modal for editing rent record
+        async function openEditRentModal(id) {
+            currentEditRecordId = id;
+            ui.rentForm.reset(); // Clear form
+            resetEditModalFields(); // Reset fields to editable state first
+            ui.actualReturnDateError.classList.add('hidden'); // Hide error on modal open
+
+            // --- HIDE SEARCH FIELDS AND MAKE AGREEMENT # READONLY ---
+            document.querySelector('label[for="car_search_input"]').parentElement.classList.add('hidden');
+            document.querySelector('label[for="customer_search_input"]').parentElement.classList.add('hidden');
+            ui.agreementNumberInput.readOnly = true;
+            ui.agreementNumberInput.classList.add('bg-gray-100');
+            // --- END HIDE/READONLY ---
+
+            // Fetch the specific record with its relations
+            const { data: record, error } = await supabaseClient
+                .from('rent_history')
+                .select('*, cars(plate_number)') // Also fetch the car's plate number directly
+                .eq('id', id)
+                .single();
+
+            if (error) {
+                console.error("Error fetching rent record for edit:", error);
+                showCustomMessageBox("Error", "Error fetching rent record details: " + error.message);
+                return;
+            }
+
+            if (record) {
+                // Populate dropdowns first
+                await Promise.all([fetchAllCarsForDropdown(), fetchAllCustomersForDropdown()]);
+
+                // Populate form fields
+                ui.agreementNumberInput.value = record.agreement_number || '';
+                ui.carIdSelect.value = record.car_id || '';
+                ui.customerIdSelect.value = record.customer_id || '';
+                ui.fromDateInput.value = record.from_date ? record.from_date.split('T')[0] : '';
+                ui.endDateInput.value = record.end_date ? record.end_date.split('T')[0] : '';
+                ui.actualReturnDateInput.value = record.actual_return_date ? record.actual_return_date.split('T')[0] : '';
+                ui.initialOdometerInput.value = record.initial_odometer_km || '';
+                ui.finalOdometerInput.value = record.final_odometer_km || '';
+                ui.rentalPricePerDayInput.value = record.rental_price_per_day || '';
+                ui.paidAmountInput.value = record.paid_amount || '';
+                ui.paymentStatusSelect.value = record.payment_status || 'Unpaid';
+                ui.rentalStatusSelect.value = record.status || 'Active';
+                ui.carRepairInput.value = record.car_repair || 0;
+                ui.notesInput.value = record.notes || '';
+
+                // --- Make key fields read-only for editing ---
+                ui.carIdSelect.disabled = true;
+                ui.customerIdSelect.disabled = true;
+                ui.initialOdometerInput.readOnly = true;
+                ui.rentalPricePerDayInput.readOnly = true;
+                ui.paidAmountInput.readOnly = true; // Make Paid Amount read-only
+
+                // Add visual indication for disabled/readonly fields
+                const fieldsToStyle = [
+                    ui.carIdSelect, ui.customerIdSelect, ui.initialOdometerInput, 
+                    ui.rentalPricePerDayInput, ui.paidAmountInput
+                ];
+                fieldsToStyle.forEach(field => field.classList.add('bg-gray-100'));
+                // --- END ---
+
+                // Calculate and populate total fines
+                const carPlateNumber = record.cars?.plate_number;
+                let totalFinesForPeriod = 0;
+                if (carPlateNumber) {
+                    const rentalStart = new Date(record.from_date);
+                    rentalStart.setUTCHours(0, 0, 0, 0);
+                    const rentalEnd = record.actual_return_date ? new Date(record.actual_return_date) : new Date();
+                    rentalEnd.setUTCHours(23, 59, 59, 999);
+
+                    const relevantFines = allTrafficFines.filter(fine => {
+                        if (fine.plate_number !== carPlateNumber || !fine.fine_date) return false;
+                        const fineDate = new Date(fine.fine_date);
+                        return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
+                    });
+                    if (relevantFines.length > 0) {
+                        totalFinesForPeriod = relevantFines.reduce((sum, fine) => sum + (parseFloat(fine.total_amount) || 0), 0);
+                    }
+                }
+                // Set the readonly traffic fines input
+                ui.trafficFinesInput.value = totalFinesForPeriod.toFixed(2);
+
+
+                // Update rental status dropdown based on whether a return date exists
+                updateRentalStatusBasedOnReturnDate();
+
+                // Set required status for actual_return_date based on initial rental status
+                const isCompletedOnLoad = ui.rentalStatusSelect.value === 'Completed';
+                ui.actualReturnDateInput.required = isCompletedOnLoad;
+                if (isCompletedOnLoad && !ui.actualReturnDateInput.value) {
+                    ui.actualReturnDateError.classList.remove('hidden');
+                } else {
+                    ui.actualReturnDateError.classList.add('hidden');
+                }
+
+                // Recalculate derived fields after populating inputs
+                calculateRentedDays(); // This will also call calculateTotalPriceAndBalance
+
+                ui.rentModal.classList.remove('hidden');
+            } else {
+                console.error("No rent record found with ID:", id);
+                showCustomMessageBox("Error", "No rent record found with the provided ID.");
+            }
+        }
+
+        ui.cancelRentButton.addEventListener('click', () => {
+            resetEditModalFields(); // Also reset fields on cancel
+            ui.rentModal.classList.add('hidden');
+        });
+
+        ui.rentModal.addEventListener('click', (e) => {
+            if (e.target === ui.rentModal) { // Close when clicking outside the modal content
+                resetEditModalFields(); // Also reset fields on click outside
+                ui.rentModal.classList.add('hidden');
+            }
+        });
+
+        // Event listener for rental status change to enforce actual return date
+        ui.rentalStatusSelect.addEventListener('change', () => {
+            const isCompleted = ui.rentalStatusSelect.value === 'Completed';
+            ui.actualReturnDateInput.required = isCompleted;
+            if (isCompleted && !ui.actualReturnDateInput.value) {
+                ui.actualReturnDateError.classList.remove('hidden');
+            } else {
+                ui.actualReturnDateError.classList.add('hidden');
+            }
+        });
+
+        // Handle form submission (Update)
+        ui.rentForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            // --- ODOMETER AND STATUS VALIDATION ---
+            const initialOdometer = parseFloat(ui.initialOdometerInput.value) || 0;
+            const finalOdometerStr = ui.finalOdometerInput.value;
+            const finalOdometer = parseFloat(finalOdometerStr) || 0;
+            const newStatus = ui.rentalStatusSelect.value;
+            const actualReturnDate = ui.actualReturnDateInput.value;
+
+            // 1. Validate Final Odometer is required if status is 'Completed'
+            if (newStatus === 'Completed' && !finalOdometerStr) {
+                showCustomMessageBox("Validation Error", "Final Odometer (KM) is required when rental status is 'Completed'.");
+                ui.finalOdometerInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                return;
+            }
+
+            // 2. Validate Final Odometer is greater than Initial Odometer
+            if (finalOdometerStr && finalOdometer <= initialOdometer) {
+                showCustomMessageBox("Validation Error", "Final Odometer must be greater than the Initial Odometer.");
+                ui.finalOdometerInput.classList.add('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+                return;
+            }
+            
+            ui.finalOdometerInput.classList.remove('border-red-500', 'focus:border-red-500', 'focus:ring-red-500');
+
+            // 3. Validate Actual Return Date is required if status is 'Completed'
+            if (newStatus === 'Completed' && !actualReturnDate) {
+                ui.actualReturnDateError.classList.remove('hidden');
+                showCustomMessageBox("Validation Error", "Actual Return Date is required when the rental status is 'Completed'.");
+                return;
+            } else {
+                ui.actualReturnDateError.classList.add('hidden');
+            }
+            // --- END VALIDATION ---
+
+            const formData = new FormData(ui.rentForm);
+            const oldRentRecord = allRentHistoryData.find(r => r.id === currentEditRecordId);
+            const oldCarId = oldRentRecord?.car_id;
+            const oldStatus = oldRentRecord?.status;
+
+            const carId = ui.carIdSelect.value;
+            const customerId = ui.customerIdSelect.value;
+            
+            if (!carId || !customerId) {
+                showCustomMessageBox("Validation Error", "A Vehicle and Customer must be selected. Please refresh and try again.");
+                return;
+            }
+
+            const rentData = {
+                agreement_number: formData.get('agreement_number'),
+                car_id: parseInt(carId),
+                customer_id: customerId,
+                from_date: formData.get('from_date') || null,
+                end_date: formData.get('end_date') || null,
+                actual_return_date: actualReturnDate || null,
+                rented_days: parseInt(formData.get('rented_days')) || 0,
+                initial_odometer_km: parseFloat(ui.initialOdometerInput.value) || null,
+                final_odometer_km: finalOdometerStr ? parseFloat(finalOdometerStr) : null,
+                rental_price_per_day: parseFloat(ui.rentalPricePerDayInput.value) || 0,
+                total_price: parseFloat(formData.get('total_price')) || 0,
+                paid_amount: parseFloat(formData.get('paid_amount')) || 0,
+                balance: parseFloat(formData.get('balance')) || 0,
+                payment_status: formData.get('payment_status'),
+                status: newStatus,
+                traffic_fines: parseFloat(formData.get('traffic_fines')) || 0,
+                car_repair: parseFloat(formData.get('car_repair')) || 0,
+                notes: formData.get('notes'),
+                updated_at: new Date().toISOString()
+            };
+
+            console.log("Submitting rent record data:", rentData);
+
+            try {
+                const { data, error } = await supabaseClient
+                    .from('rent_history')
+                    .update(rentData)
+                    .eq('id', currentEditRecordId);
+
+                if (error) throw error;
+                console.log("Rent record updated:", data);
+                
+                // --- UPDATE CAR ODOMETER AND STATUS ---
+                // Update Odometer in 'cars' table if a final value was provided
+                if (rentData.final_odometer_km) {
+                    console.log(`Updating odometer for car_id: ${rentData.car_id} to ${rentData.final_odometer_km}`);
+                    const { error: carOdometerError } = await supabaseClient
+                        .from('cars')
+                        .update({ odometer_km: rentData.final_odometer_km })
+                        .eq('id', rentData.car_id);
+
+                    if (carOdometerError) {
+                        console.error("Error updating car odometer:", carOdometerError.message);
+                        showCustomMessageBox("Warning", "Rent record saved, but failed to update car's odometer.");
+                    }
+                }
+
+                // Update car status in 'cars' table based on rental status change
+                let carStatusToUpdate = null;
+                if (newStatus === 'Active') carStatusToUpdate = 'Rented';
+                else if (newStatus === 'Completed' || newStatus === 'Cancelled') carStatusToUpdate = 'Available';
+
+                if (carStatusToUpdate && newStatus !== oldStatus) {
+                    console.log(`Updating car status for car_id: ${rentData.car_id} to '${carStatusToUpdate}'`);
+                    const { error: carStatusError } = await supabaseClient
+                        .from('cars')
+                        .update({ status: carStatusToUpdate })
+                        .eq('id', rentData.car_id);
+
+                    if (carStatusError) {
+                        console.error("Error updating car status:", carStatusError.message);
+                        showCustomMessageBox("Warning", "Rent record saved, but failed to update car's status.");
+                    }
+                }
+                // --- END CAR UPDATE ---
+
+                showCustomMessageBox("Success", "Rent record updated successfully!");
+                ui.rentModal.classList.add('hidden');
+                fetchRentHistory(); // Re-fetch all records to update the list
+            }
+            catch (error) {
+                console.error("Error saving rent record:", error.message);
+                showCustomMessageBox("Error", "Error saving rent record: " + error.message);
+            }
+        });
+
+        // --- New Fines Modal Logic ---
+        function displayFinesDetails(fines) {
+            ui.finesListContainer.innerHTML = ''; // Clear previous content
+
+            if (!fines || fines.length === 0) {
+                ui.finesListContainer.innerHTML = `<p class="text-gray-600 text-center">No traffic fines found for this rental period.</p>`;
+            } else {
+                const table = document.createElement('table');
+                table.className = 'w-full text-left border-collapse';
+                table.innerHTML = `
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 border-b">Fine Number</th>
+                            <th class="p-3 border-b">Fine Date</th>
+                            <th class="p-3 border-b text-right">Amount (AED)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${fines.map(fine => `
+                            <tr class="hover:bg-gray-50">
+                                <td class="p-3 border-b">${fine.fine_number || 'N/A'}</td>
+                                <td class="p-3 border-b">${formatDate(fine.fine_date)}</td>
+                                <td class="p-3 border-b text-right">${(parseFloat(fine.total_amount) || 0).toFixed(2)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                `;
+                ui.finesListContainer.appendChild(table);
+            }
+
+            ui.finesDetailsModal.classList.remove('hidden');
+        }
+
+        ui.showFinesBtn.addEventListener('click', () => {
+            if (!currentEditRecordId) return;
+
+            const rental = allRentHistoryData.find(r => r.id === currentEditRecordId);
+            if (!rental || !rental.cars) return;
+
+            const carPlateNumber = rental.cars.plate_number;
+            const rentalStart = new Date(rental.from_date);
+            rentalStart.setUTCHours(0, 0, 0, 0);
+            const rentalEnd = rental.actual_return_date ? new Date(rental.actual_return_date) : new Date();
+            rentalEnd.setUTCHours(23, 59, 59, 999);
+
+            const relevantFines = allTrafficFines.filter(fine => {
+                if (fine.plate_number !== carPlateNumber || !fine.fine_date) return false;
+                const fineDate = new Date(fine.fine_date);
+                return fineDate.getTime() >= rentalStart.getTime() && fineDate.getTime() <= rentalEnd.getTime();
+            });
+
+            displayFinesDetails(relevantFines);
+        });
+
+        ui.closeFinesModalBtn.addEventListener('click', () => {
+            ui.finesDetailsModal.classList.add('hidden');
+        });
+
+        ui.finesDetailsModal.addEventListener('click', (e) => {
+            if (e.target === ui.finesDetailsModal) {
+                ui.finesDetailsModal.classList.add('hidden');
+            }
+        });
+
+        // --- Confirmation Modal Logic (Generic) ---
+        ui.cancelConfirmButton.addEventListener('click', () => {
+            ui.confirmationModal.classList.add('hidden');
+        });
+
+        ui.confirmActionButton.addEventListener('click', () => {
+            // This button's action would be determined by the context that opens the modal
+            // For now, it just closes the modal.
+            ui.confirmationModal.classList.add('hidden');
+        });
+
+        // Function to fetch office incharge details
+        async function fetchOfficeInchargeDetails() {
+            try {
+                // Use .limit(1).maybeSingle() to avoid an error if no record is found.
+                // This will return null instead of throwing an error.
+                const { data, error } = await supabaseClient
+                    .from('customers')
+                    .select('first_name, last_name, signature')
+                    .eq('id', OFFICE_INCHARGE_ID)
+                    .limit(1)
+                    .maybeSingle();
+
+                if (error) {
+                    // This will now only catch actual database/network errors, not "no rows"
+                    console.error("Error fetching office incharge details:", error.message);
+                    officeInchargeDetails = null;
+                    return;
+                }
+                
+                // data will be null if no record was found, which is a valid state.
+                officeInchargeDetails = data; 
+                
+                if(officeInchargeDetails) {
+                    console.log("Office Incharge Details fetched:", officeInchargeDetails);
+                } else {
+                    console.warn("Office Incharge record not found for ID:", OFFICE_INCHARGE_ID);
+                }
+
+            } catch (error) {
+                console.error("An unexpected error occurred while fetching office incharge details:", error);
+                officeInchargeDetails = null;
+            }
+        }
+
+        // --- Print Rental Agreement Function ---
+        async function printRentalAgreement(rentalId) {
+            // Fetch full rental details
+            const { data: rental, error } = await supabaseClient
+                .from('rent_history')
+                .select(`
+                    *,
+                    cars (plate_number, year, color, odometer_km,
+                        veh_make (make),
+                        veh_model (model)
+                    ),
+                    customers (first_name, last_name, email, phone_number, address, city, driver_license_number, driver_license_expiry_date, date_of_birth, id_number, nationality, license_issued_by, signature)
+                `)
+                .eq('id', rentalId)
+                .single();
+
+            if (error) {
+                console.error('Error fetching rental details for print:', error.message, error); // Log the full error object
+                showCustomMessageBox("Print Error", `Error fetching rental details for print: ${error.message}`);
+                return;
+            }
+
+            if (!rental) {
+                console.error('Rental record not found for printing.');
+                showCustomMessageBox("Print Error", "Rental record not found for printing.");
+                return;
+            }
+
+            // Prepare data for the agreement
+            const vehicle = rental.cars || {};
+            const customer = rental.customers || {};
+            const make = vehicle.veh_make ? vehicle.veh_make.make : getTranslation('n_a');
+            const model = vehicle.veh_model ? vehicle.veh_model.model : getTranslation('n_a');
+
+            const createdAtDate = rental.created_at ? new Date(rental.created_at).toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            }) : '';
+
+            // Calculate Days Not in Agreement for print
+            let daysNotInAgreement = 0;
+            const expectedEndDate = rental.end_date ? new Date(rental.end_date) : null;
+            const actualReturn = rental.actual_return_date ? new Date(rental.actual_return_date) : null;
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Normalize today's date to start of day
+
+            if (expectedEndDate) {
+                expectedEndDate.setHours(0, 0, 0, 0); // Normalize expected end date
+
+                if (actualReturn) {
+                    actualReturn.setHours(0, 0, 0, 0); // Normalize actual return date
+                    if (actualReturn > expectedEndDate) {
+                        daysNotInAgreement = Math.ceil((actualReturn - expectedEndDate) / (1000 * 60 * 60 * 24));
+                    }
+                } else if (rental.status === 'Active' && today > expectedEndDate) {
+                    // If car is active and past due date
+                    daysNotInAgreement = Math.ceil((today - expectedEndDate) / (1000 * 60 * 60 * 24));
+                }
+            }
+
+            // Determine which total_price and balance to display for the printout
+            let displayTotalPriceForPrint = parseFloat(rental.total_price || 0).toFixed(2);
+            let displayBalanceForPrint = parseFloat(rental.balance || 0).toFixed(2);
+            let displayRentedDaysForPrint = rental.rented_days !== null ? rental.rented_days : getTranslation('n_a');
+
+
+            if (rental.status === 'Active') {
+                const activeViewRecord = activeRentHistoryViewData.find(item => item.id === rental.id);
+                if (activeViewRecord) {
+                    if (activeViewRecord.total_price_calculated !== undefined) {
+                        displayTotalPriceForPrint = parseFloat(activeViewRecord.total_price_calculated).toFixed(2);
+                    }
+                    if (activeViewRecord.balance_due !== undefined) {
+                        displayBalanceForPrint = parseFloat(activeViewRecord.balance_due).toFixed(2);
+                    }
+                    if (activeViewRecord.total_days_so_far !== undefined) {
+                        displayRentedDaysForPrint = activeViewRecord.total_days_so_far;
+                    }
+                }
+            }
+
+            // Office Incharge details for print
+            const officeInchargeSignatureHtml = officeInchargeDetails && officeInchargeDetails.signature
+                ? `<img src="${officeInchargeDetails.signature}" alt="Office Incharge Signature" class="signature-image">`
+                : '';
+            const officeInchargeName = officeInchargeDetails
+                ? `${officeInchargeDetails.first_name || ''} ${officeInchargeDetails.last_name || ''}`.trim()
+                : '';
+
+
+            const printContent = `
+                <!DOCTYPE html>
+                <html lang="${currentLang}" dir="${currentLang === 'ar' ? 'rtl' : 'ltr'}">
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>${getTranslation('carRentalAgreementPrint')}</title>
+                    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+                    <style>
+                        body {
+                            font-family: 'Poppins', sans-serif;
+                            margin: 0;
+                            padding: 20px;
+                            color: #333;
+                            font-size: 12px;
+                        }
+                        .agreement-container {
+                            width: 210mm; /* A4 width */
+                            min-height: 297mm; /* A4 height */
+                            margin: 0 auto;
+                            border: 1px solid #ccc;
+                            padding: 20px;
+                            box-sizing: border-box;
+                            background: white;
+                        }
+                        .print-header-image {
+                            width: 100%;
+                            height: auto;
+                            display: block;
+                            margin-bottom: 20px; /* Space below the image */
+                        }
+                        .header {
+                            display: flex;
+                            justify-content: space-between;
+                            align-items: center;
+                            margin-bottom: 20px;
+                            border-bottom: 2px solid #eee;
+                            padding-bottom: 10px;
+                        }
+                        .header-left, .header-right {
+                            flex: 1;
+                            text-align: left; /* Aligned to left */
+                        }
+                        html[dir="rtl"] .header-left, html[dir="rtl"] .header-right {
+                            text-align: right; /* Aligned to right for RTL */
+                        }
+                        .header-center {
+                            flex: 2;
+                            text-align: center;
+                        }
+                        .header h1 {
+                            font-size: 18px;
+                            margin: 0;
+                            color: #4361ee;
+                        }
+                        .header .logo-text {
+                            font-size: 24px;
+                            font-weight: bold;
+                            color: #e74c3c; /* Reddish color from image */
+                            display: inline-block;
+                            margin-right: 10px;
+                        }
+                        .header .logo-subtext {
+                            font-size: 16px;
+                            color: #555;
+                        }
+                        .details-section {
+                            display: flex; /* Use flexbox for side-by-side tables */
+                            justify-content: space-between;
+                            gap: 20px; /* Space between tables */
+                            margin-bottom: 20px;
+                        }
+                        .details-section > div {
+                            flex: 1; /* Each table takes equal width */
+                        }
+                        .agreement-table {
+                            width: 100%;
+                            border-collapse: collapse;
+                        }
+                        .agreement-table th, .agreement-table td {
+                            border: 1px solid #ccc;
+                            padding: 8px;
+                            text-align: left;
+                            vertical-align: top;
+                        }
+                        html[dir="rtl"] .agreement-table th, html[dir="rtl"] .agreement-table td {
+                            text-align: right;
+                        }
+                        .agreement-table th {
+                            background-color: #f2f2f2;
+                            font-weight: bold;
+                            width: 40%; /* Adjust column width for labels */
+                        }
+                        .agreement-table td {
+                            width: 60%; /* Adjust column width for values */
+                        }
+                        .agreement-table.full-width {
+                            width: 100%; /* Ensure the rental charge table spans full width */
+                        }
+                        .section-title {
+                            font-weight: bold;
+                            background-color: #e0e0e0;
+                            text-align: center;
+                        }
+                        .disclaimer-section, .main-conditions-section, .rental-terms-section {
+                            margin-top: 30px;
+                            border-top: 1px solid #eee;
+                            padding-top: 20px;
+                        }
+                        .disclaimer-section h3, .main-conditions-section h3, .rental-terms-section h3 {
+                            font-size: 14px;
+                            margin-bottom: 10px;
+                            color: #4361ee;
+                        }
+                        /* Custom numbering for ordered lists */
+                        .disclaimer-section ol, .main-conditions-section ol, .rental-terms-section ol {
+                            list-style-type: none; /* Remove default numbering */
+                            padding-left: 0;
+                            counter-reset: item; /* Initialize counter */
+                        }
+                        .disclaimer-section ol li, .main-conditions-section ol li, .rental-terms-section ol li {
+                            margin-bottom: 8px;
+                            line-height: 1.4;
+                            position: relative;
+                            padding-left: 20px; /* Space for custom numbering */
+                        }
+                        html[dir="rtl"] .disclaimer-section ol li, html[dir="rtl"] .main-conditions-section ol li, html[dir="rtl"] .rental-terms-section ol li {
+                            padding-right: 20px;
+                            padding-left: 0;
+                        }
+                        .disclaimer-section ol li::before, .main-conditions-section ol li::before, .rental-terms-section ol li::before {
+                            content: counter(item) ". "; /* Add counter before each list item */
+                            counter-increment: item; /* Increment counter */
+                            position: absolute;
+                            left: 0;
+                            font-weight: bold; /* Make numbers bold */
+                            color: black; /* Make numbers black */
+                        }
+                        html[dir="rtl"] .disclaimer-section ol li::before, html[dir="rtl"] .main-conditions-section ol li::before, html[dir="rtl"] .rental-terms-section ol li::before {
+                            left: unset;
+                            right: 0;
+                        }
+
+                        /* Styling for nested ordered lists (a, b, c...) */
+                        .rental-terms-section ol ol {
+                            list-style-type: none;
+                            padding-left: 20px; /* Indent nested list */
+                            counter-reset: sub-item; /* Initialize sub-counter */
+                        }
+
+                        .rental-terms-section ol ol li {
+                            padding-left: 20px; /* Space for sub-numbering */
+                        }
+
+                        html[dir="rtl"] .rental-terms-section ol ol li {
+                            padding-right: 20px;
+                            padding-left: 0;
+                        }
+
+                        .rental-terms-section ol ol li::before {
+                            content: counter(sub-item, lower-alpha) ". "; /* Use lower-alpha for sub-numbering */
+                            counter-increment: sub-item;
+                            position: absolute;
+                            left: 0;
+                            font-weight: bold; /* Make sub-numbers bold */
+                            color: black; /* Make sub-numbers black */
+                        }
+                        html[dir="rtl"] .rental-terms-section ol ol li::before {
+                            left: unset;
+                            right: 0;
+                        }
+
+                        .signature-section {
+                            display: flex;
+                            justify-content: space-around;
+                            margin-top: 40px;
+                            padding-top: 20px;
+                            border-top: 1px dashed #ccc;
+                            font-size: 14px;
+                            text-align: center;
+                        }
+                        .signature-block {
+                            flex: 1;
+                            padding: 0 10px;
+                            position: relative; /* Added for positioning the image */
+                        }
+                        .signature-line {
+                            border-bottom: 1px solid #000;
+                            margin-top: 40px; /* Space for signature */
+                            margin-bottom: 5px;
+                        }
+                        .signature-block p { /* Added this rule to move the name down */
+                            margin-top: 10px; /* Adjust this value as needed */
+                        }
+                        .logo-img {
+                            max-width: 150px; /* Adjust as needed */
+                            height: auto;
+                            display: block;
+                            margin: 0 auto 10px auto; /* Center the image */
+                        }
+                        .signature-image {
+                            max-width: 100%;
+                            height: 80px; /* Fixed height for signature image */
+                            object-fit: contain; /* Ensure the image fits within the bounds */
+                            position: absolute; /* Position absolutely within the block */
+                            bottom: 50px; /* Adjusted to move signature higher */
+                            left: 50%;
+                            transform: translateX(-50%); /* Center the image horizontally */
+                            display: block;
+                        }
+
+
+                        @media print {
+                            body {
+                                padding: 0;
+                                margin: 0;
+                            }
+                            .agreement-container {
+                                border: none;
+                                box-shadow: none;
+                            }
+                            /* Reduced spacing for print */
+                            .disclaimer-section,
+                            .main-conditions-section,
+                            .rental-terms-section {
+                                margin-top: 0 !important; /* Force no margin */
+                                padding-top: 0 !important; /* Force no padding */
+                                border-top: none !important; /* Remove border for cleaner flow */
+                                }
+                            .disclaimer-section h3,
+                            .main-conditions-section h3,
+                            .rental-terms-section h3 {
+                                margin-bottom: 3px !important; /* Reduce heading margin */
+                            }
+                            .rental-terms-section h3 {
+                                margin-bottom: 0px !important; /* Specifically target this title to remove gap */
+                            }
+                            .disclaimer-section ol li,
+                            .main-conditions-section ol li,
+                            .rental-terms-section ol li {
+                                margin-bottom: 2px !important; /* Reduce list item margin */
+                            }
+                            /* Try to keep lists from breaking */
+                            .disclaimer-section ol,
+                            .main-conditions-section ol,
+                            .rental-terms-section ol {
+                            }
+                            /* Ensure the last item of main conditions doesn't get separated from the next section title */
+                            .main-conditions-section {
+                            }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="agreement-container">
+                        <img src="https://i.imgur.com/Tveneh5.png" alt="Print Header" class="print-header-image">
+
+                        <div style="display: flex; justify-content: space-between; align-items: baseline; text-align: center; margin-bottom: 20px;">
+                            <div style="flex: 1; text-align: left; font-size: 12px;">
+                                <strong>${getTranslation('agreementNumberPrint')}:</strong> ${rental.agreement_number || getTranslation('n_a')}
+                            </div>
+                            <h1 style="flex: 1; font-size: 16px; color: #4361ee; margin: 0;">
+                                ${getTranslation('carRentalAgreementPrint')}
+                            </h1>
+                            <div style="flex: 1; text-align: right; font-size: 12px;">${createdAtDate}</div>
+                        </div>
+
+                        <div class="details-section">
+                            <div>
+                                <table class="agreement-table">
+                                    <thead>
+                                        <tr>
+                                            <th colspan="2" class="section-title">${getTranslation('vehicleDetailsPrint')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>${getTranslation('vehRegNoPrint')}:</th>
+                                            <td>${vehicle.plate_number || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('vehicleTypePrint')}:</th>
+                                            <td>${make} ${model}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('yearMadePrint')}:</th>
+                                            <td>${vehicle.year || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('colourPrint')}:</th>
+                                            <td>${vehicle.color || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('foxCarsRentalPrint')}:</th>
+                                            <td>AJMAN RASHIDIYA 2</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('phoneLabelPrint')}:</th>
+                                            <td>${getTranslation('n_a')}</td> <!-- Assuming a general contact for FOX CARS RENTAL -->
+                                        </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div>
+                            <table class="agreement-table">
+                                <thead>
+                                    <tr>
+                                        <th colspan="2" class="section-title">${getTranslation('hirerDetailsPrint')}</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <th>${getTranslation('hirerNamePrint')}:</th>
+                                            <td>${customer.first_name || ''} ${customer.last_name || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('nationalityPrint')}:</th>
+                                            <td>${customer.nationality || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('idNumPrint')}:</th>
+                                            <td>${customer.id_number || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('contactNoPrint')}:</th>
+                                            <td>${customer.phone_number || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('addressPrint')}:</th>
+                                            <td>${customer.address || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('cityLabel')}:</th>
+                                            <td>${customer.city || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('licenceNoPrint')}:</th>
+                                            <td>${customer.driver_license_number || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('licExpiryDatePrint')}:</th>
+                                            <td>${customer.driver_license_expiry_date || getTranslation('n_a')}</td>
+                                        </tr>
+                                        <tr>
+                                            <th>${getTranslation('licIssuedByPrint')}:</th>
+                                            <td>${customer.license_issued_by || getTranslation('n_a')}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <table class="agreement-table full-width">
+                            <thead>
+                                <tr>
+                                    <th colspan="4" class="section-title">${getTranslation('rentalChargePrint')}</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <th>${getTranslation('summerDatePrint')}</th>
+                                    <th>${getTranslation('timePrint')}</th>
+                                    <th>${getTranslation('kiloMeterPrint')}</th>
+                                    <th>${getTranslation('conditionVehPrint')}</th>
+                                </tr>
+                                <tr>
+                                    <td>${rental.from_date ? new Date(rental.from_date).toLocaleDateString() : getTranslation('n_a')}</td>
+                                    <td>${getTranslation('n_a')}</td> <!-- Time not available in data -->
+                                    <td>${vehicle.odometer_km || getTranslation('n_a')}</td>
+                                    <td>${getTranslation('n_a')}</td> <!-- Condition not available in data -->
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('vehOutPrint')}</th>
+                                    <td colspan="3">${rental.from_date ? new Date(rental.from_date).toLocaleDateString() : getTranslation('n_a')}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('vehInPrint')}</th>
+                                    <td colspan="3">${rental.actual_return_date ? new Date(rental.actual_return_date).toLocaleDateString() : getTranslation('n_a')}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('rentalPricePerDayLabel')}:</th>
+                                    <td>AED ${rental.rental_price_per_day !== null ? rental.rental_price_per_day.toFixed(2) : '0.00'}</td>
+                                    <th>${getTranslation('rentPeriodPrint')}:</th>
+                                    <td>${displayRentedDaysForPrint} ${getTranslation('daysPrint')}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('totalPriceLabel')}:</th>
+                                    <td colspan="3">AED ${displayTotalPriceForPrint}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('paidAmountLabel')}:</th>
+                                    <td colspan="3">AED ${rental.paid_amount !== null ? rental.paid_amount.toFixed(2) : '0.00'}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('daysNotInAgreementLabel')}:</th>
+                                    <td colspan="3">${daysNotInAgreement > 0 ? `${daysNotInAgreement} ${getTranslation('daysPrint')}` : `0 ${getTranslation('daysPrint')}`}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('balanceDueLabel')}:</th>
+                                    <td colspan="3">AED ${displayBalanceForPrint}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('trafficFinesLabel')}:</th>
+                                    <td colspan="3">AED ${rental.traffic_fines !== null ? rental.traffic_fines.toFixed(2) : '0.00'}</td>
+                                </tr>
+                                <tr>
+                                    <th>${getTranslation('carRepairLabel')}:</th>
+                                    <td colspan="3">AED ${rental.car_repair !== null ? rental.car_repair.toFixed(2) : '0.00'}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="disclaimer-section">
+                            <h3>${getTranslation('disclaimerTitle')}</h3>
+                            <ol>
+                                <li><span style="color: red;">${getTranslation('disclaimer1')}</span></li>
+                                <li><span style="color: red;">${getTranslation('disclaimer2')}</span></li>
+                                <li><span style="color: red;">${getTranslation('disclaimer3')}</span></li>
+                                <li><span style="color: red;">${getTranslation('disclaimer4')}</span></li>
+                            </ol>
+                        </div>
+
+                        <div class="main-conditions-section">
+                            <h3>${getTranslation('mainConditionsTitle')}</h3>
+                            <ol>
+                                <li>${getTranslation('mainCondition1')}</li>
+                                <li>${getTranslation('mainCondition2')}</li>
+                                <li>${getTranslation('mainCondition3')}</li>
+                                <li><span style="color: red;">${getTranslation('mainCondition4')}</span></li>
+                                <li>${getTranslation('mainCondition5')}</li>
+                                <li>${getTranslation('mainCondition6')}</li>
+                                <li>${getTranslation('mainCondition7')}</li>
+                                <li>${getTranslation('mainCondition8')}</li>
+                            </ol>
+                        </div>
+
+                        <div class="rental-terms-section">
+                            <h3>${getTranslation('rentalTermsTitle')}</h3>
+                            <ol>
+                                <li>${getTranslation('rentalTerm1')}</li>
+                                <li>${getTranslation('rentalTerm2')}</li>
+                                <li>${getTranslation('rentalTerm3')}</li>
+                                <li>${getTranslation('rentalTerm4')}
+                                    <ol>
+                                        <li>${getTranslation('rentalTerm4a')}</li>
+                                        <li>${getTranslation('rentalTerm4b')}</li>
+                                        <li>${getTranslation('rentalTerm4c')}</li>
+                                        <li>${getTranslation('rentalTerm4d')}</li>
+                                        <li>${getTranslation('rentalTerm4e')}</li>
+                                        <li>${getTranslation('rentalTerm4f')}</li>
+                                        <li>${getTranslation('rentalTerm4g')}</li>
+                                    </ol>
+                                </li>
+                                <li>${getTranslation('rentalTerm5')}
+                                    <ol>
+                                        <li>${getTranslation('rentalTerm5a')}</li>
+                                        <li>${getTranslation('rentalTerm5b')}</li>
+                                        <li>${getTranslation('rentalTerm5c')}</li>
+                                    </ol>
+                                </li>
+                                <li>${getTranslation('rentalTerm6')}
+                                    <ol>
+                                        <li>${getTranslation('rentalTerm6a')}</li>
+                                    </ol>
+                                </li>
+                                <li>${getTranslation('rentalTerm7')}
+                                    <ol>
+                                        <li>${getTranslation('rentalTerm7a')}</li>
+                                        <li>${getTranslation('rentalTerm7b')}</li>
+                                        <li>${getTranslation('rentalTerm7c')}</li>
+                                    </ol>
+                                </li>
+                                <li>${getTranslation('rentalTerm8')}</li>
+                                <li>${getTranslation('rentalTerm9')}</li>
+                                <li><span style="color: red;">${getTranslation('rentalTerm10')}</span></li>
+                                <li>${getTranslation('rentalTerm11')}</li>
+                                <li>${getTranslation('rentalTerm12')}</li>
+                                <li>${getTranslation('rentalTerm13')}</li>
+                                <li>${getTranslation('rentalTerm14')}</li>
+                                <li>${getTranslation('rentalTerm15')}</li>
+                                <li>${getTranslation('rentalTerm16')}</li>
+                                <li>${getTranslation('rentalTerm17')}</li>
+                                <li>${getTranslation('rentalTerm18')}</li>
+                                <li>${getTranslation('rentalTerm19')}</li>
+                                <li>${getTranslation('rentalTerm20')}</li>
+                                <li>${getTranslation('rentalTerm21')}</li>
+                                <li>${getTranslation('rentalTerm22')}</li>
+                                <li>${getTranslation('rentalTerm23')}</li>
+                                <li>${getTranslation('rentalTerm24')}</li>
+                                <li>${getTranslation('rentalTerm25')}</li>
+                                <li>${getTranslation('rentalTerm26')}</li>
+                                <li>${getTranslation('rentalTerm27')}</li>
+                                <li>${getTranslation('rentalTerm28')}</li>
+                            </ol>
+                        </div>
+
+                        <div class="signature-section">
+                            <div class="signature-block">
+                                ${customer.signature ? `<img src="${customer.signature}" alt="Hirer Signature" class="signature-image">` : ''}
+                                <div class="signature-line"></div>
+                                <p data-i18n-key="hirerSignature">${customer.first_name || ''} ${customer.last_name || ''} (${getTranslation('hirerSignature')})</p>
+                            </div>
+                            <div class="signature-block">
+                                <div class="signature-line"></div>
+                                <p data-i18n-key="sponsorSignature">${getTranslation('sponsorSignature')}</p>
+                            </div>
+                            <div class="signature-block">
+                                ${officeInchargeSignatureHtml}
+                                <div class="signature-line"></div>
+                                <p data-i18n-key="officeInchargeSignature">${officeInchargeName} (${getTranslation('officeInchargeSignature')})</p>
+                            </div>
+                        </div>
+                    </div>
+                </body>
+                </html>
+            `;
+
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(printContent);
+            printWindow.document.close();
+            printWindow.focus();
+            printWindow.print();
+        }
+
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', async () => {
+            await fetchOfficeInchargeDetails(); // Fetch office incharge details on load
+            fetchRentHistory(); // Fetch data on initial load
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car Registration Expiry Dashboard</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Applied the new background gradient */
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed;
+            min-height: 100vh;
+            margin: 0; /* Ensure no default body margin */
+            padding: 0; /* Ensure no default body padding */
+            color: #333; /* Default text color */
+            display: flex; /* Still flex to center inner content */
+            flex-direction: column; /* Changed to column to stack header and container */
+            align-items: center; /* Center horizontally */
+            justify-content: flex-start; /* Align to top */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .dashboard-container {
+            /* Removed background, box-shadow, and border to make it blend with the body background */
+            /* The padding, width, max-width, margin-bottom and color properties are kept for layout and text contrast */
+            padding: 2.5rem;
+            width: 100%;
+            max-width: 1200px; /* Max width for larger screens */
+            box-sizing: border-box;
+            margin-bottom: 2rem; /* Add some space at the bottom */
+            color: #333; /* Changed to dark for contrast on potentially light gradient areas */
+        }
+
+        /* Explicitly set text color to dark for main headings and paragraphs within the blended container */
+        .dashboard-container h1,
+        .dashboard-container h2,
+        .dashboard-container p,
+        .dashboard-container label {
+            color: #333; /* Dark color for readability on blended background */
+        }
+        /* Revert the main heading and intro text back to black for better contrast */
+        .dashboard-container .text-white { /* Target elements that specifically had text-white */
+            color: #333; /* Change to black */
+        }
+
+        /* Adjust specific elements inside dashboard-container that need different colors */
+        .expiry-card .title,
+        .expiry-card .details,
+        .expiry-card .date,
+        .data-table th,
+        .data-table td {
+             color: #333; /* Revert to dark for cards/table cells as their background is white */
+        }
+
+        /* Ensure search inputs and selects maintain visibility */
+        .search-filter-container input,
+        .search-filter-container select {
+            /* Apply the new gradient background */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: expiryCardGradient 8s ease infinite; /* Use the same animation as cards */
+            
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            flex-grow: 1;
+            min-width: 180px; /* Ensure inputs are not too small */
+            color: #333; /* Ensure input text is dark */
+        }
+
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); /* Responsive grid */
+            gap: 1.5rem;
+        }
+
+        .expiry-card {
+            /* Applied the new gradient background for expiry cards */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: expiryCardGradient 8s ease infinite;
+            border-radius: 1rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+                        0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-left: 8px solid; /* For status indication */
+            cursor: pointer; /* Add cursor pointer to indicate it's clickable */
+        }
+
+        @keyframes expiryCardGradient {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .expiry-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Status-specific card styles */
+        .expiry-card.status-expired { border-color: #ef4444; } /* Red */
+        .expiry-card.status-expiring-soon { border-color: #f59e0b; } /* Amber */
+        .expiry-card.status-expiring-3months { border-color: #3b82f6; } /* Blue */
+        .expiry-card.status-valid { border-color: #22c55e; } /* Green */
+        .expiry-card.status-no-date { border-color: #9ca3af; } /* Gray */
+
+        .expiry-card .icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .expiry-card .title {
+            font-weight: 700;
+            font-size: 1.25rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .expiry-card .details {
+            font-size: 0.9rem;
+            color: #4b5563;
+        }
+
+        .expiry-card .date {
+            font-weight: 600;
+            color: #374151;
+            margin-top: 0.5rem;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-right: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .legend-color {
+            width: 1.25rem;
+            height: 1.25rem;
+            border-radius: 0.25rem;
+            margin-right: 0.5rem;
+            box-shadow: inset 0 0 0 1px rgba(0,0,0,0.1); /* Subtle border */
+        }
+
+        /* Specific legend colors */
+        .legend-color.expired { background-color: #ef4444; }
+        .legend-color.expiring-soon { background-color: #f59e0b; }
+        .legend-color.expiring-3months { background-color: #3b82f6; }
+        .legend-color.valid { background-color: #22c55e; }
+        .legend-color.no-date { background-color: #9ca3af; }
+
+        /* Search and filter styles */
+        .search-filter-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            align-items: center;
+        }
+
+        .search-filter-container input,
+        .search-filter-container select {
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            border: 1px solid #d1d5db;
+            outline: none;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            flex-grow: 1;
+            min-width: 180px; /* Ensure inputs are not too small */
+        }
+
+        .search-filter-container input:focus,
+        .search-filter-container select:focus {
+            border-color: #8860D0;
+            box-shadow: 0 0 0 3px rgba(136, 96, 208, 0.2);
+        }
+
+        /* Table styles */
+        .data-table-container {
+            /* Apply the same light blue gradient and animation */
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: expiryCardGradient 8s ease infinite; /* Use the same animation as cards */
+            border-radius: 1.5rem; /* Rounded corners for the container */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            padding: 2rem;
+            margin-top: 2rem;
+            overflow-x: auto; /* Enable horizontal scrolling for small screens */
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: separate; /* Allows border-radius on cells */
+            border-spacing: 0;
+            text-align: left;
+        }
+
+        .data-table th, .data-table td {
+            padding: 0.75rem 1rem;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0; /* Light gray border */
+        }
+
+        .data-table th {
+            background-color: transparent; /* Changed to transparent to show gradient */
+            font-weight: 600;
+            color: #4a5568; /* Darker gray text */
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+        }
+
+        .data-table tbody tr:last-child td {
+            border-bottom: none; /* No border for the last row */
+        }
+
+        .data-table tbody tr:hover {
+            background-color: rgba(255, 255, 255, 0.5); /* Subtle hover effect, semi-transparent white */
+        }
+
+        .table-status-badge {
+            padding: 0.3rem 0.75rem;
+            border-radius: 9999px; /* Pill shape */
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 80px; /* Ensure consistent width for badges */
+            text-transform: capitalize; /* Capitalize the first letter of status */
+        }
+
+        /* Table Status Badge Colors for car availability status */
+        .table-status-badge.active { background-color: #d1fae5; color: #059669; } /* Green */
+        .table-status-badge.inactive { background-color: #fee2e2; color: #dc2626; } /* Red */
+        .table-status-badge.maintenance { background-color: #fffbeb; color: #d97706; } /* Amber */
+        .table-status-badge.rented { background-color: #bfdbfe; color: #1d4ed8; } /* Blue */
+        .table-status-badge.unknown { background-color: #e5e7eb; color: #4b5563; } /* Gray */
+
+        /* Status Badge Colors for registration expiry status (original, still used for cards) */
+        .table-status-badge.expired { background-color: #fee2e2; color: #dc2626; } /* Red */
+        .table-status-badge.expiring-soon { background-color: #fffbeb; color: #d97706; } /* Amber */
+        .table-status-badge.valid { background-color: #d1fae5; color: #059669; } /* Green */
+        .table-status-badge.unknown { background-color: #e5e7eb; color: #4b5563; } /* Gray */
+
+        /* Header without sidebar */
+        #main-header {
+            width: 100%; /* Take full width */
+            padding: 1.5rem 2.5rem; /* Increased padding */
+            margin-bottom: 1.5rem; /* Space below header */
+            background-color: transparent;
+            box-shadow: none;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 overflow-y-auto w-full">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header">
+             <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Vehicle Registration</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                <button id="refresh-data-header" class="bg-purple-600 text-white px-4 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+                 <div class="flex items-center space-x-2">
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                 </div>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
+        </header>
+
+        <div class="dashboard-container">
+            <h1 class="text-4xl font-extrabold mb-6 text-center" style="color: #333;">
+                <i class="fas fa-calendar-alt text-purple-600 mr-3"></i> Car Registration Expiry
+            </h1>
+            <p class="mb-8 text-center" style="color: #333;">Monitor and manage vehicle registration expiry dates.</p>
+
+            <!-- Search and Filter -->
+            <div class="search-filter-container">
+                <input type="text" id="search-input" placeholder="Search by make, model, or plate number..." class="text-gray-700">
+                <select id="filter-status-expiry" class="text-gray-700"> <!-- Renamed to avoid conflict -->
+                    <option value="all">All Expiry Statuses</option>
+                    <option value="expired">Expired</option>
+                    <option value="expiring-soon">Expiring Soon (1 Month)</option>
+                    <option value="expiring-3months">Expiring (1-3 Months)</option>
+                    <option value="valid">Valid (>3 Months)</option>
+                    <option value="no-date">No Expiry Date</option>
+                </select>
+                <input type="number" id="filter-days-remaining" placeholder="Days remaining (e.g., 30)" class="text-gray-700">
+
+                <!-- New: Year Filter -->
+                <select id="filter-year" class="text-gray-700">
+                    <option value="all">All Years</option>
+                    <!-- Years will be dynamically populated here -->
+                </select>
+
+                <!-- New: Availability Status Filter -->
+                <select id="filter-availability-status" class="text-gray-700">
+                    <option value="all">All Availability Statuses</option>
+                    <!-- Availability statuses will be dynamically populated here -->
+                </select>
+
+                <button id="refresh-data-body" class="bg-purple-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh
+                </button>
+                <button id="export-xls-button" class="bg-green-600 text-white px-6 py-2 rounded-lg shadow-md hover:bg-green-700 transition-colors duration-200 flex items-center justify-center">
+                    <i class="fas fa-file-excel mr-2"></i>Export to XLS
+                </button>
+            </div>
+
+            <!-- Legend -->
+            <div class="flex flex-wrap justify-center mb-8 text-sm" style="color: #333;">
+                <div class="legend-item"><span class="legend-color expired"></span> Expired</div>
+                <div class="legend-item"><span class="legend-color expiring-soon"></span> Expiring Soon (1 Month)</div>
+                <div class="legend-item"><span class="legend-color expiring-3months"></span> Expiring (1-3 Months)</div>
+                <div class="legend-item"><span class="legend-color valid"></span> Valid (>3 Months)</div>
+                <div class="legend-item"><span class="legend-color no-date"></span> No Expiry Date</div>
+            </div>
+
+            <!-- Car Expiry Cards Grid -->
+            <div id="car-expiry-grid" class="card-grid">
+                <!-- Car cards will be dynamically loaded here -->
+                <p class="text-center text-gray-500 col-span-full" id="loading-message">Loading car data...</p>
+            </div>
+
+            <!-- Vehicle Registration Status Table -->
+            <div class="data-table-container">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Vehicle Registration Status</h2>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>NO.</th>
+                            <th>PLATE NUMBER</th>
+                            <th>MAKE & MODEL</th>
+                            <th>YEAR</th>
+                            <th>EXPIRY DATE</th>
+                            <th>DAYS REMAINING</th>
+                            <th>AVAILABILITY STATUS</th>
+                            <th>TOTAL FINES (AED)</th>
+                            <th>CUSTOMER NAME</th>
+                            <th>PHONE NUMBER</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registration-status-table-body">
+                        <!-- Table rows will be dynamically loaded here -->
+                    </tbody>
+                </table>
+                <p class="text-center text-gray-500 mt-4 hidden" id="table-loading-message">Loading table data...</p>
+                <p class="text-center text-gray-500 mt-4 hidden" id="no-table-data-message">No registration data found.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for general notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50">Close</button>
+        </div>
+    </div>
+
+    <!-- Modal for displaying car fines -->
+    <div id="fines-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-lg relative animate-in zoom-in-50">
+            <button id="fines-modal-close-button" class="absolute top-4 right-4 p-2 bg-gray-200 rounded-full text-gray-600 hover:bg-gray-300 transition-colors" aria-label="Close">
+                <i class="fas fa-times"></i>
+            </button>
+            <h3 class="text-2xl font-bold text-gray-800 mb-4">Fines for Plate No. <span id="fines-car-plate"></span></h3>
+            <div id="fines-list-container" class="space-y-4 max-h-80 overflow-y-auto pr-2">
+                <!-- Fines list will be dynamically inserted here -->
+            </div>
+            <p id="no-fines-message" class="text-gray-500 text-center hidden mt-4">No fines recorded for this car.</p>
+        </div>
+    </div>
+
+    <script type="module">
+        // --- Supabase Configuration ---
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Supabase Client Import
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // --- DOM Elements ---
+        const ui = {
+            carExpiryGrid: document.getElementById('car-expiry-grid'),
+            searchInput: document.getElementById('search-input'),
+            filterStatusExpiry: document.getElementById('filter-status-expiry'),
+            filterDaysRemaining: document.getElementById('filter-days-remaining'),
+            filterYear: document.getElementById('filter-year'),
+            filterAvailabilityStatus: document.getElementById('filter-availability-status'),
+            refreshButtonHeader: document.getElementById('refresh-data-header'),
+            refreshButtonBody: document.getElementById('refresh-data-body'),
+            exportXlsButton: document.getElementById('export-xls-button'),
+            loadingMessage: document.getElementById('loading-message'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            registrationStatusTableBody: document.getElementById('registration-status-table-body'),
+            tableLoadingMessage: document.getElementById('table-loading-message'),
+            noTableDataMessage: document.getElementById('no-table-data-message'),
+            mainContent: document.getElementById('main-content'), // Still keep mainContent ref
+            mainHeader: document.getElementById('main-header'),   // Still keep mainHeader ref
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            lastUpdated: document.getElementById('last-updated'),
+            // New Fines Modal Elements
+            finesModal: document.getElementById('fines-modal'),
+            finesModalCloseButton: document.getElementById('fines-modal-close-button'),
+            finesCarPlate: document.getElementById('fines-car-plate'),
+            finesListContainer: document.getElementById('fines-list-container'),
+            noFinesMessage: document.getElementById('no-fines-message')
+        };
+
+        let allCarsData = [];
+        let allFinesData = []; // Store raw fines data
+        let currentlyFilteredCars = [];
+
+        // --- Modal Logic (general) ---
+        function showMessage(message, title = "Notification") {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+
+        function hideMessage() {
+            ui.notificationModal.classList.add('hidden');
+        }
+
+        ui.notificationCloseButton.addEventListener('click', hideMessage);
+
+        // --- Fines Modal Logic ---
+        function showFinesModal(plateNumber) {
+            const finesForCar = allFinesData.filter(fine => fine.plate_number === plateNumber);
+            ui.finesCarPlate.textContent = plateNumber;
+            ui.finesListContainer.innerHTML = '';
+
+            if (finesForCar.length > 0) {
+                ui.noFinesMessage.classList.add('hidden');
+                finesForCar.forEach(fine => {
+                    const fineItem = document.createElement('div');
+                    fineItem.classList.add('bg-gray-50', 'p-4', 'rounded-lg', 'border', 'border-gray-200');
+                    fineItem.innerHTML = `
+                        <p class="font-semibold text-gray-700">Fine Location: <span class="font-normal">${fine.location || 'N/A'}</span></p>
+                        <p class="font-semibold text-gray-700">Amount: <span class="font-normal text-red-600">AED ${fine.total_amount !== undefined ? fine.total_amount.toFixed(2) : '0.00'}</span></p>
+                        <p class="text-sm text-gray-500 mt-1">Date: <span class="font-normal">${fine.fine_date ? new Date(fine.fine_date).toLocaleDateString() : 'N/A'}</span></p>
+                    `;
+                    ui.finesListContainer.appendChild(fineItem);
+                });
+            } else {
+                ui.noFinesMessage.classList.remove('hidden');
+            }
+
+            ui.finesModal.classList.remove('hidden');
+        }
+
+        function hideFinesModal() {
+            ui.finesModal.classList.add('hidden');
+        }
+        
+        ui.finesModalCloseButton.addEventListener('click', hideFinesModal);
+
+        // --- Helper Function: Calculate Days Left/Overdue (for display) ---
+        function calculateDaysDifference(expiryDateString) {
+            if (!expiryDateString) return null;
+
+            const expiryDate = new Date(expiryDateString);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays > 0) {
+                return `${diffDays} days`;
+            } else if (diffDays < 0) {
+                return `${Math.abs(diffDays)} days ago`;
+            } else {
+                return `Today`;
+            }
+        }
+
+        // --- Helper Function: Calculate Numerical Days Left/Overdue (for filtering) ---
+        function getNumericalDaysDifference(expiryDateString) {
+            if (!expiryDateString) return null;
+
+            const expiryDate = new Date(expiryDateString);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const diffTime = expiryDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        // --- Helper Function: Determine Expiry Status for Cards (remains for card logic) ---
+        function getExpiryStatusForCard(expiryDateString) {
+            if (!expiryDateString) {
+                return { status: 'no-date', text: 'No Expiry Date', icon: 'fas fa-question-circle', colorClass: 'text-gray-500' };
+            }
+
+            const expiryDate = new Date(expiryDateString);
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const oneMonthFromNow = new Date(today);
+            oneMonthFromNow.setMonth(oneMonthFromNow.getMonth() + 1);
+
+            const threeMonthsFromNow = new Date(today);
+            threeMonthsFromNow.setMonth(threeMonthsFromNow.getMonth() + 3);
+
+            if (expiryDate < today) {
+                return { status: 'expired', text: 'Expired', icon: 'fas fa-exclamation-circle', colorClass: 'text-red-500' };
+            } else if (expiryDate <= oneMonthFromNow) {
+                return { status: 'expiring-soon', text: 'Expiring Soon', icon: 'fas fa-bell', colorClass: 'text-yellow-500' };
+            } else if (expiryDate <= threeMonthsFromNow) {
+                return { status: 'expiring-3months', text: 'Expiring in 1-3 Months', icon: 'fas fa-clock', colorClass: 'text-blue-500' };
+            } else {
+                return { status: 'valid', text: 'Valid', icon: 'fas fa-check-circle', colorClass: 'text-green-500' };
+            }
+        }
+
+        // --- Helper Function: Get Car Availability Status and Badge Class ---
+        function getCarAvailabilityStatus(carStatus) {
+            const lowerCaseStatus = (carStatus || '').toLowerCase();
+            switch (lowerCaseStatus) {
+                case 'available':
+                    return { text: 'Available', badgeClass: 'active' };
+                case 'inactive':
+                    return { text: 'Inactive', badgeClass: 'inactive' };
+                case 'under maintenance':
+                    return { text: 'Maintenance', badgeClass: 'maintenance' };
+                case 'rented':
+                    return { text: 'Rented', badgeClass: 'rented' };
+                default:
+                    return { text: carStatus || 'Unknown', badgeClass: 'unknown' };
+            }
+        }
+
+        // --- Populate Year Filter ---
+        function populateYearFilter(carsData) {
+            const years = new Set();
+            carsData.forEach(car => {
+                if (car.year) {
+                    years.add(car.year);
+                }
+            });
+            const sortedYears = Array.from(years).sort((a, b) => b - a);
+
+            ui.filterYear.innerHTML = '<option value="all">All Years</option>';
+            sortedYears.forEach(year => {
+                const option = document.createElement('option');
+                option.value = year;
+                option.textContent = year;
+                ui.filterYear.appendChild(option);
+            });
+        }
+
+        // --- Populate Availability Status Filter ---
+        function populateAvailabilityStatusFilter(carsData) {
+            const statuses = new Set();
+            carsData.forEach(car => {
+                if (car.status) {
+                    statuses.add(car.status);
+                }
+            });
+            const sortedStatuses = Array.from(statuses).sort();
+
+            ui.filterAvailabilityStatus.innerHTML = '<option value="all">All Availability Statuses</option>';
+            sortedStatuses.forEach(status => {
+                const option = document.createElement('option');
+                option.value = status;
+                option.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+                ui.filterAvailabilityStatus.appendChild(option);
+            });
+        }
+
+        // --- Render Car Cards ---
+        function renderCarCards(carsToRender) {
+            ui.carExpiryGrid.innerHTML = '';
+            ui.loadingMessage.classList.add('hidden');
+
+            if (carsToRender.length === 0) {
+                ui.carExpiryGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">No cars found matching your criteria.</p>';
+                return;
+            }
+
+            carsToRender.forEach(car => {
+                const expiry = getExpiryStatusForCard(car.registration_expiry_date);
+                const card = document.createElement('div');
+                card.classList.add('expiry-card', `status-${expiry.status}`);
+                // Add data attribute for click handler to get the plate number
+                card.setAttribute('data-plate-number', car.plate_number);
+                card.innerHTML = `
+                    <div class="flex items-center mb-2">
+                        <i class="${expiry.icon} ${expiry.colorClass} icon mr-3"></i>
+                        <div>
+                            <p class="title">${car.make_name || 'Unknown Make'} ${car.model_name || 'Unknown Model'}</p>
+                            <p class="details text-gray-500">Plate: ${car.plate_number || 'N/A'}</p>
+                        </div>
+                    </div>
+                    <div class="w-full">
+                        <p class="details">Registration Expiry:</p>
+                        <p class="date text-lg font-bold ${expiry.colorClass}">
+                            ${car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A'}
+                        </p>
+                        <p class="details text-sm mt-1 mb-2">${expiry.text}</p>
+                        <p class="details flex items-center text-sm font-semibold">
+                            <i class="fas fa-money-bill-wave text-red-500 mr-2"></i>
+                            Total Fines: ${car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A'}
+                        </p>
+                    </div>
+                `;
+                ui.carExpiryGrid.appendChild(card);
+            });
+
+            // Add click event listeners to all newly rendered cards
+            document.querySelectorAll('.expiry-card').forEach(card => {
+                card.addEventListener('click', (event) => {
+                    const plateNumber = event.currentTarget.getAttribute('data-plate-number');
+                    if (plateNumber) {
+                        showFinesModal(plateNumber);
+                    }
+                });
+            });
+        }
+
+        // --- Render Registration Status Table ---
+        function renderRegistrationTable(carsToRender) {
+            ui.registrationStatusTableBody.innerHTML = '';
+            ui.tableLoadingMessage.classList.add('hidden');
+            ui.noTableDataMessage.classList.add('hidden');
+
+            if (carsToRender.length === 0) {
+                ui.noTableDataMessage.classList.remove('hidden');
+                return;
+            }
+
+            carsToRender.forEach((car, index) => {
+                const daysRemaining = calculateDaysDifference(car.registration_expiry_date);
+                const availabilityStatus = getCarAvailabilityStatus(car.status);
+
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${index + 1}</td>
+                    <td>${car.plate_number || 'N/A'}</td>
+                    <td>${car.make_name || 'Unknown'} ${car.model_name || 'Model'}</td>
+                    <td>${car.year || 'N/A'}</td>
+                    <td>${car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A'}</td>
+                    <td>${daysRemaining || 'N/A'}</td>
+                    <td>
+                        <span class="table-status-badge ${availabilityStatus.badgeClass}">${availabilityStatus.text}</span>
+                    </td>
+                    <td>${car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A'}</td>
+                    <td>${car.customer_name || 'N/A'}</td>
+                    <td>${car.phone_number || 'N/A'}</td>
+                `;
+                ui.registrationStatusTableBody.appendChild(row);
+            });
+        }
+
+        // --- Fetch Car Data ---
+        async function fetchCarExpiryData() {
+            ui.loadingMessage.classList.remove('hidden');
+            ui.tableLoadingMessage.classList.remove('hidden');
+            ui.carExpiryGrid.innerHTML = '';
+            ui.registrationStatusTableBody.innerHTML = '';
+            ui.noTableDataMessage.classList.add('hidden');
+
+            try {
+                const { data: cars, error: carsError } = await supabaseClient
+                    .from('cars')
+                    .select('id, status, make_id, model_id, plate_number, registration_expiry_date, year');
+
+                if (carsError) throw carsError;
+
+                const { data: vehMakes, error: makesError } = await supabaseClient
+                    .from('veh_make')
+                    .select('id, make');
+                if (makesError) throw makesError;
+                const makeMap = new Map(vehMakes.map(make => [make.id, make.make]));
+
+                const { data: vehModels, error: modelsError } = await supabaseClient
+                    .from('veh_model')
+                    .select('id, model');
+                if (modelsError) throw modelsError;
+                const modelMap = new Map(vehModels.map(model => [model.id, model.model]));
+
+                // Fetch active rent history data, now selecting customer info
+                const { data: activeRentHistory, error: rentHistoryError } = await supabaseClient
+                    .from('active_rent_history_view')
+                    .select('car_id, customer_name, phone_number');
+
+                if (rentHistoryError) throw rentHistoryError;
+
+                const customerMap = new Map();
+                activeRentHistory.forEach(rent => {
+                    customerMap.set(rent.car_id, {
+                        customer_name: rent.customer_name,
+                        phone_number: rent.phone_number
+                    });
+                });
+
+                // --- Fetch raw traffic_fines data, now selecting 'location' instead of 'fine_reason' ---
+                const { data: trafficFines, error: finesError } = await supabaseClient
+                    .from('traffic_fines')
+                    .select('plate_number, total_amount, location, fine_date');
+
+                if (finesError) throw finesError;
+                allFinesData = trafficFines;
+
+                // Aggregate fines for the card/table display
+                const finesMap = new Map();
+                trafficFines.forEach(fine => {
+                    const currentTotal = finesMap.get(fine.plate_number) || 0;
+                    finesMap.set(fine.plate_number, currentTotal + (fine.total_amount || 0));
+                });
+
+                // Enrich car data with make, model names, customer info, and total fines
+                allCarsData = cars.map(car => ({
+                    ...car,
+                    make_name: makeMap.get(car.make_id),
+                    model_name: modelMap.get(car.model_id),
+                    customer_name: customerMap.has(car.id) ? customerMap.get(car.id).customer_name : null,
+                    phone_number: customerMap.has(car.id) ? customerMap.get(car.id).phone_number : null,
+                    total_fines: finesMap.get(car.plate_number) || 0
+                }));
+
+                populateYearFilter(allCarsData);
+                populateAvailabilityStatusFilter(allCarsData);
+                filterAndRenderCars();
+                ui.lastUpdated.textContent = new Date().toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Error fetching car expiry data:", error);
+                showMessage(`Error fetching data: ${error.message}`, "Data Error");
+                ui.loadingMessage.textContent = 'Failed to load data.';
+                ui.tableLoadingMessage.textContent = 'Failed to load data.';
+                ui.noTableDataMessage.classList.remove('hidden');
+            } finally {
+                ui.loadingMessage.classList.add('hidden');
+                ui.tableLoadingMessage.classList.add('hidden');
+            }
+        }
+
+        // --- Filter and Search Logic ---
+        function filterAndRenderCars() {
+            let filteredCars = [...allCarsData];
+
+            const searchTerm = ui.searchInput.value.toLowerCase();
+            const filterExpiryStatus = ui.filterStatusExpiry.value;
+            const filterDays = parseInt(ui.filterDaysRemaining.value, 10);
+            const filterYear = ui.filterYear.value;
+            const filterAvailabilityStatus = ui.filterAvailabilityStatus.value;
+
+            // Apply search filter
+            if (searchTerm) {
+                filteredCars = filteredCars.filter(car =>
+                    (car.make_name && car.make_name.toLowerCase().includes(searchTerm)) ||
+                    (car.model_name && car.model_name.toLowerCase().includes(searchTerm)) ||
+                    (car.plate_number && car.plate_number.toLowerCase().includes(searchTerm)) ||
+                    (car.status && car.status.toLowerCase().includes(searchTerm)) ||
+                    (car.customer_name && car.customer_name.toLowerCase().includes(searchTerm)) ||
+                    (car.phone_number && car.phone_number.toLowerCase().includes(searchTerm))
+                );
+            }
+
+            // Apply expiry status filter (for cards)
+            if (filterExpiryStatus !== 'all') {
+                filteredCars = filteredCars.filter(car => {
+                    const expiry = getExpiryStatusForCard(car.registration_expiry_date);
+                    return expiry.status === filterExpiryStatus;
+                });
+            }
+
+            // Apply days remaining filter
+            if (!isNaN(filterDays)) {
+                filteredCars = filteredCars.filter(car => {
+                    const numericalDays = getNumericalDaysDifference(car.registration_expiry_date);
+                    return numericalDays !== null && numericalDays <= filterDays;
+                });
+            }
+
+            // Apply year filter
+            if (filterYear !== 'all') {
+                filteredCars = filteredCars.filter(car => String(car.year) === filterYear);
+            }
+
+            // Apply availability status filter
+            if (filterAvailabilityStatus !== 'all') {
+                filteredCars = filteredCars.filter(car => (car.status || '').toLowerCase() === filterAvailabilityStatus.toLowerCase());
+            }
+
+            currentlyFilteredCars = filteredCars;
+            renderCarCards(currentlyFilteredCars);
+            renderRegistrationTable(currentlyFilteredCars);
+        }
+
+        // --- Export to XLS Function (HTML table based) ---
+        function exportToXls(data, filename) {
+            if (data.length === 0) {
+                showMessage("No data to export.", "Export Warning");
+                return;
+            }
+
+            const headers = [
+                "NO.",
+                "PLATE NUMBER",
+                "MAKE & MODEL",
+                "YEAR",
+                "EXPIRY DATE",
+                "DAYS REMAINING",
+                "AVAILABILITY STATUS",
+                "TOTAL FINES (AED)",
+                "CUSTOMER NAME",
+                "PHONE NUMBER"
+            ];
+
+            let tableHtml = '<table><thead><tr>';
+            headers.forEach(header => {
+                tableHtml += `<th>${header}</th>`;
+            });
+            tableHtml += '</tr></thead><tbody>';
+
+            data.forEach((car, index) => {
+                const expiryDateFormatted = car.registration_expiry_date ? new Date(car.registration_expiry_date).toLocaleDateString() : 'N/A';
+                const daysRemainingDisplay = calculateDaysDifference(car.registration_expiry_date) || 'N/A';
+                const availabilityStatusText = getCarAvailabilityStatus(car.status).text;
+                const totalFinesFormatted = car.total_fines !== undefined ? `AED ${car.total_fines.toFixed(2)}` : 'N/A';
+
+                tableHtml += `<tr>
+                    <td>${index + 1}</td>
+                    <td>${car.plate_number || 'N/A'}</td>
+                    <td>${car.make_name || 'Unknown'} ${car.model_name || 'Model'}</td>
+                    <td>${car.year || 'N/A'}</td>
+                    <td>${expiryDateFormatted}</td>
+                    <td>${daysRemainingDisplay}</td>
+                    <td>${availabilityStatusText}</td>
+                    <td>${totalFinesFormatted}</td>
+                    <td>${car.customer_name || 'N/A'}</td>
+                    <td>${car.phone_number || 'N/A'}</td>
+                </tr>`;
+            });
+            tableHtml += '</tbody></table>';
+
+            const blob = new Blob([tableHtml], { type: 'application/vnd.ms-excel' });
+            const link = document.createElement('a');
+
+            if (link.download !== undefined) {
+                const url = URL.createObjectURL(blob);
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+            } else {
+                showMessage("Your browser does not support downloading files directly. Please copy the data manually.", "Export Error");
+            }
+        }
+
+        // --- Event Listeners ---
+        ui.searchInput.addEventListener('input', filterAndRenderCars);
+        ui.filterStatusExpiry.addEventListener('change', filterAndRenderCars);
+        ui.filterDaysRemaining.addEventListener('input', filterAndRenderCars);
+        ui.filterYear.addEventListener('change', filterAndRenderCars);
+        ui.filterAvailabilityStatus.addEventListener('change', filterAndRenderCars);
+        ui.refreshButtonHeader.addEventListener('click', fetchCarExpiryData);
+        ui.refreshButtonBody.addEventListener('click', fetchCarExpiryData);
+        ui.exportXlsButton.addEventListener('click', () => {
+            const date = new Date();
+            const filename = `car_registrations_${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()}.xls`;
+            exportToXls(currentlyFilteredCars, filename);
+        });
+
+        // The logout button and its associated logic were part of the main layout, not this specific content page.
+        // If you need a logout button on this page, you'll need to add it to the HTML.
+        // For now, removing the reference as it was part of the sidebar interaction.
+        // ui.logoutButtonDesktop.addEventListener('click', async (e) => {
+        //     e.preventDefault();
+        //     showMessage("You have been logged out (simulated).", "Logged Out");
+        //     ui.carExpiryGrid.innerHTML = '<p class="text-center text-gray-500 col-span-full">Logged out. No data displayed.</p>';
+        //     ui.registrationStatusTableBody.innerHTML = '';
+        //     ui.lastUpdated.textContent = '...';
+        //     ui.userEmail.textContent = "admin@foxcarrental.com";
+        //     ui.userIdDisplay.classList.add('hidden');
+        //     allCarsData = [];
+        //     currentlyFilteredCars = [];
+        // });
+
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            // setupDesktopSidebar(); // Removed as sidebar is gone
+            supabaseClient.auth.getSession().then(({ data: { session } }) => {
+                if (!session) {
+                    console.log("No active Supabase session. Proceeding with public data access.");
+                }
+                fetchCarExpiryData();
+            }).catch(error => {
+                console.error("Error checking session:", error);
+                fetchCarExpiryData();
+            });
+        });
+    </script>
+</body>
+</html>

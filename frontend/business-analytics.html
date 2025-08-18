@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+    const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    supabaseClient.auth.getSession().then(({ data: { session } }) => {
+        if (!session) {
+            window.location.href = 'login.html';
+        }
+    });
+</script>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Analytics - Fox Car Rental Admin</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Supabase CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        /* Custom styles for the background gradient */
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #5680E9, #84CEEB, #5AB9EA, #C1C8E4, #8860D0);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+            background-attachment: fixed; /* Ensures gradient covers full viewport */
+            min-height: 100vh; /* Ensure body takes full height for gradient */
+            margin: 0; /* Remove default body margin */
+            padding: 0; /* Remove default body padding */
+            color: #333; /* Default text color */
+        }
+
+        @keyframes gradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Define custom colors from the image */
+        .bg-custom-blue-dark { background-color: #5680E9; }
+        .bg-custom-blue-light { background-color: #84CEEB; }
+        .bg-custom-cyan { background-color: #5AB9EA; }
+        .bg-custom-light-purple { background-color: #C1C8E4; }
+        .bg-custom-purple { background-color: #8860D0; }
+
+        .text-custom-blue-dark { color: #5680E9; }
+        .text-custom-blue-light { color: #84CEEB; }
+        .text-custom-cyan { color: #5AB9EA; }
+        .text-custom-light-purple { color: #C1C8E4; }
+        .text-custom-purple { color: #8860D0; }
+
+        .border-custom-blue-dark { border-color: #5680E9; }
+        .border-custom-blue-light { border-color: #84CEEB; }
+        .border-custom-cyan { border-color: #5AB9EA; }
+        .border-custom-light-purple { border-color: #C1C8E4; }
+        .border-custom-purple { border-color: #8860D0; }
+
+        /* Main content area - removed fixed positioning and background adjustments related to sidebar */
+        #main-content {
+            padding: 1rem; /* Adjust padding as needed for overall layout */
+            margin-left: 0; /* Ensure no left margin from sidebar */
+            padding-top: 1rem; /* Reset padding-top as header is not fixed anymore within this document */
+        }
+
+        /* Top Header - removed fixed positioning and background for blending */
+        #main-header {
+            position: static; /* No longer fixed within this document */
+            background-color: transparent; /* Make header background transparent */
+            box-shadow: none; /* Remove any shadows */
+            padding: 1rem; /* Retain padding for spacing */
+            margin-bottom: 1.5rem; /* Ensure spacing below header */
+        }
+        
+        /* Analytics Cards Styling */
+        .analytics-card {
+            background: linear-gradient(135deg, #E0F2F7, #E8F6FC, #E0F2F7); /* Light blue gradient */
+            background-size: 300% 300%;
+            animation: lightBlueGradientAnimation 8s ease infinite;
+            border-radius: 1rem;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+        .analytics-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -2px rgb(0 0 0 / 0.1);
+        }
+        @keyframes lightBlueGradientAnimation {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+    </style>
+</head>
+<body class="flex min-h-screen text-gray-800">
+
+    <!-- Main Content Area -->
+    <div id="main-content" class="flex-1 flex flex-col p-4 sm:p-6 lg:p-8 overflow-y-auto">
+        <!-- Top Nav for Desktop -->
+        <header id="main-header" class="p-4 flex items-center justify-between transition-all duration-300 ease-in-out">
+             <div class="flex items-center">
+                <h2 class="text-2xl font-bold text-gray-800">Business Analytics</h2>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="text-sm text-gray-500">Last updated: <span id="last-updated">...</span></span>
+                 <div class="flex items-center space-x-2">
+                     <i class="fas fa-user-circle text-2xl text-gray-500"></i>
+                     <span id="user-email" class="text-sm">admin@foxcarrental.com</span>
+                 </div>
+                 <span id="user-id-display" class="text-sm text-gray-500 hidden"></span>
+            </div>
+        </header>
+
+        <!-- Removed Business Analytics Header with Refresh Button -->
+        <!-- <div class="bg-white shadow-md rounded-xl p-4 mb-6 flex items-center justify-between">
+            <h2 class="text-2xl font-semibold text-gray-800">Business Analytics</h2>
+            <button class="bg-custom-blue-dark text-white px-4 py-2 rounded-lg shadow-md hover:bg-custom-blue-light transition-colors duration-200">
+                <i class="fas fa-sync-alt mr-2"></i>Refresh Analytics
+            </button>
+        </div> -->
+
+        <!-- Analytics Cards Grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <!-- Total Bookings Card -->
+            <div class="analytics-card p-5 flex flex-col items-start border-l-4 border-green-500">
+                <div class="p-3 bg-green-500 rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <p class="text-sm text-gray-500">Total Bookings</p>
+                <p class="text-3xl font-bold text-gray-900">4</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +1.2%
+                </span>
+            </div>
+
+            <!-- Avg Rental Duration Card -->
+            <div class="analytics-card p-5 flex flex-col items-start border-l-4 border-custom-cyan">
+                <div class="p-3 bg-custom-cyan rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-hourglass-half"></i>
+                </div>
+                <p class="text-sm text-gray-500">Avg Rental Duration</p>
+                <p class="text-3xl font-bold text-gray-900">25.0 days</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +5.7%
+                </span>
+            </div>
+
+            <!-- Customer Retention Card -->
+            <div class="analytics-card p-5 flex flex-col items-start border-l-4 border-custom-light-purple">
+                <div class="p-3 bg-custom-light-purple rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-users"></i>
+                </div>
+                <p class="text-sm text-gray-500">Customer Retention</p>
+                <p class="text-3xl font-bold text-gray-900">78.5%</p>
+                <span class="text-xs text-red-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-down mr-1"></i> -1.2%
+                </span>
+            </div>
+
+            <!-- Service Utilization Card -->
+            <div class="analytics-card p-5 flex flex-col items-start border-l-4 border-orange-500">
+                <div class="p-3 bg-orange-500 rounded-full text-white text-xl mb-2">
+                    <i class="fas fa-chart-area"></i>
+                </div>
+                <p class="text-sm text-gray-500">Service Utilization</p>
+                <p class="text-3xl font-bold text-gray-900">74.4%</p>
+                <span class="text-xs text-green-600 flex items-center mt-1">
+                    <i class="fas fa-arrow-up mr-1"></i> +1.5%
+                </span>
+            </div>
+        </div>
+
+        <!-- Popular Vehicle Types & Peak Booking Hours Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Popular Vehicle Types Card -->
+            <div class="analytics-card p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Popular Vehicle Types</h3>
+                <ul id="popular-vehicle-types-list" class="space-y-3">
+                    <!-- Dynamic content will be loaded here -->
+                    <li class="text-gray-500 text-center">Loading...</li>
+                </ul>
+            </div>
+
+            <!-- Peak Booking Hours Card -->
+            <div class="analytics-card p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Peak Booking Hours</h3>
+                <ul class="space-y-3">
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-blue-dark mr-2"></span> 10:00 AM
+                        </div>
+                        <span class="font-semibold">85%</span>
+                    </li>
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-cyan mr-2"></span> 2:00 PM
+                        </div>
+                        <span class="font-semibold">70%</span>
+                    </li>
+                    <li class="flex items-center justify-between text-gray-700">
+                        <div class="flex items-center">
+                            <span class="w-3 h-3 rounded-full bg-custom-purple mr-2"></span> 6:00 PM
+                        </div>
+                        <span class="font-semibold">55%</span>
+                    </li>
+                </ul>
+                <div class="mt-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600 border border-gray-200">
+                    <p class="font-semibold">Optimization Tip:</p>
+                    <p>Consider offering discounts during off-peak hours (9 AM - 12 PM) to increase utilization.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Performance Trends Section -->
+        <div class="analytics-card p-6 mb-6">
+            <h3 class="text-xl font-semibold text-gray-800 mb-4">Monthly Performance Trends</h3>
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 text-center">
+                <!-- Data will likely be dynamic from a chart library in a real app -->
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Jan</p>
+                    <p class="font-bold text-gray-900">45</p>
+                    <p class="text-xs text-green-600">AED 12,500</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Feb</p>
+                    <p class="font-bold text-gray-900">52</p>
+                    <p class="text-xs text-green-600">AED 14,200</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Mar</p>
+                    <p class="font-bold text-gray-900">48</p>
+                    <p class="text-xs text-red-600">AED 13,800</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Apr</p>
+                    <p class="font-bold text-gray-900">61</p>
+                    <p class="text-xs text-green-600">AED 16,000</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">May</p>
+                    <p class="font-bold text-gray-900">58</p>
+                    <p class="text-xs text-red-600">AED 15,700</p>
+                </div>
+                <div class="p-3 border rounded-lg">
+                    <p class="text-sm text-gray-500">Jun</p>
+                    <p class="font-bold text-gray-900">67</p>
+                    <p class="text-xs text-green-600">AED 18,200</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal for notifications -->
+    <div id="notification-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md text-center">
+            <h3 id="notification-title" class="text-xl font-bold mb-4">Notification</h3>
+            <p id="notification-message" class="text-gray-700 mb-6"></p>
+            <button id="notification-close-button" class="bg-custom-blue-dark text-white px-6 py-2 rounded-lg hover:bg-custom-blue-light focus:outline-none focus:ring-2 focus:ring-custom-blue-light focus:ring-opacity-50">OK</button>
+        </div>
+    </div>
+
+    <script type="module">
+        // Supabase Configuration
+        const SUPABASE_URL = 'https://yzwfldypkwqndxjchgit.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl6d2ZsZHlwa3dxbmR4amNoZ2l0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDkzMjA0OTUsImV4cCI6MjA2NDg5NjQ5NX0.i3HOii7L9mJ-cBZ2us3TRmS0-GI9bylHuLe9INAu4zY';
+
+        // Initialize Supabase client
+        const { createClient } = supabase;
+        const supabaseClient = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+        // Redirect to login if not authenticated
+        supabaseClient.auth.getSession().then(({ data: { session } }) => {
+            if (!session) {
+                // In a real application, you would redirect to a login page.
+                // For this example, we'll just log a message since the key is anonymous.
+                console.log("User not authenticated. (Simulated login redirect)");
+                // window.location.href = 'login.html'; // Uncomment for actual redirect
+            }
+        });
+
+        // DOM Elements
+        const ui = {
+            mainContent: document.getElementById('main-content'),
+            mainHeader: document.getElementById('main-header'),
+            notificationModal: document.getElementById('notification-modal'),
+            notificationTitle: document.getElementById('notification-title'),
+            notificationMessage: document.getElementById('notification-message'),
+            notificationCloseButton: document.getElementById('notification-close-button'),
+            userEmail: document.getElementById('user-email'),
+            userIdDisplay: document.getElementById('user-id-display'),
+            lastUpdated: document.getElementById('last-updated'),
+            popularVehicleTypesList: document.getElementById('popular-vehicle-types-list')
+        };
+
+        // Predefined colors for the list items
+        const itemColors = [
+            'bg-blue-500', 'bg-green-500', 'bg-purple-500', 'bg-yellow-500', 'bg-red-500',
+            'bg-indigo-500', 'bg-pink-500', 'bg-teal-500', 'bg-orange-500', 'bg-cyan-500'
+        ];
+
+        // --- Modal Logic ---
+        function showCustomMessageBox(title, message) {
+            ui.notificationTitle.textContent = title;
+            ui.notificationMessage.textContent = message;
+            ui.notificationModal.classList.remove('hidden');
+        }
+
+        function hideCustomMessageBox() {
+            ui.notificationModal.classList.add('hidden');
+        }
+
+        ui.notificationCloseButton.addEventListener('click', hideCustomMessageBox);
+
+        // --- Fetch Popular Vehicle Types ---
+        async function fetchPopularVehicleTypes() {
+            ui.popularVehicleTypesList.innerHTML = '<li class="text-gray-500 text-center">Loading popular vehicles...</li>';
+            try {
+                // Fetch rent history and join with cars and veh_make to get the make name
+                const { data, error } = await supabaseClient
+                    .from('rent_history')
+                    .select('cars(veh_make(make))');
+
+                if (error) {
+                    console.error("Error fetching popular vehicle types:", error.message);
+                    ui.popularVehicleTypesList.innerHTML = '<li class="text-red-500 text-center">Error loading data.</li>';
+                    return;
+                }
+
+                // Process data to count bookings per car make
+                const makeCounts = new Map();
+                data.forEach(rental => {
+                    const makeName = rental.cars?.veh_make?.make;
+                    if (makeName) {
+                        makeCounts.set(makeName, (makeCounts.get(makeName) || 0) + 1);
+                    }
+                });
+
+                // Convert map to array and sort by count descending
+                const sortedMakes = Array.from(makeCounts.entries())
+                    .sort((a, b) => b[1] - a[1]);
+
+                renderPopularVehicleTypes(sortedMakes);
+
+            } catch (error) {
+                console.error("An unexpected error occurred in fetchPopularVehicleTypes:", error.message);
+                ui.popularVehicleTypesList.innerHTML = '<li class="text-red-500 text-center">An unexpected error occurred.</li>';
+            }
+        }
+
+        // --- Render Popular Vehicle Types ---
+        function renderPopularVehicleTypes(data) {
+            ui.popularVehicleTypesList.innerHTML = ''; // Clear existing content
+
+            if (data.length === 0) {
+                ui.popularVehicleTypesList.innerHTML = '<li class="text-gray-500 text-center">No popular vehicle data available.</li>';
+                return;
+            }
+
+            data.forEach(([make, count], index) => {
+                const listItem = document.createElement('li');
+                listItem.className = 'flex items-center justify-between text-gray-700';
+                listItem.innerHTML = `
+                    <div class="flex items-center">
+                        <span class="w-3 h-3 rounded-full ${itemColors[index % itemColors.length]} mr-2"></span> ${make}
+                    </div>
+                    <span class="font-semibold">${count} bookings</span>
+                `;
+                ui.popularVehicleTypesList.appendChild(listItem);
+            });
+        }
+
+        // --- Event Listeners ---
+        // Refresh Analytics button logic needs to be removed as the button is gone.
+        // If a new refresh button is desired, it will need to be added to the main header and connected.
+        
+        // --- Initial Load ---
+        window.addEventListener('DOMContentLoaded', () => {
+            fetchPopularVehicleTypes(); // Fetch data on initial load
+            // Update last updated time
+            ui.lastUpdated.textContent = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        });
+    </script>
+</body>
+</html>
