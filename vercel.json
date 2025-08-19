@@ -1,0 +1,32 @@
+{
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "/backend/server.js"
+    }
+  ],
+  "functions": {
+    "backend/server.js": {
+      "runtime": "node18.x" // Or "node20.x" if that's what you prefer and matches your local Node.js version
+    }
+  },
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*" // IMPORTANT: For production, consider replacing "*" with your specific Vercel frontend URL (e.g., "https://foxrental-fox-remtas-projects.vercel.app") for better security.
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "X-Requested-With, Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
