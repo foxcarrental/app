@@ -7,7 +7,7 @@
   ],
   "functions": {
     "backend/server.js": {
-      "runtime": "node18.x" // Or "node20.x" if that's what you prefer and matches your local Node.js version
+      "runtime": "node18.x"
     }
   },
   "headers": [
@@ -16,7 +16,7 @@
       "headers": [
         {
           "key": "Access-Control-Allow-Origin",
-          "value": "*" // IMPORTANT: For production, consider replacing "*" with your specific Vercel frontend URL (e.g., "https://foxrental-fox-remtas-projects.vercel.app") for better security.
+          "value": "*"
         },
         {
           "key": "Access-Control-Allow-Methods",
