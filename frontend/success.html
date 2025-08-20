@@ -1,20 +1,25 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html>
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>تم الدفع بنجاح</title>
-<style>
-body { font-family: Arial; background:#d4edda; display:flex; justify-content:center; align-items:center; height:100vh; margin:0; }
-.message { background:#fff; padding:30px; border-radius:12px; box-shadow:0 5px 15px rgba(0,0,0,0.2); text-align:center; }
-h1 { color:#155724; }
-</style>
+  <title>Payment Success</title>
 </head>
 <body>
-<div class="message">
-<h1>تم الدفع بنجاح! 🎉</h1>
-<p>شكراً لحجزك معنا.</p>
-<a href="customer-payment.html">العودة للحجز مرة أخرى</a>
-</div>
+  <h1>Payment Successful 🎉</h1>
+  <p>Thank you for your payment.</p>
+
+  <script>
+    async function confirmPayment() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const sessionId = urlParams.get("session_id");
+      if (sessionId) {
+        await fetch("/api/confirm", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ session_id: sessionId })
+        });
+      }
+    }
+    confirmPayment();
+  </script>
 </body>
 </html>
